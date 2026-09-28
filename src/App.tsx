@@ -1,0 +1,539 @@
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { game } from './gameEngine';
+import { AudioSys } from './audio';
+import { VirtualJoystick } from './components/VirtualJoystick';
+import { ActionControls } from './components/ActionControls';
+import { MobileHUD } from './components/MobileHUD';
+import { MobileQuickDrawer } from './components/MobileQuickDrawer';
+import { MobileModals } from './components/MobileModals';
+import { ToolMode, ShipType } from './types';
+
+export default function App() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Reactive state synced with game engine
+  const [gameState, setGameState] = useState<'SPACE' | 'PLANET' | 'WARP'>('SPACE');
+  const [units, setUnits] = useState(game.data.units);
+  const [nanites, setNanites] = useState(game.data.nanites);
+  const [quicksilver, setQuicksilver] = useState(game.data.quicksilver);
+  const [taintedMetal, setTaintedMetal] = useState(game.data.taintedMetal);
+  const [shield, setShield] = useState(game.data.shield);
+  const [maxShield, setMaxShield] = useState(game.data.maxShield);
+  const [hazard, setHazard] = useState(game.data.hazard);
+  const [lifeSupport, setLifeSupport] = useState(game.data.lifeSupport);
+  const [toolMode, setToolMode] = useState<ToolMode>(game.data.toolMode);
+  const [shipType, setShipType] = useState<ShipType>(game.data.shipType);
+  const [ammo, setAmmo] = useState(game.data.ammo);
+  const [maxAmmo, setMaxAmmo] = useState(game.data.maxAmmo);
+  const [overheat, setOverheat] = useState(game.data.overheat);
+  const [isOverheated, setIsOverheated] = useState(game.data.isOverheated);
+  const [isPulseActive, setIsPulseActive] = useState(game.data.isPulseActive);
+  const [isVisorActive, setIsVisorActive] = useState(game.data.isVisorActive);
+  const [interactLabel, setInteractLabel] = useState<string | null>(game.data.interactLabel);
+  const [interactProgress, setInteractProgress] = useState(game.data.interactProgress);
+  const [cargoScanTimer, setCargoScanTimer] = useState(game.data.cargoScanTimer);
+  const [stormCountdown, setStormCountdown] = useState(game.data.stormCountdown);
+  const [isStormActive, setIsStormActive] = useState(game.data.isStormActive);
+  const [pirateCountdown, setPirateCountdown] = useState(game.data.pirateCountdown);
+  const [sentinelAlert, setSentinelAlert] = useState(game.data.sentinelAlert || 0);
+  const [floatingTexts, setFloatingTexts] = useState(game.data.floatingTexts);
+  const [activePlanet, setActivePlanet] = useState(game.data.activePlanet);
+  const [isAutoPilot, setIsAutoPilot] = useState(game.isAutoPilot);
+  const [autoPilotTargetPlanet, setAutoPilotTargetPlanet] = useState(game.autoPilotTargetPlanet);
+  const [autoPilotPlanetStartTime, setAutoPilotPlanetStartTime] = useState(game.autoPilotPlanetStartTime);
+  const [cameraZoom, setCameraZoom] = useState(game.cameraZoom);
+
+  const touchDistRef = useRef<number | null>(null);
+  const initialZoomRef = useRef<number>(1.0);
+
+  // Mobile Drawers & Modals
+  const [isQuickDrawerOpen, setIsQuickDrawerOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<string | null>(null);
+
+  // Sync with engine
+  const syncWithEngine = useCallback(() => {
+    setGameState(game.currState);
+    setUnits(game.data.units);
+    setNanites(game.data.nanites);
+    setQuicksilver(game.data.quicksilver);
+    setTaintedMetal(game.data.taintedMetal);
+    setShield(game.data.shield);
+    setMaxShield(game.data.maxShield);
+    setHazard(game.data.hazard);
+    setLifeSupport(game.data.lifeSupport);
+    setToolMode(game.data.toolMode);
+    setShipType(game.data.shipType);
+    setAmmo(game.data.ammo);
+    setMaxAmmo(game.data.maxAmmo);
+    setOverheat(game.data.overheat);
+    setIsOverheated(game.data.isOverheated);
+    setIsPulseActive(game.data.isPulseActive);
+    setIsVisorActive(game.data.isVisorActive);
+    setInteractLabel(game.data.interactLabel);
+    setInteractProgress(game.data.interactProgress);
+    setCargoScanTimer(game.data.cargoScanTimer);
+    setStormCountdown(game.data.stormCountdown);
+    setIsStormActive(game.data.isStormActive);
+    setPirateCountdown(game.data.pirateCountdown);
+    setSentinelAlert(game.data.sentinelAlert || 0);
+    setFloatingTexts([...game.data.floatingTexts]);
+    setActivePlanet(game.data.activePlanet);
+    setIsAutoPilot(game.isAutoPilot);
+    setAutoPilotTargetPlanet(game.autoPilotTargetPlanet);
+    setAutoPilotPlanetStartTime(game.autoPilotPlanetStartTime);
+    setCameraZoom(game.cameraZoom);
+  }, []);
+
+  useEffect(() => {
+    const unsub = game.subscribe(syncWithEngine);
+    return unsub;
+  }, [syncWithEngine]);
+
+  // Main Canvas Render & Animation Loop
+  useEffect(() => {
+    let animId: number;
+
+    const loop = () => {
+      game.update();
+      if (canvasRef.current) {
+        game.render(canvasRef.current);
+      }
+      syncWithEngine();
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animId);
+  }, [syncWithEngine]);
+
+  // Keyboard Event Listeners for desktop fallback
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      AudioSys.unlockOnFirstInteraction();
+      game.notifyUserInput();
+      const code = e.code;
+      if (code === 'KeyW' || code === 'ArrowUp') game.keyboard.w = 1;
+      if (code === 'KeyS' || code === 'ArrowDown') game.keyboard.s = 1;
+      if (code === 'KeyA' || code === 'ArrowLeft') game.keyboard.a = 1;
+      if (code === 'KeyD' || code === 'ArrowRight') game.keyboard.d = 1;
+      if (code === 'Space') game.keyboard.space = 1;
+      if (code === 'ShiftLeft' || code === 'ShiftRight') game.keyboard.shift = 1;
+      if (code === 'KeyE') game.keyboard.e = 1;
+
+      if (code === 'Tab') {
+        e.preventDefault();
+        setActiveModal((prev) => (prev === 'inventory' ? null : 'inventory'));
+      }
+      if (code === 'KeyM') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'guild-envoy' ? null : 'guild-envoy'));
+        else setActiveModal((prev) => (prev === 'galaxy-map' ? null : 'galaxy-map'));
+      }
+      if (code === 'KeyG') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'atlantid-tool' ? null : 'atlantid-tool'));
+        else game.cycleToolMode();
+      }
+      if (code === 'KeyK') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'living-ship' ? null : 'living-ship'));
+        else game.cycleStarship();
+      }
+      if (code === 'KeyR') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'large-refiner' ? null : 'large-refiner'));
+        else game.reloadBoltcaster();
+      }
+      if (code === 'KeyH') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'pirate-flagship' ? null : 'pirate-flagship'));
+        else setActiveModal((prev) => (prev === 'orbital-freighter' ? null : 'orbital-freighter'));
+      }
+      if (code === 'KeyU') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'livestock-ranch' ? null : 'livestock-ranch'));
+        else setActiveModal((prev) => (prev === 'appearance' ? null : 'appearance'));
+      }
+      if (code === 'KeyY') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'milestones' ? null : 'milestones'));
+        else setActiveModal((prev) => (prev === 'specialist-terminals' ? null : 'specialist-terminals'));
+      }
+      if (code === 'KeyV') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'multi-tool-salvage' ? null : 'multi-tool-salvage'));
+        else setActiveModal((prev) => (prev === 'atlas-path' ? null : 'atlas-path'));
+      }
+      if (code === 'KeyI') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'exosuit-upgrade' ? null : 'exosuit-upgrade'));
+        else setActiveModal((prev) => (prev === 'manufacturing' ? null : 'manufacturing'));
+      }
+      if (code === 'KeyJ') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'floating-islands' ? null : 'floating-islands'));
+      }
+      if (code === 'KeyB') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'boundary-failure' ? null : 'boundary-failure'));
+      }
+      if (code === 'KeyO') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'derelict-freighter' ? null : 'derelict-freighter'));
+        else setActiveModal((prev) => (prev === 'abyssal-horror' ? null : 'abyssal-horror'));
+      }
+      if (code === 'Quote' && e.shiftKey) {
+        setActiveModal((prev) => (prev === 'volcano' ? null : 'volcano'));
+      }
+      if (code === 'End' && e.shiftKey) {
+        setActiveModal((prev) => (prev === 'aquarium' ? null : 'aquarium'));
+      }
+      if (code === 'KeyX') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'starship-weapons' ? null : 'starship-weapons'));
+        else setActiveModal((prev) => (prev === 'quick-recharge' ? null : 'quick-recharge'));
+      }
+      if (code === 'KeyC') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'galactic-core' ? null : 'galactic-core'));
+        else game.triggerScanPulse();
+      }
+      if (code === 'KeyL') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'cartographer' ? null : 'cartographer'));
+        else setActiveModal((prev) => (prev === 'settlement' ? null : 'settlement'));
+      }
+      if (code === 'Period') setActiveModal((prev) => (prev === 'solar-ship' ? null : 'solar-ship'));
+      if (code === 'Comma') setActiveModal((prev) => (prev === 'laylaps' ? null : 'laylaps'));
+      if (code === 'Backslash') setActiveModal((prev) => (prev === 'outlaw-station' ? null : 'outlaw-station'));
+      if (code === 'Slash') setActiveModal((prev) => (prev === 'weapon-arsenal' ? null : 'weapon-arsenal'));
+      if (code === 'Home') setActiveModal((prev) => (prev === 'fishing' ? null : 'fishing'));
+      if (code === 'Delete') setActiveModal((prev) => (prev === 'black-hole' ? null : 'black-hole'));
+      if (code === 'PageDown') setActiveModal((prev) => (prev === 'liquidator' ? null : 'liquidator'));
+      if (code === 'PageUp') setActiveModal((prev) => (prev === 'station' ? null : 'station'));
+      if (code === 'End') setActiveModal((prev) => (prev === 'sandworm' ? null : 'sandworm'));
+      if (code === 'Insert') setActiveModal((prev) => (prev === 'trade-outpost' ? null : 'trade-outpost'));
+      if (code === 'F1') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'ship-paint' ? null : 'ship-paint'));
+        else setActiveModal((prev) => (prev === 'scrapper' ? null : 'scrapper'));
+      }
+      if (code === 'F2') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'bioluminescent-forest' ? null : 'bioluminescent-forest'));
+        else setActiveModal((prev) => (prev === 'organic-fleet' ? null : 'organic-fleet'));
+      }
+      if (code === 'F3') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'extreme-weather' ? null : 'extreme-weather'));
+        else setActiveModal((prev) => (prev === 'expedition' ? null : 'expedition'));
+      }
+      if (code === 'F4') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'race-initiator' ? null : 'race-initiator'));
+        else setActiveModal((prev) => (prev === 'egg-sequencer' ? null : 'egg-sequencer'));
+      }
+      if (code === 'F5') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'titan-beetle' ? null : 'titan-beetle'));
+        else setActiveModal((prev) => (prev === 'archaeology' ? null : 'archaeology'));
+      }
+      if (code === 'F6') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'spacewalk' ? null : 'spacewalk'));
+        else setActiveModal((prev) => (prev === 'orbital-freighter' ? null : 'orbital-freighter'));
+      }
+      if (code === 'F7') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'short-range-teleporter' ? null : 'short-range-teleporter'));
+        else setActiveModal((prev) => (prev === 'biodome' ? null : 'biodome'));
+      }
+      if (code === 'F8') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'em-generator' ? null : 'em-generator'));
+        else setActiveModal((prev) => (prev === 'wonders' ? null : 'wonders'));
+      }
+      if (code === 'F9') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'custom-difficulty' ? null : 'custom-difficulty'));
+        else setActiveModal((prev) => (prev === 'supercharge' ? null : 'supercharge'));
+      }
+      if (code === 'F10') { e.preventDefault(); setActiveModal((prev) => (prev === 'appearance' ? null : 'appearance')); }
+      if (code === 'F11') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'power-grid' ? null : 'power-grid'));
+        else setActiveModal((prev) => (prev === 'base-computer' ? null : 'base-computer'));
+      }
+      if (code === 'F12') {
+        e.preventDefault();
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'aquatic-base' ? null : 'aquatic-base'));
+        else setActiveModal((prev) => (prev === 'abandoned-building' ? null : 'abandoned-building'));
+      }
+      if (code === 'Digit7') {
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'gas-harvester' ? null : 'gas-harvester'));
+        else setActiveModal((prev) => (prev === 'industrial' ? null : 'industrial'));
+      }
+      if (code === 'KeyP') setActiveModal((prev) => (prev === 'discoveries' ? null : 'discoveries'));
+      if (code === 'KeyZ') setActiveModal((prev) => (prev === 'build-menu' ? null : 'build-menu'));
+      if (code === 'Escape') {
+        setActiveModal(null);
+        setIsQuickDrawerOpen(false);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const code = e.code;
+      if (code === 'KeyW' || code === 'ArrowUp') game.keyboard.w = 0;
+      if (code === 'KeyS' || code === 'ArrowDown') game.keyboard.s = 0;
+      if (code === 'KeyA' || code === 'ArrowLeft') game.keyboard.a = 0;
+      if (code === 'KeyD' || code === 'ArrowRight') game.keyboard.d = 0;
+      if (code === 'Space') game.keyboard.space = 0;
+      if (code === 'ShiftLeft' || code === 'ShiftRight') game.keyboard.shift = 0;
+      if (code === 'KeyE') game.keyboard.e = 0;
+    };
+
+    const onUserPointerDown = (e: MouseEvent | TouchEvent | PointerEvent) => {
+      AudioSys.unlockOnFirstInteraction();
+      if ('touches' in e && (e as TouchEvent).touches.length >= 2) {
+        return;
+      }
+      game.notifyUserInput();
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      AudioSys.unlockOnFirstInteraction();
+      // If touch is on a modal or minimap, don't zoom the game camera!
+      if ((e.target as HTMLElement)?.closest?.('.modal-overlay, #minimap-fullscreen-root, canvas.minimap-canvas, [data-prevent-game-zoom="true"]')) {
+        return;
+      }
+      if (e.touches.length === 2) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        touchDistRef.current = dist;
+        initialZoomRef.current = game.cameraZoom;
+      } else if (e.touches.length === 1) {
+        touchDistRef.current = null;
+        game.notifyUserInput();
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if ((e.target as HTMLElement)?.closest?.('.modal-overlay, #minimap-fullscreen-root, canvas.minimap-canvas, [data-prevent-game-zoom="true"]')) {
+        return;
+      }
+      if (e.touches.length === 2 && touchDistRef.current !== null) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const ratio = dist / touchDistRef.current;
+        game.setCameraZoom(initialZoomRef.current * ratio);
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        touchDistRef.current = null;
+      }
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      // If scrolling inside modal or minimap, don't zoom the game camera!
+      if ((e.target as HTMLElement)?.closest?.('.modal-overlay, #minimap-fullscreen-root, canvas.minimap-canvas, [data-prevent-game-zoom="true"]')) {
+        return;
+      }
+      const factor = e.deltaY < 0 ? 1.12 : 0.88;
+      game.setCameraZoom(game.cameraZoom * factor);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('pointerdown', onUserPointerDown);
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('wheel', onWheel, { passive: true });
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('pointerdown', onUserPointerDown);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('wheel', onWheel);
+    };
+  }, []);
+
+  // Joystick Input Handler
+  const handleJoystickVector = useCallback((vec: { x: number; y: number }) => {
+    if (Math.hypot(vec.x, vec.y) > 0.05) {
+      game.notifyUserInput();
+    }
+    game.touchControls.joystickVector = vec;
+  }, []);
+
+  return (
+    <div className="relative w-screen h-screen overflow-hidden select-none bg-black touch-none">
+      {/* Scanline & Vignette Overlays */}
+      <div className="scanlines" />
+      <div className="vignette" />
+
+      {/* Main 2D WebGL/Canvas Viewport */}
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block cursor-crosshair"
+        onMouseDown={() => {
+          AudioSys.unlockOnFirstInteraction();
+          game.mouse.isDown = true;
+        }}
+        onMouseUp={() => {
+          game.mouse.isDown = false;
+        }}
+        onTouchStart={() => {
+          AudioSys.unlockOnFirstInteraction();
+        }}
+      />
+
+      {/* Mobile In-Game HUD (Top compass, status bars, warnings, currency) */}
+      <MobileHUD
+        locationName={gameState === 'PLANET' && activePlanet ? activePlanet.name : '유클리드 은하 (EUCLID)'}
+        subLocation={
+          gameState === 'PLANET' && activePlanet
+            ? `생물군계: ${activePlanet.type} // ${activePlanet.hazardType}`
+            : '성간 심우주 궤도 // 미탐사 항성계'
+        }
+        units={units}
+        nanites={nanites}
+        quicksilver={quicksilver}
+        taintedMetal={taintedMetal}
+        shield={shield}
+        maxShield={maxShield}
+        hazard={hazard}
+        lifeSupport={lifeSupport}
+        activePlanet={activePlanet}
+        gameState={gameState}
+        isStormActive={isStormActive}
+        stormCountdown={stormCountdown}
+        cargoScanTimer={cargoScanTimer}
+        pirateCountdown={pirateCountdown}
+        sentinelAlert={sentinelAlert}
+        overheat={overheat}
+        isOverheated={isOverheated}
+        interactLabel={interactLabel}
+        floatingTexts={floatingTexts}
+        isAutoPilot={isAutoPilot}
+        autoPilotTargetPlanet={autoPilotTargetPlanet}
+        autoPilotPlanetStartTime={autoPilotPlanetStartTime}
+        cameraZoom={cameraZoom}
+        onZoomIn={() => game.zoomIn()}
+        onZoomOut={() => game.zoomOut()}
+        onResetZoom={() => game.resetZoom()}
+        onOpenDrawer={() => {
+          AudioSys.playNote(480, 'sine', 0.1);
+          setIsQuickDrawerOpen(true);
+        }}
+      />
+
+      {/* AutoPilot Screen Border Glow Overlay */}
+      {isAutoPilot && (
+        <div className="fixed inset-0 pointer-events-none border-2 sm:border-4 border-cyan-400/50 shadow-[inset_0_0_60px_rgba(0,229,255,0.25)] z-30 animate-pulse" />
+      )}
+
+      {/* Touch Controls Layout (Landscape & Portrait Responsive) */}
+      <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-2.5 sm:p-5 pb-safe">
+        {/* Left Bottom: Virtual Thumb Joystick */}
+        <div className="pointer-events-auto shrink-0">
+          <VirtualJoystick onVectorChange={handleJoystickVector} radius={50} />
+        </div>
+
+        {/* Center Bottom: Starship Cockpit & Flight Gauges (#cockpit-hud v2) */}
+        {gameState === 'SPACE' && (
+          <div id="cockpit-hud" className="hidden md:flex pointer-events-none select-none mb-1">
+            {/* Speed Gauge Arc */}
+            <div
+              className={`flight-gauge-arc ${isPulseActive ? 'pulse-drive-active' : ''}`}
+              style={{
+                ['--gauge-val' as any]: Math.min(100, Math.round((Math.hypot(game.player.vx, game.player.vy) / (isPulseActive ? 32 : 10)) * 100))
+              }}
+            >
+              <span className="text-[8px] font-mono text-cyan-300 font-bold uppercase tracking-wider">속도 (SPD)</span>
+              <span className="text-xs font-mono font-extrabold text-white">
+                {Math.round(Math.hypot(game.player.vx, game.player.vy) * 4)}u
+              </span>
+              <span className="text-[7px] font-mono text-cyan-400">
+                {isPulseActive ? '초광속 펄스' : '추진 순항'}
+              </span>
+            </div>
+
+            {/* Shield & Power Gauge Arc */}
+            <div
+              className="flight-gauge-arc"
+              style={{
+                ['--gauge-val' as any]: Math.min(100, Math.round((shield / maxShield) * 100))
+              }}
+            >
+              <span className="text-[8px] font-mono text-cyan-300 font-bold uppercase tracking-wider">방어막</span>
+              <span className="text-xs font-mono font-extrabold text-white">
+                {Math.round(shield)}%
+              </span>
+              <span className="text-[7px] font-mono text-emerald-400">
+                {shipType}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Right Bottom: Action Cluster (Fire, Jetpack, Interact, Tool Switch, Reload, etc.) */}
+        <div className="pointer-events-auto shrink-0">
+          <ActionControls
+            toolMode={toolMode}
+            shipType={shipType}
+            gameState={gameState}
+            isVisorActive={isVisorActive}
+            isOverheated={isOverheated}
+            overheat={overheat}
+            interactLabel={interactLabel}
+            interactProgress={interactProgress}
+            ammo={ammo}
+            maxAmmo={maxAmmo}
+            cargoScanTimer={cargoScanTimer}
+            onFireStart={() => {
+              game.touchControls.isFiring = true;
+            }}
+            onFireEnd={() => {
+              game.touchControls.isFiring = false;
+            }}
+            onJetpackStart={() => {
+              game.touchControls.isJetpacking = true;
+            }}
+            onJetpackEnd={() => {
+              game.touchControls.isJetpacking = false;
+            }}
+            onInteractStart={() => {
+              game.touchControls.isInteracting = true;
+            }}
+            onInteractEnd={() => {
+              game.touchControls.isInteracting = false;
+            }}
+            onCycleTool={() => game.cycleToolMode()}
+            onScan={() => game.triggerScanPulse()}
+            onReload={() => game.reloadBoltcaster()}
+            onToggleVisor={() => {
+              game.data.isVisorActive = !game.data.isVisorActive;
+              setIsVisorActive(game.data.isVisorActive);
+              AudioSys.playNote(650, 'sine', 0.15);
+            }}
+            onOpenQuickRecharge={() => {
+              setActiveModal('quick-recharge');
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Full Mobile Quick Command Hub Drawer */}
+      <MobileQuickDrawer
+        isOpen={isQuickDrawerOpen}
+        onClose={() => setIsQuickDrawerOpen(false)}
+        onOpenModal={(modalId) => {
+          if (modalId === 'ship-switch') {
+            game.cycleStarship();
+          } else {
+            setActiveModal(modalId);
+          }
+        }}
+      />
+
+      {/* Mobile Responsive Modals (Inventory, Galaxy Map, Fishing, Black Hole, etc.) */}
+      <MobileModals activeModal={activeModal} onClose={() => setActiveModal(null)} />
+    </div>
+  );
+}
