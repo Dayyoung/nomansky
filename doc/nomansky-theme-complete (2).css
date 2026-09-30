@@ -1,18 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;500;700;900&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap");
-@import "tailwindcss";
-
-/* ==========================================================================
-   No Man's Sky 2D - Complete Unified Master CSS Theme
-   Authentic Sci-Fi HUD & UI / UX System (UI-01 ~ UI-439 Comprehensive)
-   Optimized for Web & Mobile Viewports (100dvh, Safe-Area & 120Hz ProMotion)
-   Source: doc/nomansky-theme-complete (2).css
-   ========================================================================== */
 /* ==========================================================================
    No Man's Sky 2D - Complete Unified Master CSS Theme
    Authentic Sci-Fi HUD & UI / UX System (UI-01 ~ UI-157 Comprehensive)
    Optimized for Web & Mobile Viewports (100dvh, Safe-Area & 120Hz ProMotion)
    Target URL: https://nomansky.ai.studio
    ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;500;700;900&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
 /* ==========================================================================
    1. GLOBAL TOKENS & SYSTEM VARIABLES
@@ -9833,59 +9826,4 @@ body.pinching-active .pinch-guide-ring {
   align-items: center;
   gap: 8px;
   pointer-events: auto;
-}
-
-/* ==========================================================================
-   In-Game HUD Overlays & Utility Fonts (No Man's Sky 2D v4.73.0)
-   Source: doc/No_Mans_Sky_2D_v4.73.0.html
-   ========================================================================== */
-.nms-header-font {
-  font-family: "Orbitron", sans-serif;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.grid-cols-16 {
-  display: grid;
-  grid-template-columns: repeat(16, minmax(0, 1fr));
-}
-
-#pulse-banner {
-  position: fixed;
-  top: 4.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 24px;
-  background: rgba(0, 229, 255, 0.2);
-  border: 1px solid var(--nms-cyan);
-  border-radius: 20px;
-  color: var(--nms-cyan);
-  font-family: "Orbitron", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  display: none;
-  z-index: 120;
-  box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
-  animation: pulseText 1s infinite alternate;
-}
-
-@keyframes pulseText {
-  from { opacity: 0.7; }
-  to { opacity: 1.0; }
-}
-
-.float-text {
-  position: absolute;
-  pointer-events: none;
-  animation: floatUp 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
-  font-weight: 700;
-  font-family: "Rajdhani", sans-serif;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
-  z-index: 150;
-}
-
-@keyframes floatUp {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-35px) scale(1.1); opacity: 0; }
 }

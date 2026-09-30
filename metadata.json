@@ -1,6 +1,6 @@
 {
   "name": "No Man's Sky 2D - Mobile Edition",
-  "description": "노맨즈스카이 2D 모바일 에디션: 가상 조이스틱 터치 컨트롤, 행성 탐사 및 성간 우주선 비행, 모바일 최적화 인터페이스 지원",
+  "description": "노맨즈스카이 2D 모바일 에디션 v4.73.0 (Sentinel 3.8): 센티넬 순찰 드론 렌더링, 자율 순찰 AI, 가상 조이스틱 터치 컨트롤, 행성 탐사 및 성간 우주선 비행, 모바일 최적화 HUD 지원",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
