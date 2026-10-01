@@ -91,6 +91,16 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
       desc: '궤도에서 즉각 엑소크래프트 투하 및 항성계 광역 스캔',
       onClick: () => onOpenModal('orbital-freighter')
     },
+    {
+      id: 'nautilon-sonar',
+      name: '노틸론 잠수정 & 소나 콘솔',
+      category: 'ship',
+      icon: '🌊',
+      hotkey: '[0 / Alt+0]',
+      color: 'border-blue-400/50 bg-blue-950/40 text-blue-300',
+      desc: 'The Abyss & Aquarius: 심해 고출력 소나 스캔, 수중 어뢰, 훔볼트 엔진 및 심해 수확',
+      onClick: () => onOpenModal('nautilon-sonar')
+    },
 
     // 🎒 인벤토리 & 장비
     {

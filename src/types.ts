@@ -363,3 +363,17 @@ export interface GameInventory {
   voidDust?: number;
   [key: string]: number | undefined;
 }
+
+export interface NautilonSubmarineData {
+  unlocked: boolean;
+  boarded: boolean;
+  oxygenLevel: number;
+  fuel: number;
+  livingPearls: number;
+  hadalCores: number;
+  hypnoticEyes: number;
+  engineOverclock: boolean;
+  torpedoLauncher: boolean;
+  tethysMining: boolean;
+  activeTab: 'specs' | 'sonar' | 'tech' | 'harvest';
+}

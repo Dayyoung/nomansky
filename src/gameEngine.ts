@@ -19,7 +19,8 @@ import {
   ProjectileEntity,
   ParticleEntity,
   FleetExpedition,
-  GameInventory
+  GameInventory,
+  NautilonSubmarineData
 } from './types';
 
 export interface FloatingText {
@@ -112,6 +113,19 @@ export class GameEngine {
     interactProgress: 0,
     activeInteractAction: null as (() => void) | null,
     floatingTexts: [] as FloatingText[],
+    nautilon: {
+      unlocked: true,
+      boarded: false,
+      oxygenLevel: 100,
+      fuel: 100,
+      livingPearls: 0,
+      hadalCores: 0,
+      hypnoticEyes: 0,
+      engineOverclock: false,
+      torpedoLauncher: false,
+      tethysMining: false,
+      activeTab: 'specs'
+    } as NautilonSubmarineData,
     inv: {
       oxygen: 50,
       sodium: 35,
@@ -814,6 +828,126 @@ export class GameEngine {
   public triggerScanPulse() {
     AudioSys.playScanPulse();
     this.spawnFloatText("📡 스캐너 펄스 발동 // 지형 자원 탐지", undefined, undefined, '#00e5ff');
+  }
+
+  // Nautilon Submarine System (The Abyss 1.70 & Aquarius 5.10)
+  public toggleNautilonSubmarine() {
+    if (this.currState !== 'PLANET') {
+      this.spawnFloatText("⚠️ 노틸론 잠수정은 행성 수역/표면에서만 전개 가능합니다!", undefined, this.height / 2 - 60, '#ff3366');
+      return;
+    }
+    this.data.nautilon.boarded = !this.data.nautilon.boarded;
+    if (this.data.nautilon.boarded) {
+      this.data.hazard = 100;
+      this.data.lifeSupport = 100;
+      AudioSys.playNote(293.66, 'sine', 0.25, 0.4);
+      setTimeout(() => AudioSys.playNote(587.33, 'sine', 0.35, 0.5), 180);
+      this.spawnFloatText("🌊 NAUTILON SUBMERSIBLE BOARDED // 100% DEPTH IMMUNITY ONLINE!", undefined, this.height / 2 - 70, '#38bdf8');
+    } else {
+      AudioSys.playNote(300, 'sine', 0.15, 0.2);
+      this.spawnFloatText("⚓ DISMOUNTED NAUTILON // 잠수정 하선 완료", undefined, this.height / 2 - 60, '#94a3b8');
+    }
+    this.notify();
+  }
+
+  public dismountNautilon() {
+    this.data.nautilon.boarded = false;
+    AudioSys.playNote(300, 'sine', 0.15, 0.2);
+    this.spawnFloatText("⚓ DISMOUNTED NAUTILON // 잠수정 하선 완료", undefined, this.height / 2 - 60, '#94a3b8');
+    this.notify();
+  }
+
+  public scanSunkenRuins() {
+    this.data.units += 450000;
+    this.data.nanites += 300;
+    AudioSys.playNote(293.66, 'sine', 0.25, 0.4);
+    setTimeout(() => AudioSys.playNote(587.33, 'sine', 0.35, 0.5), 180);
+    this.spawnFloatText("🏛️ SUNKEN PRECURSOR RUINS DETECTED! (+450,000 ₩, +300 ⬡)", undefined, this.height / 2 - 70, '#38bdf8');
+    this.notify();
+  }
+
+  public scanSunkenStarship() {
+    this.data.units += 600000;
+    AudioSys.playNote(293.66, 'sine', 0.25, 0.4);
+    setTimeout(() => AudioSys.playNote(587.33, 'sine', 0.35, 0.5), 180);
+    this.spawnFloatText("🚀 SUNKEN STARSHIP WRECKAGE SALVAGED! (+600,000 ₩)", undefined, this.height / 2 - 70, '#00e5ff');
+    this.notify();
+  }
+
+  public scanSunkenFreighter() {
+    this.data.units += 850000;
+    AudioSys.playNote(293.66, 'sine', 0.25, 0.4);
+    setTimeout(() => AudioSys.playNote(587.33, 'sine', 0.35, 0.5), 180);
+    this.spawnFloatText("🚢 SUNKEN FREIGHTER LOCATED! (+850,000 ₩)", undefined, this.height / 2 - 70, '#f59e0b');
+    this.notify();
+  }
+
+  public scanAbyssalHorrors() {
+    this.data.nautilon.livingPearls += 3;
+    this.data.nautilon.hadalCores += 2;
+    this.data.nautilon.hypnoticEyes += 1;
+    AudioSys.playNote(293.66, 'sine', 0.25, 0.4);
+    setTimeout(() => AudioSys.playNote(587.33, 'sine', 0.35, 0.5), 180);
+    this.spawnFloatText("👁️ ABYSSAL HORROR EXPEDITION! (진주 +3, 코어 +2, 최면눈 +1)", undefined, this.height / 2 - 70, '#ec4899');
+    this.notify();
+  }
+
+  public launchSubTorpedo() {
+    if (!this.data.nautilon.torpedoLauncher) {
+      this.spawnFloatText("⚠️ 수중 어뢰 발사관이 미장착 상태입니다! 기술 탭에서 업그레이드하세요.", undefined, this.height / 2 - 60, '#f59e0b');
+      return;
+    }
+    AudioSys.playNote(140, 'triangle', 0.4, 0.5);
+    this.spawnFloatText("🚀 SUB-SURFACE TORPEDO LAUNCHED! // 심해 충격파 발생!", undefined, this.height / 2 - 70, '#ef4444');
+    this.notify();
+  }
+
+  public upgradeNautilonTech(techKey: 'engine' | 'torpedo' | 'mining') {
+    if (techKey === 'engine') {
+      if (this.data.nanites < 400) {
+        this.spawnFloatText("⚠️ 나노로봇이 부족합니다 (필요: 400 ⬡)", undefined, undefined, '#ff3366');
+        return;
+      }
+      this.data.nanites -= 400;
+      this.data.nautilon.engineOverclock = true;
+      AudioSys.playDiscoveryFanfare();
+      this.spawnFloatText("⚙️ 훔볼트 드라이브 펄스 오버클럭 완료! (+65% 순항속도)", undefined, undefined, '#38bdf8');
+    } else if (techKey === 'torpedo') {
+      if (this.data.nanites < 650) {
+        this.spawnFloatText("⚠️ 나노로봇이 부족합니다 (필요: 650 ⬡)", undefined, undefined, '#ff3366');
+        return;
+      }
+      this.data.nanites -= 650;
+      this.data.nautilon.torpedoLauncher = true;
+      AudioSys.playDiscoveryFanfare();
+      this.spawnFloatText("🚀 나노 수중 어뢰 발사관 무장 장착 완료!", undefined, undefined, '#ef4444');
+    } else if (techKey === 'mining') {
+      if (this.data.nanites < 500) {
+        this.spawnFloatText("⚠️ 나노로봇이 부족합니다 (필요: 500 ⬡)", undefined, undefined, '#ff3366');
+        return;
+      }
+      this.data.nanites -= 500;
+      this.data.nautilon.tethysMining = true;
+      AudioSys.playDiscoveryFanfare();
+      this.spawnFloatText("⛏️ 테티스 고출력 수중 채굴 레이저 가동 완료!", undefined, undefined, '#10b981');
+    }
+    this.notify();
+  }
+
+  public harvestAbyssPearls() {
+    this.data.nautilon.livingPearls += 2;
+    this.data.units += 120000;
+    AudioSys.playNote(440, 'sine', 0.15, 0.2);
+    this.spawnFloatText("🦪 살아있는 진주 채취 완료 (+2 진주, +120,000 ₩)", undefined, undefined, '#38bdf8');
+    this.notify();
+  }
+
+  public harvestHadalCores() {
+    this.data.nautilon.hadalCores += 1;
+    this.data.nanites += 150;
+    AudioSys.playNote(440, 'sine', 0.15, 0.2);
+    this.spawnFloatText("💎 해달 코어 정제 완료 (+1 코어, +150 ⬡)", undefined, undefined, '#a855f7');
+    this.notify();
   }
 
   public getNearestPlanet(): { planet: PlanetEntity; distance: number } | null {

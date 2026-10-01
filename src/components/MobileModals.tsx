@@ -26,10 +26,11 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
         <div className="px-4 py-3 bg-slate-900 border-b border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="text-xl">
-              {activeModal === 'inventory' ? '🎒' : activeModal === 'galaxy-map' ? '🌌' : activeModal === 'solar-ship' ? '⛵' : activeModal === 'laylaps' ? '🤖' : activeModal === 'fishing' ? '🎣' : activeModal === 'black-hole' ? '🕳️' : activeModal === 'portal' ? '🌀' : activeModal === 'atlas-path' ? '🔴' : activeModal === 'wonders' ? '✨' : activeModal === 'supercharge' ? '⚡' : '🚀'}
+              {activeModal === 'nautilon-sonar' ? '🌊' : activeModal === 'inventory' ? '🎒' : activeModal === 'galaxy-map' ? '🌌' : activeModal === 'solar-ship' ? '⛵' : activeModal === 'laylaps' ? '🤖' : activeModal === 'fishing' ? '🎣' : activeModal === 'black-hole' ? '🕳️' : activeModal === 'portal' ? '🌀' : activeModal === 'atlas-path' ? '🔴' : activeModal === 'wonders' ? '✨' : activeModal === 'supercharge' ? '⚡' : '🚀'}
             </span>
             <div className="flex flex-col truncate">
               <span className="text-xs sm:text-sm font-bold text-white nms-header-font truncate">
+                {activeModal === 'nautilon-sonar' && '노틸론 잠수정 & 심해 고출력 소나 스캐너 (The Abyss & Aquarius)'}
                 {activeModal === 'inventory' && '엑소슈트 인벤토리 (Exosuit Inventory)'}
                 {activeModal === 'quick-recharge' && '퀵 긴급 충전 (Quick Recharge)'}
                 {activeModal === 'galaxy-map' && '3D 은하계 지도 & 성간 워프 (Galaxy Map)'}
@@ -3088,8 +3089,364 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             </div>
           )}
 
-          {/* 50. DEFAULT FALLBACK MODAL HANDLER */}
-          {!['inventory', 'quick-recharge', 'galaxy-map', 'solar-ship', 'laylaps', 'fishing', 'black-hole', 'portal', 'wonders', 'supercharge', 'appearance', 'weapon-arsenal', 'station', 'sandworm', 'base-computer', 'abandoned-building', 'archaeology', 'specialist-terminals', 'pirate-flagship', 'large-refiner', 'atlantid-tool', 'livestock-ranch', 'organic-fleet', 'egg-sequencer', 'biodome', 'orbital-freighter', 'expedition', 'scrapper', 'trade-outpost', 'atlas-path', 'outlaw-station', 'manufacturing', 'minotaur', 'teleport', 'nutrient', 'discoveries', 'build-menu', 'milestones', 'hazard-protection', 'multi-tool-salvage', 'cartographer', 'exosuit-upgrade', 'guild-envoy', 'galactic-core', 'starship-weapons', 'floating-islands', 'boundary-failure', 'abyssal-horror', 'living-ship', 'derelict-freighter', 'extreme-weather', 'volcano', 'aquarium', 'spacewalk', 'bioluminescent-forest', 'race-initiator', 'titan-beetle', 'short-range-teleporter', 'em-generator', 'aquatic-base', 'power-grid', 'gas-harvester', 'ship-paint', 'custom-difficulty'].includes(activeModal) && (
+          {/* 51. NAUTILON SUBMARINE & HIGH-POWER SONAR MATRIX (v5.23.0 The Abyss & Aquarius) */}
+          {activeModal === 'nautilon-sonar' && (
+            <div className="space-y-4">
+              {/* Telemetry Overview Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-slate-900/90 p-3 rounded-xl border border-blue-500/30 text-xs">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">선체 내압 한계 (HULL PRESSURE)</span>
+                  <span className="text-sm font-bold text-cyan-300 font-mono">100% 완전 밀폐</span>
+                  <span className="text-[9px] text-emerald-400">수심 무제한 무한 잠항</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">훔볼트 추진 엔진 (HUMBOLDT)</span>
+                  <span className="text-sm font-bold text-blue-400 font-mono">
+                    {game.data.nautilon.engineOverclock ? '75 u/s (오버클럭 가동)' : '45 u/s (기본 순항)'}
+                  </span>
+                  <span className="text-[9px] text-amber-300">
+                    {game.data.nautilon.engineOverclock ? '엔진: S급 오버클럭' : '엔진: 기본형'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">수중 무장 체계 (SUB WEAPON)</span>
+                  <span className="text-sm font-bold text-red-400 font-mono">
+                    {game.data.nautilon.torpedoLauncher ? '어뢰 발사관 + 채굴빔' : '테티스 채굴 빔'}
+                  </span>
+                  <span className="text-[9px] text-yellow-300">
+                    {game.data.nautilon.torpedoLauncher ? '어뢰 장전 완료' : '어뢰관: 미장착'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">심해 수확 전리품 (SALVAGE)</span>
+                  <span className="text-sm font-bold text-emerald-300 font-mono">
+                    진주 {game.data.nautilon.livingPearls} // 코어 {game.data.nautilon.hadalCores}
+                  </span>
+                  <span className="text-[9px] text-gray-300">심연의 공포 수확물</span>
+                </div>
+              </div>
+
+              {/* Boarding Status Banner & Quick Action */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-blue-950/40 border border-blue-400/40">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl animate-pulse">🌊</span>
+                  <div>
+                    <div className="text-xs font-bold text-white nms-header-font">
+                      {game.data.nautilon.boarded ? '노틸론 잠수정 승선 중 // 수중 잠항 모드' : '노틸론 잠수정 대기 중 (수면/표면 배치)'}
+                    </div>
+                    <div className="text-[10px] text-cyan-300">
+                      {game.data.nautilon.boarded
+                        ? '100% 익사 방지 / 수압 완전 면역 가동'
+                        : '행성 해양 수역에서 탑승하여 심해 탐사를 시작하세요'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    game.toggleNautilonSubmarine();
+                  }}
+                  className={`px-4 py-2 rounded-lg font-bold text-xs cursor-pointer shadow-md transition-all ${
+                    game.data.nautilon.boarded
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white'
+                      : 'bg-blue-600 hover:bg-blue-500 text-white'
+                  }`}
+                >
+                  {game.data.nautilon.boarded ? '잠수정 하선 [E]' : '잠수정 탑승 [0]'}
+                </button>
+              </div>
+
+              {/* Sub-Tabs: Specs | Sonar | Tech | Harvest */}
+              <div className="flex gap-2 border-b border-white/10 pb-2 text-xs font-mono overflow-x-auto">
+                <button
+                  onClick={() => setSubTab(0)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                    subTab === 0
+                      ? 'bg-blue-500/30 text-blue-300 border border-blue-400'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  1. 선체 제원 (SPECS)
+                </button>
+                <button
+                  onClick={() => setSubTab(1)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                    subTab === 1
+                      ? 'bg-blue-500/30 text-blue-300 border border-blue-400'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  2. 고출력 소나 (SONAR)
+                </button>
+                <button
+                  onClick={() => setSubTab(2)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                    subTab === 2
+                      ? 'bg-blue-500/30 text-blue-300 border border-blue-400'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  3. 기술 업그레이드 (TECH)
+                </button>
+                <button
+                  onClick={() => setSubTab(3)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                    subTab === 3
+                      ? 'bg-blue-500/30 text-blue-300 border border-blue-400'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  4. 심해 수확 (HARVEST)
+                </button>
+              </div>
+
+              {/* Sub-Tab 0: Specs */}
+              {subTab === 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3.5 bg-slate-900/80 rounded-xl border border-white/10 space-y-2">
+                    <span className="font-bold text-cyan-300 block">선체 내압 및 심해 내구도</span>
+                    <p className="text-gray-300 text-[11px] leading-relaxed">
+                      S-Class 강화 티타늄 압력 선체 구조로 설계되어 수심 5,000u 이상의 초고압 심해 해구에서도 100% 완전 밀폐를 유지합니다. 승선 중에는 플레이어의 산소 게이지 및 환경 유해 위험 게이지가 일체 소모되지 않습니다.
+                    </p>
+                    <div className="p-2 bg-black/40 rounded border border-cyan-500/20 text-[10px] text-cyan-200 font-mono">
+                      • 수심 0u ~ 심해 무제한 완전 잠항 지원<br />
+                      • 고압 방수 탐사 조명 &amp; 360도 수중 수화 렌더링
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-900/80 rounded-xl border border-white/10 space-y-2">
+                    <span className="font-bold text-blue-300 block">훔볼트 추진기 &amp; 서치라이트</span>
+                    <p className="text-gray-300 text-[11px] leading-relaxed">
+                      심해 전용 수중 플라즈마 분사 엔진으로 급류와 해류를 돌파할 수 있습니다. 야간 및 심해 무광 환경에서도 전방 95u를 투사하는 고출력 볼류메트릭 서치라이트가 기본 탑재되어 있습니다.
+                    </p>
+                    <div className="p-2 bg-black/40 rounded border border-blue-500/20 text-[10px] text-blue-200 font-mono">
+                      • 서치라이트: 전방 볼류메트릭 조명 가동<br />
+                      • 음향 파동: 소나 펄스 상시 방출
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab 1: Sonar Scanning */}
+              {subTab === 1 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-blue-500/30 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">🏛️</span>
+                          <span className="font-bold text-white text-xs">침몰한 선구자 유적 탐색</span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mb-2">
+                          심해 해저에 잠든 고대 문명의 석조 신전과 고대 보물함을 음파로 스캔합니다.
+                        </p>
+                        <span className="text-[10px] text-cyan-300 font-mono block mb-2">
+                          보상: +450,000 ₩, +300 ⬡, 고대 열쇠
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => game.scanSunkenRuins()}
+                        className="w-full py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold"
+                      >
+                        소나 스캔 발동
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-blue-500/30 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">🚀</span>
+                          <span className="font-bold text-white text-xs">침몰한 우주선 난파선 인양</span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mb-2">
+                          행성 대기권 진입 중 추락하여 수중에 수장된 성간 우주선의 잔해를 탐지합니다.
+                        </p>
+                        <span className="text-[10px] text-cyan-300 font-mono block mb-2">
+                          보상: +600,000 ₩, 함선 보관함 확장
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => game.scanSunkenStarship()}
+                        className="w-full py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold"
+                      >
+                        우주선 신호 추적
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-amber-500/30 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">🚢</span>
+                          <span className="font-bold text-white text-xs">침몰한 화물선 대형 잔해</span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mb-2">
+                          심해에 반파된 채 가라앉은 거대 성간 화물선 화물 격벽 컨테이너를 탐지합니다.
+                        </p>
+                        <span className="text-[10px] text-amber-300 font-mono block mb-2">
+                          보상: +850,000 ₩, 화물선 격벽
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => game.scanSunkenFreighter()}
+                        className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-bold"
+                      >
+                        화물선 잔해 탐지
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-pink-500/30 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">👁️</span>
+                          <span className="font-bold text-white text-xs">심연의 공포 &amp; 생체 서식지</span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mb-2">
+                          해저 동굴에 서식하는 초거대 심연의 공포 생명체와 최면 눈 서식지를 탐색합니다.
+                        </p>
+                        <span className="text-[10px] text-pink-300 font-mono block mb-2">
+                          보상: 살아있는 진주 +3, 해달 코어 +2, 최면눈 +1
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => game.scanAbyssalHorrors()}
+                        className="w-full py-1.5 bg-pink-600 hover:bg-pink-500 text-white rounded-lg text-xs font-bold"
+                      >
+                        심연 생명체 탐색
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab 2: Tech Upgrades */}
+              {subTab === 2 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between">
+                      <div>
+                        <span className="font-bold text-white text-xs block mb-1">훔볼트 오버클럭</span>
+                        <p className="text-[10px] text-gray-400 mb-2">
+                          수중 추진력을 극대화하여 순항 속도를 45 u/s에서 75 u/s로 비약적으로 향상시킵니다.
+                        </p>
+                        <span className="text-[10px] text-yellow-400 font-mono block mb-2">비용: 400 ⬡</span>
+                      </div>
+                      <button
+                        onClick={() => game.upgradeNautilonTech('engine')}
+                        disabled={game.data.nautilon.engineOverclock}
+                        className={`w-full py-1.5 rounded-lg text-xs font-bold ${
+                          game.data.nautilon.engineOverclock
+                            ? 'bg-emerald-900 text-emerald-300 cursor-default'
+                            : 'bg-blue-600 hover:bg-blue-500 text-white'
+                        }`}
+                      >
+                        {game.data.nautilon.engineOverclock ? '장착 완료 ✓' : '연구 및 장착'}
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between">
+                      <div>
+                        <span className="font-bold text-white text-xs block mb-1">수중 어뢰 발사관</span>
+                        <p className="text-[10px] text-gray-400 mb-2">
+                          수중 장갑 파괴용 나노 추진 어뢰를 장착하여 해저 장애물과 위협 생물을 즉각 격파합니다.
+                        </p>
+                        <span className="text-[10px] text-yellow-400 font-mono block mb-2">비용: 650 ⬡</span>
+                      </div>
+                      <button
+                        onClick={() => game.upgradeNautilonTech('torpedo')}
+                        disabled={game.data.nautilon.torpedoLauncher}
+                        className={`w-full py-1.5 rounded-lg text-xs font-bold ${
+                          game.data.nautilon.torpedoLauncher
+                            ? 'bg-emerald-900 text-emerald-300 cursor-default'
+                            : 'bg-red-600 hover:bg-red-500 text-white'
+                        }`}
+                      >
+                        {game.data.nautilon.torpedoLauncher ? '장착 완료 ✓' : '연구 및 장착'}
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between">
+                      <div>
+                        <span className="font-bold text-white text-xs block mb-1">테티스 채굴 레이저</span>
+                        <p className="text-[10px] text-gray-400 mb-2">
+                          수중 굴절 방지 코팅 렌즈로 해저 광맥과 심해 광석을 수면 위처럼 빠르게 채굴합니다.
+                        </p>
+                        <span className="text-[10px] text-yellow-400 font-mono block mb-2">비용: 500 ⬡</span>
+                      </div>
+                      <button
+                        onClick={() => game.upgradeNautilonTech('mining')}
+                        disabled={game.data.nautilon.tethysMining}
+                        className={`w-full py-1.5 rounded-lg text-xs font-bold ${
+                          game.data.nautilon.tethysMining
+                            ? 'bg-emerald-900 text-emerald-300 cursor-default'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        }`}
+                      >
+                        {game.data.nautilon.tethysMining ? '장착 완료 ✓' : '연구 및 장착'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {game.data.nautilon.torpedoLauncher && (
+                    <div className="p-3 bg-red-950/40 border border-red-500/40 rounded-xl flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-bold text-red-300 block">수중 어뢰 긴급 사격 테스트</span>
+                        <span className="text-[10px] text-gray-400">전방 심해를 향해 고폭 충격파 어뢰를 즉시 발사합니다.</span>
+                      </div>
+                      <button
+                        onClick={() => game.launchSubTorpedo()}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                      >
+                        🚀 어뢰 발사
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sub-Tab 3: Oceanic Harvest */}
+              {subTab === 3 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 bg-slate-900/90 rounded-xl border border-blue-500/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white text-xs">🦪 살아있는 진주 채취 (LIVING PEARLS)</span>
+                      <span className="text-cyan-300 font-mono font-bold">
+                        보유: {game.data.nautilon.livingPearls}개
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">
+                      심해 조개류 군락지에서 천연 유기체 보석을 안전하게 추출하여 은하계 암시장에 고가에 매각합니다.
+                    </p>
+                    <button
+                      onClick={() => game.harvestAbyssPearls()}
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg"
+                    >
+                      진주 수확하기 (+2 진주, +120,000 ₩)
+                    </button>
+                  </div>
+
+                  <div className="p-3 bg-slate-900/90 rounded-xl border border-purple-500/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white text-xs">💎 해달 코어 심해 정제 (HADAL CORES)</span>
+                      <span className="text-purple-300 font-mono font-bold">
+                        보유: {game.data.nautilon.hadalCores}개
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">
+                      심연의 미끼 열매에서 발광 핵을 추출하여 아노말리 연구용 고순도 나노로봇 군집으로 정제합니다.
+                    </p>
+                    <button
+                      onClick={() => game.harvestHadalCores()}
+                      className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg"
+                    >
+                      코어 정제하기 (+1 코어, +150 ⬡)
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 52. DEFAULT FALLBACK MODAL HANDLER */}
+          {!['inventory', 'quick-recharge', 'galaxy-map', 'solar-ship', 'laylaps', 'fishing', 'black-hole', 'portal', 'wonders', 'supercharge', 'appearance', 'weapon-arsenal', 'station', 'sandworm', 'base-computer', 'abandoned-building', 'archaeology', 'specialist-terminals', 'pirate-flagship', 'large-refiner', 'atlantid-tool', 'livestock-ranch', 'organic-fleet', 'egg-sequencer', 'biodome', 'orbital-freighter', 'expedition', 'scrapper', 'trade-outpost', 'atlas-path', 'outlaw-station', 'manufacturing', 'minotaur', 'teleport', 'nutrient', 'discoveries', 'build-menu', 'milestones', 'hazard-protection', 'multi-tool-salvage', 'cartographer', 'exosuit-upgrade', 'guild-envoy', 'galactic-core', 'starship-weapons', 'floating-islands', 'boundary-failure', 'abyssal-horror', 'living-ship', 'derelict-freighter', 'extreme-weather', 'volcano', 'aquarium', 'spacewalk', 'bioluminescent-forest', 'race-initiator', 'titan-beetle', 'short-range-teleporter', 'em-generator', 'aquatic-base', 'power-grid', 'gas-harvester', 'ship-paint', 'custom-difficulty', 'nautilon-sonar'].includes(activeModal) && (
             <div className="space-y-4 text-center py-6">
               <span className="text-4xl block">✨</span>
               <span className="text-sm font-bold text-white block">
