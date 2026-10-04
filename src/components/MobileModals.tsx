@@ -76,16 +76,16 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
           {/* 1. INVENTORY MODAL */}
           {activeModal === 'inventory' && (
             <div className="space-y-3">
-              <div className="p-3 bg-slate-900 rounded-xl border border-cyan-400/40 flex justify-between items-center">
+              <div className="p-3 bg-slate-900 rounded-xl border border-cyan-400/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                   <span className="text-xs font-bold text-white block">탑승 중인 주력 함선</span>
-                  <span className="text-cyan-300 font-bold text-sm">
+                  <span className="text-cyan-300 font-bold text-xs sm:text-sm">
                     {game.data.shipType === 'SOLAR' ? 'S-Class 솔라선 (Vesper Sail)' : game.data.shipType === 'INTERCEPTOR' ? 'S-Class 센티넬 인터셉터' : game.data.shipType === 'LIVING' ? 'S-Class 유기체 생체함선' : 'A-Class 래디언트 필러'}
                   </span>
                 </div>
                 <button
                   onClick={() => game.cycleStarship()}
-                  className="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg font-bold text-xs cursor-pointer shadow-md"
+                  className="px-3 py-1 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg font-bold text-xs cursor-pointer shadow-md shrink-0 self-end sm:self-auto"
                 >
                   기종 전환 [K]
                 </button>
@@ -168,7 +168,7 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
           {/* 3. 3D GALAXY MAP MODAL */}
           {activeModal === 'galaxy-map' && (
             <div className="space-y-3">
-              <div className="p-3 bg-cyan-950/30 rounded-xl border border-cyan-400/40 flex justify-between items-center">
+              <div className="p-3 bg-cyan-950/30 rounded-xl border border-cyan-400/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                   <span className="text-xs font-bold text-white block">현재 위치: 유클리드 은하 제4구역</span>
                   <span className="text-[10px] text-cyan-300">보유 워프 셀: {game.data.inv.warpCell}개 // 은하 중심까지 712,000 LY</span>
@@ -186,7 +186,7 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
                       game.spawnFloatText("워프 셀 1개 긴급 충전됨!", undefined, undefined, '#10b981');
                     }
                   }}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-bold rounded-lg cursor-pointer text-xs shadow-md"
+                  className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-bold rounded-lg cursor-pointer text-xs shadow-md shrink-0 self-end sm:self-auto"
                 >
                   🚀 성간 워프 도약 실행
                 </button>
