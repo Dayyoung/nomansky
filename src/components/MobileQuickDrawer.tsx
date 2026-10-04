@@ -118,9 +118,9 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
       name: '다목적 도구 화기 무기고',
       category: 'gear',
       icon: '🔫',
-      hotkey: '[/]',
+      hotkey: '[/ / Alt+X]',
       color: 'border-orange-400/50 bg-orange-950/40 text-orange-300',
-      desc: '볼트캐스터, 산탄 블래스터, 펄스 스피터, 뉴트론 캐논',
+      desc: 'Sentinel & Waypoint: 5대 전문 주무기, 보조 유탄/박격포 및 센티넬 탄약 보급창',
       onClick: () => onOpenModal('weapon-arsenal')
     },
     {

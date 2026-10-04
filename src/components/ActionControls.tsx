@@ -16,6 +16,8 @@ interface ActionControlsProps {
   ammo: number;
   maxAmmo: number;
   cargoScanTimer: number;
+  combatWeapons?: any;
+  secondaryWeapons?: any;
   onFireStart: () => void;
   onFireEnd: () => void;
   onJetpackStart: () => void;
@@ -27,6 +29,10 @@ interface ActionControlsProps {
   onReload: () => void;
   onToggleVisor: () => void;
   onOpenQuickRecharge: () => void;
+  onFireSecondary?: () => void;
+  onCycleSecondary?: () => void;
+  onCycleCombatWeapon?: () => void;
+  onOpenArsenal?: () => void;
 }
 
 export const ActionControls: React.FC<ActionControlsProps> = ({
@@ -41,6 +47,8 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
   ammo,
   maxAmmo,
   cargoScanTimer,
+  combatWeapons,
+  secondaryWeapons,
   onFireStart,
   onFireEnd,
   onJetpackStart,
@@ -51,19 +59,81 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
   onScan,
   onReload,
   onToggleVisor,
-  onOpenQuickRecharge
+  onOpenQuickRecharge,
+  onFireSecondary = () => game.fireSecondaryWeapon(),
+  onCycleSecondary = () => game.cycleSecondaryWeapon(),
+  onCycleCombatWeapon = () => game.cycleCombatWeapon(),
+  onOpenArsenal
 }) => {
   const isSpace = gameState === 'SPACE';
   const hasInteract = Boolean(interactLabel);
 
+  const activeCombatWeapon = combatWeapons?.weapons?.[combatWeapons?.activeWeapon] || combatWeapons?.weapons?.boltcaster;
+  const activeSecKey = secondaryWeapons?.active || 'plasmaLauncher';
+  const activeSecName = game.getSecondaryWeaponName(activeSecKey);
+  const activeSecIcon = game.getSecondaryWeaponIcon(activeSecKey);
+  const activeSecAmmo = secondaryWeapons?.ammo?.[activeSecKey] ?? 0;
+
   return (
     <div className="relative flex flex-col items-end gap-2 select-none touch-none pointer-events-auto">
+      {/* Multi-Tool Secondary Weapon HUD (v5.50.0 Sentinel & Waypoint) */}
+      <div
+        id="secondary-weapon-hud"
+        className="mb-1 bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-2.5 min-w-[210px] shadow-lg pointer-events-auto cursor-pointer hover:border-cyan-400 transition-all"
+        onClick={() => {
+          AudioSys.unlockOnFirstInteraction();
+          onCycleSecondary();
+        }}
+        title="클릭하여 보조 무기 순환 [Shift+Q / G] | 무기고 [Alt+X / /]"
+      >
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          <span className="text-base sm:text-lg animate-pulse">{activeSecIcon}</span>
+          <div className="text-left truncate">
+            <div className="text-[7.5px] text-gray-400 tracking-wider font-mono">SECONDARY [Q]</div>
+            <div className="font-bold text-amber-300 text-xs truncate font-mono">{activeSecName}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0 font-mono">
+          <span className="text-[11px] font-bold text-cyan-300">{activeSecAmmo}발</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              AudioSys.unlockOnFirstInteraction();
+              onFireSecondary();
+            }}
+            className="px-2 py-0.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded text-[9px] font-bold shadow-md cursor-pointer active:scale-95 transition-transform"
+            title="보조 무기 발사 [Q]"
+          >
+            발사[Q]
+          </button>
+          {onOpenArsenal && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                AudioSys.unlockOnFirstInteraction();
+                onOpenArsenal();
+              }}
+              className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-400/40 rounded text-[9px] font-bold cursor-pointer"
+              title="다목적 도구 화기 사령부 [/]"
+            >
+              무기고
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Improved Multi-tool Weapons & Heat Meter HUD (v2) */}
-      <div id="multitool-hud" className="mb-1 pointer-events-none select-none">
+      <div id="multitool-hud" className="mb-1 pointer-events-none select-none w-full min-w-[210px]">
         <div className="flex items-center justify-between gap-3 text-[10px] font-mono font-bold text-cyan-300">
           <span className="flex items-center gap-1">
             <Zap className="w-3 h-3 text-cyan-400" />
-            <span>{isSpace ? (shipType === 'SOLAR' ? '베스퍼 세일 캐논' : '포톤 캐논') : toolMode}</span>
+            <span>
+              {isSpace
+                ? (shipType === 'SOLAR' ? '베스퍼 세일 캐논' : '포톤 캐논')
+                : (toolMode === 'BOLTCASTER' && activeCombatWeapon
+                  ? `${activeCombatWeapon.name.split(' ')[0]} ${activeCombatWeapon.supercharged ? '⚡' : ''}`
+                  : toolMode)}
+            </span>
           </span>
           <span className={isOverheated ? 'text-red-400 font-extrabold animate-pulse' : overheat > 60 ? 'text-amber-400 font-bold' : 'text-gray-300'}>
             {isOverheated ? '과열 경고!' : `${Math.round(overheat)}%`}
@@ -139,36 +209,50 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
 
         {/* Tool Switch Mode (On Planet) or Ship Switch (In Space) */}
         {!isSpace ? (
-          <button
-            onClick={() => {
-              AudioSys.unlockOnFirstInteraction();
-              onCycleTool();
-            }}
-            className={`h-9 sm:h-10 px-3 rounded-full border flex items-center gap-1.5 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer transition-colors ${
-              toolMode === 'BOLTCASTER'
-                ? 'bg-red-950/90 border-red-400 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
-                : toolMode === 'TERRAIN MANIPULATOR'
-                ? 'bg-sky-950/90 border-sky-400 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.4)]'
-                : toolMode === 'VOLTAIC STAFF'
-                ? 'bg-purple-950/90 border-purple-400 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.4)]'
-                : 'bg-emerald-950/90 border-emerald-400/80 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-            }`}
-            title="무기/도구 전환 [G] - 모드별 타겟 자동 추적"
-          >
-            <Zap className={`w-3.5 h-3.5 shrink-0 ${
-              toolMode === 'BOLTCASTER' ? 'text-red-400' :
-              toolMode === 'TERRAIN MANIPULATOR' ? 'text-sky-400' :
-              toolMode === 'VOLTAIC STAFF' ? 'text-purple-400' : 'text-emerald-400'
-            }`} />
-            <div className="flex flex-col text-left">
-              <span className="text-[10px] font-bold font-mono whitespace-nowrap leading-none">
-                {toolMode === 'MINING BEAM' ? '채굴광선' : toolMode === 'BOLTCASTER' ? '볼트캐스터' : toolMode === 'TERRAIN MANIPULATOR' ? '지형조작기' : '볼타익스태프'}
-              </span>
-              <span className="text-[7.5px] opacity-80 font-mono whitespace-nowrap leading-none mt-0.5">
-                {toolMode === 'MINING BEAM' ? '추적: 광맥' : toolMode === 'BOLTCASTER' ? '추적: 센티넬' : toolMode === 'TERRAIN MANIPULATOR' ? '추적: 동굴/지형' : '추적: 동물'}
-              </span>
-            </div>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                AudioSys.unlockOnFirstInteraction();
+                onCycleTool();
+              }}
+              className={`h-9 sm:h-10 px-2.5 sm:px-3 rounded-full border flex items-center gap-1.5 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer transition-colors ${
+                toolMode === 'BOLTCASTER'
+                  ? 'bg-red-950/90 border-red-400 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
+                  : toolMode === 'TERRAIN MANIPULATOR'
+                  ? 'bg-sky-950/90 border-sky-400 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.4)]'
+                  : toolMode === 'VOLTAIC STAFF'
+                  ? 'bg-purple-950/90 border-purple-400 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.4)]'
+                  : 'bg-emerald-950/90 border-emerald-400/80 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+              }`}
+              title="무기/도구 전환 [G] - 모드별 타겟 자동 추적"
+            >
+              <Zap className={`w-3.5 h-3.5 shrink-0 ${
+                toolMode === 'BOLTCASTER' ? 'text-red-400' :
+                toolMode === 'TERRAIN MANIPULATOR' ? 'text-sky-400' :
+                toolMode === 'VOLTAIC STAFF' ? 'text-purple-400' : 'text-emerald-400'
+              }`} />
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] font-bold font-mono whitespace-nowrap leading-none">
+                  {toolMode === 'MINING BEAM' ? '채굴광선' : toolMode === 'BOLTCASTER' ? (activeCombatWeapon ? activeCombatWeapon.name.split(' ')[0] : '볼트캐스터') : toolMode === 'TERRAIN MANIPULATOR' ? '지형조작기' : '볼타익스태프'}
+                </span>
+                <span className="text-[7.5px] opacity-80 font-mono whitespace-nowrap leading-none mt-0.5">
+                  {toolMode === 'MINING BEAM' ? '추적: 광맥' : toolMode === 'BOLTCASTER' ? (activeCombatWeapon?.supercharged ? '과급 ⚡ 추적: 적' : '추적: 센티넬') : toolMode === 'TERRAIN MANIPULATOR' ? '추적: 동굴/지형' : '추적: 동물'}
+                </span>
+              </div>
+            </button>
+            {toolMode === 'BOLTCASTER' && (
+              <button
+                onClick={() => {
+                  AudioSys.unlockOnFirstInteraction();
+                  onCycleCombatWeapon();
+                }}
+                className="h-9 sm:h-10 px-2 rounded-full bg-orange-950/90 border border-orange-400/70 text-orange-300 flex items-center justify-center text-[9px] font-bold font-mono active:scale-95 shadow cursor-pointer"
+                title="5대 전문 주무기 순환 (볼트캐스터/산탄/스피터/자벨린/뉴트론)"
+              >
+                주무기 🔄
+              </button>
+            )}
+          </div>
         ) : (
           <button
             onClick={() => {

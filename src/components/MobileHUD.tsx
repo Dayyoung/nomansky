@@ -35,6 +35,7 @@ interface MobileHUDProps {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onResetZoom?: () => void;
+  onOpenArsenal?: () => void;
 }
 
 export const MobileHUD: React.FC<MobileHUDProps> = ({
@@ -66,7 +67,8 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
   cameraZoom = 1.0,
   onZoomIn = () => game.zoomIn(),
   onZoomOut = () => game.zoomOut(),
-  onResetZoom = () => game.resetZoom()
+  onResetZoom = () => game.resetZoom(),
+  onOpenArsenal
 }) => {
   const [showLandingGuide, setShowLandingGuide] = useState(false);
 
@@ -133,6 +135,27 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
           >
             <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
             <span className="hidden xs:inline sm:inline">착륙 가이드</span>
+          </button>
+
+          {/* AI Demo Showcase Toggle Button */}
+          <button
+            onClick={() => {
+              AudioSys.unlockOnFirstInteraction();
+              if (isAutoPilot) {
+                game.disengageAutoPilot();
+              } else {
+                game.engageAutoPilot();
+              }
+            }}
+            className={`h-9 px-2 sm:px-2.5 rounded-lg flex items-center gap-1 text-[10px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0 border transition-all ${
+              isAutoPilot
+                ? 'bg-rose-950/90 hover:bg-rose-900 border-rose-400 text-rose-300 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.4)]'
+                : 'bg-cyan-950/80 hover:bg-cyan-900 border-cyan-400/60 text-cyan-200 hover:text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]'
+            }`}
+            title={isAutoPilot ? '데모플레이 정지 (수동 조작)' : 'AI 전 기능 데모플레이 시작'}
+          >
+            <span className="text-xs">🎬</span>
+            <span className="hidden xs:inline sm:inline">{isAutoPilot ? '데모 중지' : '데모플레이'}</span>
           </button>
         </div>
 
@@ -261,10 +284,37 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
             {quicksilver > 0 && <span className="text-purple-400 font-bold">{quicksilver} ◈</span>}
           </div>
 
+          {/* v5.50.0 Combat Arsenal Command Matrix Quick Button */}
+          {onOpenArsenal && (
+            <button
+              onClick={() => {
+                AudioSys.unlockOnFirstInteraction();
+                onOpenArsenal();
+              }}
+              className="h-9 sm:h-10 px-2 sm:px-2.5 bg-gradient-to-r from-orange-600/90 to-amber-600/90 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg border border-orange-300/80 text-[10px] sm:text-xs flex items-center gap-1 shadow-[0_0_15px_rgba(249,115,22,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+              title="다목적 도구 전투 화기 4-탭 사령부 매트릭스 [Alt+X / /]"
+            >
+              <span>🔫</span>
+              <span className="font-mono text-[10px] font-extrabold hidden xs:inline sm:inline">화기사령부</span>
+            </button>
+          )}
+
+          {/* v5.50.0 Original Arcade View Link */}
+          <a
+            href="./v5.50.0.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-9 sm:h-10 px-2 sm:px-2.5 bg-slate-900/95 hover:bg-slate-800 text-cyan-300 font-bold rounded-lg border border-cyan-400/60 text-[10px] sm:text-xs flex items-center gap-1 shadow-[0_0_12px_rgba(0,229,255,0.3)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0 no-underline"
+            title="doc/No_Mans_Sky_2D_v5.50.0.html 원본 전체화면으로 새 탭에서 실행"
+          >
+            <span>🎮</span>
+            <span className="font-mono text-[10px] font-bold hidden sm:inline">v5.50.0 원본</span>
+          </a>
+
           {/* Quick Menu Button (Opens Full Mobile Drawer) */}
           <button
             onClick={onOpenDrawer}
-            className="h-10 px-3 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md"
+            className="h-9 sm:h-10 px-2.5 sm:px-3 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
           >
             <Menu className="w-4 h-4" />
             <span className="font-mono text-[11px] tracking-wider font-extrabold">메뉴</span>
@@ -342,46 +392,7 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
         )}
       </div>
 
-      {/* Auto-Pilot Active Floating HUD Banner */}
-      {isAutoPilot && (
-        <div className="fixed top-14 sm:top-12 inset-x-0 flex justify-center z-50 pointer-events-auto px-2">
-          <div className="bg-slate-950/95 border-2 border-cyan-400 px-4 sm:px-6 py-2 rounded-full shadow-[0_0_35px_rgba(0,229,255,0.7)] backdrop-blur-md flex items-center gap-2.5 sm:gap-4 animate-in fade-in duration-300 max-w-lg">
-            <div className="relative flex items-center justify-center shrink-0">
-              <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping absolute" />
-              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-xs sm:text-sm font-black text-cyan-300 font-mono tracking-wider truncate">
-                  🤖 AUTO PILOT 무인 탐사
-                </span>
-                {autoPilotTargetPlanet && (
-                  <span className="text-[10px] text-yellow-300 font-mono bg-yellow-950/90 px-2 py-0.5 rounded-full border border-yellow-400/50 truncate">
-                    🪐 {autoPilotTargetPlanet.name}
-                  </span>
-                )}
-              </div>
-              <div className="text-[10px] text-emerald-300 font-mono flex items-center gap-2 truncate">
-                <span>자원 자동 생성 중 ✨</span>
-                <span className="text-gray-400">|</span>
-                <span className="text-cyan-200">
-                  {elapsedMin}분 {elapsedSec.toString().padStart(2, '0')}초 / 3분 (화면 조작 시 즉시 종료)
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                AudioSys.unlockOnFirstInteraction();
-                game.disengageAutoPilot();
-              }}
-              className="px-3 py-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 text-white font-mono text-[11px] font-bold rounded-full active:scale-95 shadow-md cursor-pointer whitespace-nowrap ml-1 shrink-0"
-              title="오토파일럿 종료 및 수동 조종 복귀"
-            >
-              수동 복귀
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Landing Guide Modal Popup */}
       {showLandingGuide && (

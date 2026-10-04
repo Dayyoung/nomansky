@@ -377,3 +377,62 @@ export interface NautilonSubmarineData {
   tethysMining: boolean;
   activeTab: 'specs' | 'sonar' | 'tech' | 'harvest';
 }
+
+export interface CombatWeaponItem {
+  name: string;
+  unlocked: boolean;
+  supercharged: boolean;
+  damage: number;
+  rate: number;
+  baseDps: number;
+  dps: number;
+  magSize: number;
+  curMag: number;
+  color: string;
+}
+
+export interface CombatWeaponsData {
+  activeTab: number;
+  activeWeapon: string;
+  weapons: Record<string, CombatWeaponItem>;
+  glassRefined: boolean;
+  munitionsSupplied: boolean;
+  overclockActive: boolean;
+  grantClaimed: boolean;
+}
+
+export interface SecondaryWeaponsData {
+  active: 'plasmaLauncher' | 'geologyCannon' | 'personalForcefield' | 'cloakingDevice' | 'paralysisMortar';
+  ammo: Record<string, number>;
+}
+
+export type DemoShowcasePhase =
+  | 'SPACE_PULSE'
+  | 'STARSHIP_CYCLE'
+  | 'GALAXY_MAP'
+  | 'PLANET_APPROACH'
+  | 'EXOSUIT_EXPLORE'
+  | 'ANALYSIS_VISOR'
+  | 'TOOL_MODES'
+  | 'COMBAT_WEAPONS'
+  | 'SECONDARY_ORDNANCE'
+  | 'WEAPON_ARSENAL_MODAL'
+  | 'INVENTORY_MODAL'
+  | 'NAUTILON_SUBMARINE'
+  | 'COMPANION_MOUNT'
+  | 'LAUNCH_ORBIT';
+
+export interface DemoShowcaseState {
+  isActive: boolean;
+  phase: DemoShowcasePhase;
+  phaseIndex: number;
+  totalPhases: number;
+  title: string;
+  description: string;
+  subText: string;
+  activeModal: string | null;
+  modalTab?: string;
+  phaseDuration: number;
+  phaseElapsed: number;
+}
+

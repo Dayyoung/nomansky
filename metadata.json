@@ -1,6 +1,6 @@
 {
   "name": "No Man's Sky 2D - Mobile Edition",
-  "description": "노맨즈스카이 2D 모바일 에디션 v5.23.0 (The Abyss & Aquarius): 노틸론 S급 잠수정, 4-탭 소나 매트릭스, 심해 고출력 소나 스캔, 가상 조이스틱 터치 컨트롤, 행성 탐사 및 성간 우주선 비행, 모바일 최적화 HUD 지원",
+  "description": "노맨즈스카이 2D 모바일 에디션 v5.50.0 (Sentinel 3.8 & Waypoint 4.0): 다목적 도구 전투 화기 & 중화기 사령부 매트릭스, 5대 전문 주무기, 보조 유탄/지질학 캐논, 과급 오버클럭, 가상 조이스틱 터치 컨트롤 및 모바일 최적화 HUD 지원",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

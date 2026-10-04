@@ -53,7 +53,7 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
                 {activeModal === 'black-hole' && '초거대 블랙홀 & 사건의 지평선 특이점'}
                 {activeModal === 'portal' && '고대 포탈 16 글리프 다이얼'}
                 {activeModal === 'minotaur' && '미노타우르스 중장갑 메카'}
-                {activeModal === 'weapon-arsenal' && '다목적 도구 화기 무기고'}
+                {activeModal === 'weapon-arsenal' && '다목적 도구 전투 화기 & 중화기 사령부 (Sentinel & Waypoint)'}
                 {activeModal === 'nutrient' && '영양소 처리기 & 외계 요리실'}
                 {activeModal === 'teleport' && '성계간 순간이동기 터미널'}
                 {activeModal === 'discoveries' && '행성 발견 도감 & 동물군 분석'}
@@ -917,100 +917,393 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             </div>
           )}
 
-          {/* 12. WEAPON ARSENAL MODAL */}
+          {/* 12. WEAPON ARSENAL & HEAVY ORDNANCE COMMAND MATRIX (v5.50.0 Sentinel & Waypoint) */}
           {activeModal === 'weapon-arsenal' && (
-            <div className="space-y-3">
-              <div className="p-3 bg-orange-950/40 rounded-xl border border-orange-400 flex justify-between items-center">
-                <div>
-                  <span className="text-xs font-bold text-white block">다목적 도구 화기 무기고 (Multi-Tool Arsenal)</span>
-                  <span className="text-[10px] text-orange-300">소총, 볼트캐스터, 채굴 레이저, 지형 조작기 및 스태프 무장 장착</span>
+            <div className="space-y-4">
+              {/* Telemetry Metrics Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 bg-slate-900/90 p-3 rounded-xl border border-orange-500/30 text-xs font-mono">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">ACTIVE PRIMARY WEAPON</span>
+                  <span className="text-sm font-bold text-yellow-400 font-mono truncate">
+                    {game.data.combatWeapons.weapons[game.data.combatWeapons.activeWeapon]?.name.split(' ')[0] || 'BOLTCASTER'}
+                  </span>
+                  <span className="text-[9px] text-emerald-400 font-bold">S-CLASS COMBAT RIG</span>
                 </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">TOTAL COMBAT DPS</span>
+                  <span className="text-sm font-bold text-orange-400 font-mono">
+                    {Math.round(
+                      (game.data.combatWeapons.weapons[game.data.combatWeapons.activeWeapon]?.baseDps || 3000) *
+                        (game.data.combatWeapons.overclockActive ? 1.5 : 1) *
+                        (game.data.combatWeapons.weapons[game.data.combatWeapons.activeWeapon]?.supercharged ? 1.3 : 1)
+                    ).toLocaleString()}{' '}
+                    DPS
+                  </span>
+                  <span className="text-[9px] text-amber-300">
+                    {game.data.combatWeapons.overclockActive ? '공명 가속 활성 (+50%)' : '표준 탄도학'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">ACTIVE SECONDARY</span>
+                  <span className="text-sm font-bold text-cyan-300 font-mono truncate">
+                    {game.data.secondaryWeapons.active.toUpperCase()}
+                  </span>
+                  <span className="text-[9px] text-cyan-400">
+                    잔탄: {game.data.secondaryWeapons.ammo[game.data.secondaryWeapons.active] || 0}발
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400">SUPERCHARGED SLOTS</span>
+                  <span className="text-sm font-bold text-purple-300 font-mono">
+                    {Object.values(game.data.combatWeapons.weapons).filter((w) => w.supercharged).length} / 5 과급
+                  </span>
+                  <span className="text-[9px] text-purple-400 font-bold">오버클럭 슬롯 공명</span>
+                </div>
+              </div>
+
+              {/* Sub-Tabs: Telemetry (0) | Primary (1) | Secondary (2) | Logistics (3) */}
+              <div className="flex gap-2 border-b border-white/10 pb-2 text-xs font-mono overflow-x-auto">
                 <button
-                  onClick={() => {
-                    game.reloadBoltcaster();
-                  }}
-                  className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                  onClick={() => setSubTab(0)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all shrink-0 ${
+                    subTab === 0
+                      ? 'bg-orange-500/30 text-orange-300 border border-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
                 >
-                  ⚡ 탄약 일괄 보급
+                  🎯 1. 화기 텔레메트리 &amp; 사격
+                </button>
+                <button
+                  onClick={() => setSubTab(1)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all shrink-0 ${
+                    subTab === 1
+                      ? 'bg-orange-500/30 text-orange-300 border border-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  ⚡ 2. 5대 기본 주무기
+                </button>
+                <button
+                  onClick={() => setSubTab(2)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all shrink-0 ${
+                    subTab === 2
+                      ? 'bg-orange-500/30 text-orange-300 border border-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  💣 3. 보조 중화기 유탄
+                </button>
+                <button
+                  onClick={() => setSubTab(3)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all shrink-0 ${
+                    subTab === 3
+                      ? 'bg-orange-500/30 text-orange-300 border border-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+                      : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  🛠️ 4. 센티넬 병참 보급
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                {[
-                  {
-                    id: 'BOLTCASTER',
-                    name: '볼트캐스터 전투 소총',
-                    icon: '🎯',
-                    desc: '연사형 고속 플라즈마 에너지 탄환. 센티넬 및 드론 요격에 최적화.',
-                    stats: '공격력: 420 DPS | 장탄수: 24발',
-                    color: 'border-amber-400 text-amber-300',
-                    bg: 'bg-amber-950/30'
-                  },
-                  {
-                    id: 'MINING BEAM',
-                    name: '광학 채굴 레이저',
-                    icon: '⛏️',
-                    desc: '탄소, 페라이트, 나트륨 광맥 집중 채광 및 근거리 열선 방출.',
-                    stats: '채굴력: 180 MW | 과열냉각: 2.5s',
-                    color: 'border-cyan-400 text-cyan-300',
-                    bg: 'bg-cyan-950/30'
-                  },
-                  {
-                    id: 'TERRAIN MANIPULATOR',
-                    name: '지형 조작기 & 발굴 빔',
-                    icon: '⛰️',
-                    desc: '구리/카드뮴 원소 광맥 발굴 및 지하 벙커 터널 굴착.',
-                    stats: '굴착 반경: 3.5m | 재료 변환율: 100%',
-                    color: 'border-emerald-400 text-emerald-300',
-                    bg: 'bg-emerald-950/30'
-                  },
-                  {
-                    id: 'VOLTAIC STAFF',
-                    name: '오토파지 아틀라스 스태프',
-                    icon: '🪄',
-                    desc: '고대 룬 결정 하이브리드 지팡이. 강력한 단발 전격 번개 포격.',
-                    stats: '공격력: 650 DPS | 과급 시너지: +40%',
-                    color: 'border-purple-400 text-purple-300',
-                    bg: 'bg-purple-950/30'
-                  }
-                ].map((wpn) => {
-                  const isEquipped = game.data.toolMode === wpn.id;
-                  return (
-                    <div
-                      key={wpn.id}
-                      className={`p-3 rounded-xl border ${wpn.color} ${wpn.bg} flex flex-col justify-between gap-2`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{wpn.icon}</span>
-                          <div>
-                            <span className="font-bold text-white text-xs block">{wpn.name}</span>
-                            <span className="text-[10px] text-gray-300">{wpn.desc}</span>
-                          </div>
-                        </div>
+              {/* Sub-Tab 0: Telemetry & Firing Test */}
+              {subTab === 0 && (
+                <div className="space-y-3">
+                  <div className="bg-gradient-to-r from-orange-950/80 via-amber-950/80 to-slate-950 p-4 rounded-xl border border-orange-500/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <div className="text-xs font-bold text-orange-300 flex items-center gap-2">
+                        <span>🔥</span>
+                        <span>다목적 도구 탄도학 &amp; 과급 슬롯 공명 시스템 (Ballistics Matrix)</span>
                       </div>
-                      <div className="flex justify-between items-center pt-1 border-t border-white/10">
-                        <span className="text-[9px] font-mono text-gray-400">{wpn.stats}</span>
-                        <button
-                          onClick={() => {
-                            game.data.toolMode = wpn.id as ToolMode;
-                            AudioSys.playNote(600, 'sine', 0.12);
-                            game.spawnFloatText(`[${wpn.name}] 무장 장착 완료!`, undefined, undefined, '#f59e0b');
-                            handleClose();
-                          }}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all ${
-                            isEquipped
-                              ? 'bg-amber-500 text-black font-extrabold shadow-[0_0_10px_#f59e0b]'
-                              : 'bg-slate-800 hover:bg-slate-700 text-white'
-                          }`}
-                        >
-                          {isEquipped ? '장착 중 ✓' : '장착하기'}
-                        </button>
+                      <p className="text-[11px] text-gray-300 mt-1">
+                        센티넬 지상군 드론, 쿼드루페드, 하드프레임 메카 및 거대 워커의 편향 쉴드를 관통하는 전술 화기 사령부입니다.
+                      </p>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => game.testFireActiveCombatWeapon()}
+                        className="px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 text-white font-bold text-xs rounded-lg shadow-md cursor-pointer transition-all"
+                      >
+                        💥 사격 시험 (Test)
+                      </button>
+                      <button
+                        onClick={() => game.cycleCombatWeapon()}
+                        className="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white font-bold text-xs rounded-lg shadow-md cursor-pointer transition-all"
+                      >
+                        🔄 주무기 순환 (G)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3.5 bg-slate-900/80 rounded-xl border border-white/10 space-y-2">
+                      <span className="font-bold text-amber-300 block">S-Class 전투 프레임 스펙</span>
+                      <p className="text-gray-300 text-[11px] leading-relaxed">
+                        최대 4개의 과급 슬롯(Supercharged Slots)이 배치되어 있어 주무기 및 부속 모듈을 과급 슬롯에 배치 시 피해량 50%, 발사 속도 35%, 반동 제어력이 비약적으로 극대화됩니다.
+                      </p>
+                      <div className="p-2 bg-black/40 rounded border border-amber-500/20 text-[10px] text-amber-200 font-mono">
+                        • 현재 무장: {game.data.combatWeapons.weapons[game.data.combatWeapons.activeWeapon]?.name}<br />
+                        • 장탄수: {game.data.combatWeapons.weapons[game.data.combatWeapons.activeWeapon]?.curMag} / {game.data.combatWeapons.weapons[game.data.combatWeapons.activeWeapon]?.magSize}발
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <div className="p-3.5 bg-slate-900/80 rounded-xl border border-white/10 space-y-2">
+                      <span className="font-bold text-cyan-300 block">보조 중화기 연동 체계</span>
+                      <p className="text-gray-300 text-[11px] leading-relaxed">
+                        원거리 장애물 파괴 및 광역 섬광 마비를 위해 플라즈마 런처, 지질학 캐논, 마비 박격포가 다목적 도구 하부 레일에 병렬 장착되어 있습니다.
+                      </p>
+                      <div className="p-2 bg-black/40 rounded border border-cyan-500/20 text-[10px] text-cyan-200 font-mono">
+                        • 보조 무장: {game.data.secondaryWeapons.active.toUpperCase()}<br />
+                        • 사격 키: [보조 사격 버튼] 또는 3번 탭에서 즉각 발사
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab 1: 5 Primary Weapons */}
+              {subTab === 1 && (
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    {Object.entries(game.data.combatWeapons.weapons).map(([wKey, w]) => {
+                      const isEquipped = game.data.combatWeapons.activeWeapon === wKey;
+                      const dps = Math.round(
+                        (w.baseDps || 3000) *
+                          (game.data.combatWeapons.overclockActive ? 1.5 : 1) *
+                          (w.supercharged ? 1.3 : 1)
+                      );
+                      return (
+                        <div
+                          key={wKey}
+                          className={`p-3 rounded-xl border flex flex-col justify-between gap-2 bg-slate-900/90 transition-all ${
+                            isEquipped ? 'border-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.25)]' : 'border-white/10'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-white text-xs">{w.name}</span>
+                                {w.supercharged && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-950 text-purple-300 border border-purple-400">
+                                    과급 ✓
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-gray-400 font-mono block mt-0.5">
+                                피해량: {w.damage} | 연사: {w.rate}s | 탄창: {w.magSize}발
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold font-mono text-orange-400">{dps.toLocaleString()} DPS</span>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                            <button
+                              onClick={() => game.equipCombatWeapon(wKey)}
+                              disabled={isEquipped}
+                              className={`flex-1 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                                isEquipped
+                                  ? 'bg-emerald-600/70 text-emerald-200 border border-emerald-400 cursor-default'
+                                  : 'bg-orange-600 hover:bg-orange-500 text-white'
+                              }`}
+                            >
+                              {isEquipped ? '장착 중 (EQUIPPED)' : '장착 (EQUIP)'}
+                            </button>
+                            <button
+                              onClick={() => game.superchargeWeapon(wKey)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                                w.supercharged
+                                  ? 'bg-purple-900/80 text-purple-300 border border-purple-400'
+                                  : 'bg-slate-800 hover:bg-slate-700 text-gray-300 border border-white/10'
+                              }`}
+                            >
+                              {w.supercharged ? '과급 해제' : '과급 튜닝 (500⬡)'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab 2: Secondary Heavy Ordnance */}
+              {subTab === 2 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    {[
+                      {
+                        id: 'plasmaLauncher',
+                        name: '플라즈마 런처 (Plasma Launcher)',
+                        icon: '💥',
+                        desc: '표면을 튕겨 반동 후 폭발하는 고온 플라즈마 구체 유탄. 드론 밀집지역 일망타진.',
+                        type: '고폭 유탄'
+                      },
+                      {
+                        id: 'geologyCannon',
+                        name: '지질학 캐논 (Geology Cannon)',
+                        icon: '🌋',
+                        desc: '지반을 대규모 굴착하며 폭심지 충격파를 일으키는 중력파 지질 폭탄.',
+                        type: '지형 파괴탄'
+                      },
+                      {
+                        id: 'paralysisMortar',
+                        name: '마비 박격포 (Paralysis Mortar)',
+                        icon: '⚡',
+                        desc: '적중 반경의 모든 센티넬을 전자기 펄스로 즉각 마비시키고 취약 상태로 유도.',
+                        type: '전자기 마비탄'
+                      },
+                      {
+                        id: 'personalForcefield',
+                        name: '개인용 역장 (Personal Forcefield)',
+                        icon: '🛡️',
+                        desc: '전방에 방어막 에너지를 투사하여 적의 중화기 탄환과 레이저를 도탄 반사.',
+                        type: '투사형 역장'
+                      },
+                      {
+                        id: 'cloakingDevice',
+                        name: '은폐 장치 (Cloaking Device)',
+                        icon: '👻',
+                        desc: '빛을 굴절시켜 센티넬 경계망과 추적 센서로부터 즉각 완전 투명화.',
+                        type: '광학 위장막'
+                      }
+                    ].map((sec) => {
+                      const isEquipped = game.data.secondaryWeapons.active === sec.id;
+                      const ammo = game.data.secondaryWeapons.ammo[sec.id] || 0;
+                      return (
+                        <div
+                          key={sec.id}
+                          className={`p-3 rounded-xl border flex flex-col justify-between gap-2 bg-slate-900/90 ${
+                            isEquipped ? 'border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]' : 'border-white/10'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold text-white text-xs flex items-center gap-1.5">
+                                <span>{sec.icon}</span>
+                                <span>{sec.name}</span>
+                              </span>
+                              <span className="text-[10px] text-cyan-300 font-mono font-bold">
+                                잔여: {ammo}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-400 leading-relaxed">{sec.desc}</p>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                            <button
+                              onClick={() => game.equipSecondaryWeapon(sec.id as any)}
+                              disabled={isEquipped}
+                              className={`flex-1 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                                isEquipped
+                                  ? 'bg-cyan-600/70 text-cyan-100 border border-cyan-400 cursor-default'
+                                  : 'bg-slate-800 hover:bg-slate-700 text-white'
+                              }`}
+                            >
+                              {isEquipped ? '보조 장착 중 ✓' : '보조무기 장착'}
+                            </button>
+                            {isEquipped && (
+                              <button
+                                onClick={() => game.fireSecondaryWeapon()}
+                                className="px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                              >
+                                🚀 즉시 발사
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab 3: Sentinel Modifications & Quartermaster Supplies */}
+              {subTab === 3 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3.5 bg-slate-900/90 rounded-xl border border-purple-500/30 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-purple-300 text-xs block mb-1">🔮 인양된 유리 정제 &amp; 무기 모듈</span>
+                      <p className="text-[11px] text-gray-400">
+                        파괴된 센티넬 드론에서 회수한 인양된 유리를 분석하여 희귀 불법 센티넬 무기 파편을 추출합니다.
+                      </p>
+                      <span className="text-[10px] text-purple-400 font-mono block mt-1">+180,000 ₩, +250 ⬡, 센티넬 무기 모듈</span>
+                    </div>
+                    <button
+                      onClick={() => game.refineSalvagedGlassWeapon()}
+                      disabled={game.data.combatWeapons.glassRefined}
+                      className={`w-full py-2 rounded-lg text-xs font-bold transition-all ${
+                        game.data.combatWeapons.glassRefined
+                          ? 'bg-purple-950/60 text-purple-400 border border-purple-400/40 cursor-default'
+                          : 'bg-purple-600 hover:bg-purple-500 text-white cursor-pointer shadow-md'
+                      }`}
+                    >
+                      {game.data.combatWeapons.glassRefined ? '정제 완료 ✓' : '유리 정제 및 모듈 획득'}
+                    </button>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-900/90 rounded-xl border border-yellow-500/30 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-amber-300 text-xs block mb-1">📦 야전 탄약 캡슐 투하</span>
+                      <p className="text-[11px] text-gray-400">
+                        궤도 보급선에서 압축 탄약 컨테이너를 투하하여 5대 전투 화기의 모든 탄창을 100% 즉시 보급합니다.
+                      </p>
+                      <span className="text-[10px] text-amber-400 font-mono block mt-1">+150 ⬡, 모든 화기 탄약 완전 보급</span>
+                    </div>
+                    <button
+                      onClick={() => game.supplyFieldMunitions()}
+                      disabled={game.data.combatWeapons.munitionsSupplied}
+                      className={`w-full py-2 rounded-lg text-xs font-bold transition-all ${
+                        game.data.combatWeapons.munitionsSupplied
+                          ? 'bg-amber-950/60 text-amber-400 border border-amber-400/40 cursor-default'
+                          : 'bg-amber-600 hover:bg-amber-500 text-white cursor-pointer shadow-md'
+                      }`}
+                    >
+                      {game.data.combatWeapons.munitionsSupplied ? '보급 완료 ✓' : '야전 탄약 캡슐 투하'}
+                    </button>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-900/90 rounded-xl border border-cyan-500/30 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-cyan-300 text-xs block mb-1">⚡ 과급 슬롯 과부하 공명 가동</span>
+                      <p className="text-[11px] text-gray-400">
+                        다목적 도구 전원 회로를 강제 과급하여 전투 화기의 공격력을 +50%, 연사력을 +35% 영구 증폭합니다.
+                      </p>
+                      <span className="text-[10px] text-cyan-400 font-mono block mt-1">+200 ⬡, 공격력/연사력 영구 오버클럭</span>
+                    </div>
+                    <button
+                      onClick={() => game.overclockWeaponMatrix()}
+                      disabled={game.data.combatWeapons.overclockActive}
+                      className={`w-full py-2 rounded-lg text-xs font-bold transition-all ${
+                        game.data.combatWeapons.overclockActive
+                          ? 'bg-cyan-950/60 text-cyan-400 border border-cyan-400/40 cursor-default'
+                          : 'bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer shadow-md'
+                      }`}
+                    >
+                      {game.data.combatWeapons.overclockActive ? '과부하 공명 가동 중 ✓' : '과부하 공명 가동'}
+                    </button>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-900/90 rounded-xl border border-orange-500/30 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-orange-300 text-xs block mb-1">📋 무기고 병참 지원금 수령</span>
+                      <p className="text-[11px] text-gray-400">
+                        우주 군수사령부의 공식 라이선스 지원금을 수령하여 화기 개조와 은하계 탐사 자금을 확충합니다.
+                      </p>
+                      <span className="text-[10px] text-orange-400 font-mono block mt-1">+320,000 ₩, +450 ⬡, +150 ◈ 퀵실버</span>
+                    </div>
+                    <button
+                      onClick={() => game.claimArmoryMunitionsGrant()}
+                      disabled={game.data.combatWeapons.grantClaimed}
+                      className={`w-full py-2 rounded-lg text-xs font-bold transition-all ${
+                        game.data.combatWeapons.grantClaimed
+                          ? 'bg-orange-950/60 text-orange-400 border border-orange-400/40 cursor-default'
+                          : 'bg-orange-600 hover:bg-orange-500 text-white cursor-pointer shadow-md'
+                      }`}
+                    >
+                      {game.data.combatWeapons.grantClaimed ? '지원금 수령 완료 ✓' : '병참 지원금 수령'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

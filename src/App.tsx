@@ -6,7 +6,8 @@ import { ActionControls } from './components/ActionControls';
 import { MobileHUD } from './components/MobileHUD';
 import { MobileQuickDrawer } from './components/MobileQuickDrawer';
 import { MobileModals } from './components/MobileModals';
-import { ToolMode, ShipType } from './types';
+import { DemoShowcaseHUD } from './components/DemoShowcaseHUD';
+import { ToolMode, ShipType, DemoShowcaseState } from './types';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -43,6 +44,8 @@ export default function App() {
   const [autoPilotPlanetStartTime, setAutoPilotPlanetStartTime] = useState(game.autoPilotPlanetStartTime);
   const [cameraZoom, setCameraZoom] = useState(game.cameraZoom);
   const [isNautilonBoarded, setIsNautilonBoarded] = useState(game.data.nautilon.boarded);
+  const [combatWeapons, setCombatWeapons] = useState(game.data.combatWeapons);
+  const [secondaryWeapons, setSecondaryWeapons] = useState(game.data.secondaryWeapons);
 
   const touchDistRef = useRef<number | null>(null);
   const initialZoomRef = useRef<number>(1.0);
@@ -50,6 +53,7 @@ export default function App() {
   // Mobile Drawers & Modals
   const [isQuickDrawerOpen, setIsQuickDrawerOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [demoShowcase, setDemoShowcase] = useState<DemoShowcaseState>(game.data.demoShowcase);
 
   // Sync with engine
   const syncWithEngine = useCallback(() => {
@@ -84,7 +88,17 @@ export default function App() {
     setAutoPilotPlanetStartTime(game.autoPilotPlanetStartTime);
     setCameraZoom(game.cameraZoom);
     setIsNautilonBoarded(game.data.nautilon.boarded);
-  }, []);
+    setCombatWeapons({ ...game.data.combatWeapons });
+    setSecondaryWeapons({ ...game.data.secondaryWeapons });
+    setDemoShowcase({ ...game.data.demoShowcase });
+
+    // AI Demo Showcase Modal auto sync
+    if (game.isAutoPilot && game.data.demoShowcase.isActive) {
+      if (game.data.demoShowcase.activeModal !== activeModal) {
+        setActiveModal(game.data.demoShowcase.activeModal);
+      }
+    }
+  }, [activeModal]);
 
   useEffect(() => {
     const unsub = game.subscribe(syncWithEngine);
@@ -179,7 +193,8 @@ export default function App() {
         setActiveModal((prev) => (prev === 'aquarium' ? null : 'aquarium'));
       }
       if (code === 'KeyX') {
-        if (e.shiftKey) setActiveModal((prev) => (prev === 'starship-weapons' ? null : 'starship-weapons'));
+        if (e.altKey) setActiveModal((prev) => (prev === 'weapon-arsenal' ? null : 'weapon-arsenal'));
+        else if (e.shiftKey) setActiveModal((prev) => (prev === 'starship-weapons' ? null : 'starship-weapons'));
         else setActiveModal((prev) => (prev === 'quick-recharge' ? null : 'quick-recharge'));
       }
       if (code === 'KeyC') {
@@ -192,6 +207,10 @@ export default function App() {
       }
       if (code === 'Period') setActiveModal((prev) => (prev === 'solar-ship' ? null : 'solar-ship'));
       if (code === 'Comma') setActiveModal((prev) => (prev === 'laylaps' ? null : 'laylaps'));
+      if (code === 'KeyQ') {
+        if (e.shiftKey) game.cycleSecondaryWeapon();
+        else game.fireSecondaryWeapon();
+      }
       if (code === 'Backslash') setActiveModal((prev) => (prev === 'outlaw-station' ? null : 'outlaw-station'));
       if (code === 'Slash') setActiveModal((prev) => (prev === 'weapon-arsenal' ? null : 'weapon-arsenal'));
       if (code === 'Home') setActiveModal((prev) => (prev === 'fishing' ? null : 'fishing'));
@@ -368,7 +387,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden select-none bg-black touch-none">
+    <div className="fixed inset-0 w-full h-full overflow-hidden select-none bg-black touch-none">
       {/* Scanline & Vignette Overlays */}
       <div className="scanlines" />
       <div className="vignette" />
@@ -376,7 +395,7 @@ export default function App() {
       {/* Main 2D WebGL/Canvas Viewport */}
       <canvas
         ref={canvasRef}
-        className="w-full h-full block cursor-crosshair"
+        className="absolute inset-0 w-full h-full block cursor-crosshair touch-none"
         onMouseDown={() => {
           AudioSys.unlockOnFirstInteraction();
           game.mouse.isDown = true;
@@ -423,6 +442,7 @@ export default function App() {
         onZoomIn={() => game.zoomIn()}
         onZoomOut={() => game.zoomOut()}
         onResetZoom={() => game.resetZoom()}
+        onOpenArsenal={() => setActiveModal('weapon-arsenal')}
         onOpenDrawer={() => {
           AudioSys.playNote(480, 'sine', 0.1);
           setIsQuickDrawerOpen(true);
@@ -492,6 +512,8 @@ export default function App() {
             ammo={ammo}
             maxAmmo={maxAmmo}
             cargoScanTimer={cargoScanTimer}
+            combatWeapons={combatWeapons}
+            secondaryWeapons={secondaryWeapons}
             onFireStart={() => {
               game.touchControls.isFiring = true;
             }}
@@ -511,6 +533,10 @@ export default function App() {
               game.touchControls.isInteracting = false;
             }}
             onCycleTool={() => game.cycleToolMode()}
+            onCycleCombatWeapon={() => game.cycleCombatWeapon()}
+            onFireSecondary={() => game.fireSecondaryWeapon()}
+            onCycleSecondary={() => game.cycleSecondaryWeapon()}
+            onOpenArsenal={() => setActiveModal('weapon-arsenal')}
             onScan={() => game.triggerScanPulse()}
             onReload={() => game.reloadBoltcaster()}
             onToggleVisor={() => {
@@ -582,7 +608,26 @@ export default function App() {
       />
 
       {/* Mobile Responsive Modals (Inventory, Galaxy Map, Fishing, Black Hole, etc.) */}
-      <MobileModals activeModal={activeModal} onClose={() => setActiveModal(null)} />
+      <MobileModals
+        activeModal={activeModal}
+        onClose={() => {
+          setActiveModal(null);
+          if (isAutoPilot) game.disengageAutoPilot();
+        }}
+      />
+
+      {/* Cinematic AI Demo Showcase HUD Banner */}
+      <DemoShowcaseHUD
+        demoState={demoShowcase}
+        isAutoPilot={isAutoPilot}
+        onToggleDemo={() => {
+          if (isAutoPilot) {
+            game.disengageAutoPilot();
+          } else {
+            game.engageAutoPilot();
+          }
+        }}
+      />
     </div>
   );
 }

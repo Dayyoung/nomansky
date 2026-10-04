@@ -20,7 +20,11 @@ import {
   ParticleEntity,
   FleetExpedition,
   GameInventory,
-  NautilonSubmarineData
+  NautilonSubmarineData,
+  CombatWeaponsData,
+  SecondaryWeaponsData,
+  DemoShowcaseState,
+  DemoShowcasePhase
 } from './types';
 
 export interface FloatingText {
@@ -126,6 +130,43 @@ export class GameEngine {
       tethysMining: false,
       activeTab: 'specs'
     } as NautilonSubmarineData,
+    combatWeapons: {
+      activeTab: 0,
+      activeWeapon: 'boltcaster',
+      weapons: {
+        boltcaster: { name: '볼트캐스터 (Boltcaster)', unlocked: true, supercharged: true, damage: 32, rate: 0.12, baseDps: 2600, dps: 3400, magSize: 64, curMag: 64, color: '#facc15' },
+        scatterBlaster: { name: '산탄 블래스터 (Scatter Blaster)', unlocked: true, supercharged: false, damage: 128, rate: 0.45, baseDps: 3200, dps: 3200, magSize: 32, curMag: 32, color: '#ef4444' },
+        pulseSpitter: { name: '펄스 스피터 (Pulse Spitter)', unlocked: true, supercharged: false, damage: 24, rate: 0.08, baseDps: 3800, dps: 3800, magSize: 80, curMag: 80, color: '#f97316' },
+        neutronCannon: { name: '중성자 캐논 (Neutron Cannon)', unlocked: true, supercharged: false, damage: 85, rate: 0.35, baseDps: 4100, dps: 4100, magSize: 50, curMag: 50, color: '#10b981' },
+        blazeJavelin: { name: '블레이즈 자벨린 (Blaze Javelin)', unlocked: true, supercharged: false, damage: 180, rate: 0.8, baseDps: 4500, dps: 4500, magSize: 20, curMag: 20, color: '#a855f7' }
+      },
+      glassRefined: false,
+      munitionsSupplied: false,
+      overclockActive: false,
+      grantClaimed: false
+    } as CombatWeaponsData,
+    secondaryWeapons: {
+      active: 'plasmaLauncher',
+      ammo: {
+        plasmaLauncher: 20,
+        geologyCannon: 20,
+        personalForcefield: 100,
+        cloakingDevice: 100,
+        paralysisMortar: 15
+      }
+    } as SecondaryWeaponsData,
+    demoShowcase: {
+      isActive: false,
+      phase: 'SPACE_PULSE',
+      phaseIndex: 0,
+      totalPhases: 14,
+      title: '초광속 펄스 드라이브 & 성간 항법',
+      description: '광활한 유클리드 은하를 고속으로 순항하며 인근 행성과 우주 정거장을 탐색합니다.',
+      subText: '[Space] 키를 누르면 펄스 엔진이 점화되어 36 u/s 초광속으로 질주합니다.',
+      activeModal: null,
+      phaseDuration: 5500,
+      phaseElapsed: 0
+    } as DemoShowcaseState,
     inv: {
       oxygen: 50,
       sodium: 35,
@@ -697,35 +738,518 @@ export class GameEngine {
     }
   }
 
+  public static readonly DEMO_PHASES: Array<{
+    phase: DemoShowcasePhase;
+    title: string;
+    description: string;
+    subText: string;
+    duration: number;
+  }> = [
+    {
+      phase: 'SPACE_PULSE',
+      title: '🚀 초광속 펄스 드라이브 & 성간 항법',
+      description: '우주선 펄스 추진기를 가동하여 광활한 유클리드 성계를 36 u/s 초광속으로 쾌속 순항합니다.',
+      subText: '[Space / 펄스부스트] 초광속 가속 | [포톤 캐논] 소행성 파괴',
+      duration: 5000
+    },
+    {
+      phase: 'STARSHIP_CYCLE',
+      title: '🛸 4대 특수 함선 격납고 [K]',
+      description: '솔라선(베스퍼 세일), 센티넬 인터셉터, 생체함선 등 성간 함대 주력기를 실시간으로 교체합니다.',
+      subText: '[K] 함선 순환 | 기종별 고유 비행 역학과 칵핏 게이지 전환',
+      duration: 5000
+    },
+    {
+      phase: 'GALAXY_MAP',
+      title: '🌌 성간 은하 지도 매트릭스 [M]',
+      description: '은하계 중심점(Galactic Center)과 성계 간의 성간 워프 하이퍼드라이브 경로를 차트화합니다.',
+      subText: '[M] 은하 지도 | 워프 하이퍼코어로 다음 성계로 도약',
+      duration: 4000
+    },
+    {
+      phase: 'PLANET_APPROACH',
+      title: '🔥 행성 대기권 돌파 & 역추진 착륙 [E]',
+      description: '미개척 외계 행성의 대기권을 돌파하여 지표면에 안전하게 착륙하고 엑소슈트로 하선합니다.',
+      subText: '[E] 길게 누름 착륙 | 궤도에서 지표면 보행 모드로 자연스럽게 전환',
+      duration: 6000
+    },
+    {
+      phase: 'EXOSUIT_EXPLORE',
+      title: '🪐 엑소슈트 지표면 탐사 & 제트팩 도약 [Space]',
+      description: '외계 행성의 가혹한 중력과 환경 방호막 속에서 고성능 제트팩을 가동해 입체적으로 기동합니다.',
+      subText: '[A/D/조이스틱] 보행 탐사 | [Space/제트팩] 고공 추진 도약',
+      duration: 5000
+    },
+    {
+      phase: 'ANALYSIS_VISOR',
+      title: '🔍 분석 바이저 & 지형 스캐너 [F / C]',
+      description: '바이저 렌즈를 활성화하여 숨겨진 나노 자원 광맥과 미지의 외계 동식물을 원거리 스캔 분석합니다.',
+      subText: '[F] 분석 바이저 오버레이 | [C] 지형 스캔 펄스 방출',
+      duration: 4500
+    },
+    {
+      phase: 'TOOL_MODES',
+      title: '⚡ 다목적 도구 4대 유틸리티 모드 [G]',
+      description: '채굴 광선, 볼트캐스터 소총, 지형 조작기, 오토파지 볼타익 스태프를 상황에 맞게 전환합니다.',
+      subText: '[G] 도구 순환 | 타겟별 자동 조준 유도 레이저 발사',
+      duration: 4500
+    },
+    {
+      phase: 'COMBAT_WEAPONS',
+      title: '🔫 Sentinel 3.8: 5대 전문 전투 화기 시연',
+      description: '볼트캐스터, 산탄 블래스터, 펄스 스피터, 중성자 캐논 등 전문 전투 주무기의 가공할 화력을 시연합니다.',
+      subText: '[주무기 🔄] 순환 | 과급 슬롯(Supercharged ⚡) 50% 공격력 증폭',
+      duration: 5500
+    },
+    {
+      phase: 'SECONDARY_ORDNANCE',
+      title: '💥 중화기 보조 유탄 & 폭발물 투하 [Q]',
+      description: '플라즈마 런처와 마비 박격포를 원터치로 발사하여 센티넬 경비병과 장애물을 단숨에 분쇄합니다.',
+      subText: '[Q] 보조 무기 발사 | [Shift+Q / G] 플라즈마·지질학·마비박격포 전환',
+      duration: 4500
+    },
+    {
+      phase: 'WEAPON_ARSENAL_MODAL',
+      title: '📋 다목적 도구 전투 화기 사령부 [Alt+X / /]',
+      description: 'Sentinel & Waypoint 4.0: 5대 주무기, 보조 유탄 발사관, 과급 슬롯 오버클럭을 통합 통제합니다.',
+      subText: '4-탭 사령부 매트릭스 | 야전 탄약 캡슐 투하 및 센티넬 모듈 정제',
+      duration: 4500
+    },
+    {
+      phase: 'INVENTORY_MODAL',
+      title: '🎒 엑소슈트 & 함선 인벤토리 관리 [Tab]',
+      description: '채굴한 페라이트, 산소, 나트륨 등 핵심 원소 화물과 엑소슈트 방호 기술 모듈을 정비합니다.',
+      subText: '[Tab] 인벤토리 | 자원 조합 및 환경 방호 차폐막 충전',
+      duration: 4000
+    },
+    {
+      phase: 'NAUTILON_SUBMARINE',
+      title: '🌊 노틸론 S급 잠수정 & 심해 탐사 [0 / Alt+0]',
+      description: '심해 바다로 뛰어들어 고출력 수중 소나를 가동하고 침몰선과 심연의 공포를 탐색합니다.',
+      subText: '[0] 노틸론 탑승 | [소나 📡] 침몰 화물선 및 해저 유적 탐색',
+      duration: 5000
+    },
+    {
+      phase: 'COMPANION_MOUNT',
+      title: '🐾 외계 동반자 교감 & 유전자 시퀀서 [U]',
+      description: '행성 토착 거대 타이탄 생명체를 길들여 탑승하고, 스페이스 아노말리에서 배아 유전자를 조작합니다.',
+      subText: '[U] 동반자 교감 | 배아 크기/성향/돌연변이 시퀀싱',
+      duration: 4500
+    },
+    {
+      phase: 'LAUNCH_ORBIT',
+      title: '🚀 우주선 탑승 & 궤도 수직 발사 [T / E]',
+      description: '지표면 탐사를 마치고 우주선에 탑승하여 성간 궤도로 쾌속 발진, 다음 새로운 미지의 행성으로 항해합니다.',
+      subText: '[E/탑승] 우주선 탑승 | [T/발사] 궤도로 로켓 점화 발사',
+      duration: 5500
+    }
+  ];
+
+  public demoPhaseIndex: number = 0;
+  public demoPhaseStartTime: number = 0;
+  public demoActionSubTimer: number = 0;
+  private demoLastActionTick: number = 0;
+
+  public notifyUserInput() {
+    this.lastInputTime = Date.now();
+    if (this.isAutoPilot) {
+      this.disengageAutoPilot();
+    }
+  }
+
+  public toggleAutoPilot() {
+    if (this.isAutoPilot) {
+      this.disengageAutoPilot();
+    } else {
+      this.engageAutoPilot();
+    }
+  }
+
   public disengageAutoPilot() {
     if (!this.isAutoPilot) return;
     this.isAutoPilot = false;
     this.data.isPulseActive = false;
+    this.data.demoShowcase.isActive = false;
+    this.data.demoShowcase.activeModal = null;
+    this.player.isJetpacking = false;
+    this.player.isMining = false;
     AudioSys.playNote(440, 'sine', 0.15);
-    this.spawnFloatText("🤖 조작 감지 // 오토파일럿 모드 종료 (수동 조종 복귀)", undefined, undefined, '#f59e0b');
+    this.spawnFloatText("🎮 조작 감지 // AI 데모 쇼케이스 종료 (수동 조종 복귀)", undefined, undefined, '#f59e0b');
     this.notify();
   }
 
-  public engageAutoPilot() {
-    if (this.isAutoPilot) return;
+  public engageAutoPilot(forceStartPhase?: number) {
+    if (this.isAutoPilot && forceStartPhase === undefined) return;
     this.isAutoPilot = true;
+    this.data.demoShowcase.isActive = true;
     this.autoPilotPlanetStartTime = Date.now();
     this.autoPilotResourceTimer = 0;
     this.autoPilotWanderAngle = Math.random() * Math.PI * 2;
 
-    if (this.currState === 'PLANET' && this.data.activePlanet) {
-      this.autoPilotTargetPlanet = this.data.activePlanet;
-      AudioSys.playDiscoveryFanfare();
-      this.spawnFloatText(`🤖 10초 미조작 // [${this.data.activePlanet.name}] 지표면 사람 모드 광석 채굴 시작!`, undefined, undefined, '#00e5ff');
+    // Pick starting phase based on current game state
+    let startIdx = 0;
+    if (forceStartPhase !== undefined) {
+      startIdx = forceStartPhase;
+    } else if (this.currState === 'PLANET') {
+      startIdx = 4; // Start from EXOSUIT_EXPLORE on planet
     } else {
-      this.selectRandomAutoPilotPlanet();
-      AudioSys.playDiscoveryFanfare();
-      this.spawnFloatText("🤖 10초 미조작 감지 // 오토파일럿 탐사 가동!", undefined, undefined, '#00e5ff');
-      if (this.autoPilotTargetPlanet) {
-        this.spawnFloatText(`🪐 목표: [${this.autoPilotTargetPlanet.name}] 도착 후 착륙하여 사람 모드 광석 채굴`, undefined, this.height / 2 - 25, '#10b981');
+      startIdx = 0; // Start from SPACE_PULSE in space
+    }
+
+    this.setupDemoPhase(startIdx);
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText("🎬 AI 데모 쇼케이스 가동! 전 기능 순차 시연 시작", undefined, undefined, '#00e5ff');
+    this.notify();
+  }
+
+  public setupDemoPhase(phaseIdx: number) {
+    const list = GameEngine.DEMO_PHASES;
+    this.demoPhaseIndex = ((phaseIdx % list.length) + list.length) % list.length;
+    const cfg = list[this.demoPhaseIndex];
+
+    this.demoPhaseStartTime = Date.now();
+    this.demoActionSubTimer = 0;
+    this.demoLastActionTick = 0;
+
+    // Update reactive state
+    this.data.demoShowcase.phase = cfg.phase;
+    this.data.demoShowcase.phaseIndex = this.demoPhaseIndex;
+    this.data.demoShowcase.totalPhases = list.length;
+    this.data.demoShowcase.title = cfg.title;
+    this.data.demoShowcase.description = cfg.description;
+    this.data.demoShowcase.subText = cfg.subText;
+    this.data.demoShowcase.phaseDuration = cfg.duration;
+    this.data.demoShowcase.phaseElapsed = 0;
+    this.data.demoShowcase.activeModal = null;
+
+    // Phase setup hooks
+    switch (cfg.phase) {
+      case 'SPACE_PULSE':
+        if (this.currState !== 'SPACE') this.launchToOrbit();
+        this.data.isPulseActive = true;
+        this.selectRandomAutoPilotPlanet();
+        break;
+      case 'STARSHIP_CYCLE':
+        if (this.currState !== 'SPACE') this.launchToOrbit();
+        this.data.isPulseActive = false;
+        break;
+      case 'GALAXY_MAP':
+        this.data.demoShowcase.activeModal = 'galaxy-map';
+        AudioSys.playNote(520, 'sine', 0.2);
+        break;
+      case 'PLANET_APPROACH':
+        if (this.currState !== 'SPACE') {
+          // If already on planet, advance to next phase
+          setTimeout(() => this.advanceDemoPhase(), 100);
+        } else {
+          this.data.isPulseActive = true;
+          if (!this.autoPilotTargetPlanet) this.selectRandomAutoPilotPlanet();
+        }
+        break;
+      case 'EXOSUIT_EXPLORE':
+        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
+          this.landCurrentShip(this.entities.planets[0]);
+        }
+        this.data.isVisorActive = false;
+        this.player.isMining = false;
+        break;
+      case 'ANALYSIS_VISOR':
+        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
+          this.landCurrentShip(this.entities.planets[0]);
+        }
+        this.data.isVisorActive = true;
+        this.setCameraZoom(1.3);
+        this.triggerScanPulse();
+        break;
+      case 'TOOL_MODES':
+        this.data.isVisorActive = false;
+        this.setCameraZoom(1.0);
+        break;
+      case 'COMBAT_WEAPONS':
+        this.data.toolMode = 'BOLTCASTER';
+        this.equipCombatWeapon('boltcaster');
+        break;
+      case 'SECONDARY_ORDNANCE':
+        this.data.toolMode = 'BOLTCASTER';
+        this.equipSecondaryWeapon('plasmaLauncher');
+        break;
+      case 'WEAPON_ARSENAL_MODAL':
+        this.data.demoShowcase.activeModal = 'weapon-arsenal';
+        AudioSys.playNote(600, 'sine', 0.15);
+        break;
+      case 'INVENTORY_MODAL':
+        this.data.demoShowcase.activeModal = 'inventory';
+        AudioSys.playNote(480, 'triangle', 0.15);
+        break;
+      case 'NAUTILON_SUBMARINE':
+        this.data.nautilon.boarded = true;
+        AudioSys.playNote(220, 'sawtooth', 0.3);
+        this.spawnFloatText("🌊 노틸론 S급 잠수함 탑승 // 심해 추진 가동", undefined, this.height / 2 - 50, '#38bdf8');
+        break;
+      case 'COMPANION_MOUNT':
+        this.data.demoShowcase.activeModal = 'egg-sequencer';
+        AudioSys.playNote(700, 'sine', 0.2);
+        break;
+      case 'LAUNCH_ORBIT':
+        this.data.demoShowcase.activeModal = null;
+        if (this.data.nautilon.boarded) this.dismountNautilon();
+        break;
+    }
+
+    this.notify();
+  }
+
+  public advanceDemoPhase() {
+    this.setupDemoPhase(this.demoPhaseIndex + 1);
+  }
+
+  public updateDemoShowcase() {
+    if (!this.isAutoPilot) return;
+
+    const now = Date.now();
+    const elapsed = now - this.demoPhaseStartTime;
+    this.data.demoShowcase.phaseElapsed = elapsed;
+
+    const cfg = GameEngine.DEMO_PHASES[this.demoPhaseIndex] || GameEngine.DEMO_PHASES[0];
+
+    // Check if phase duration elapsed -> advance to next phase
+    if (elapsed >= cfg.duration) {
+      this.advanceDemoPhase();
+      return;
+    }
+
+    // Specific phase update logic
+    switch (cfg.phase) {
+      case 'SPACE_PULSE': {
+        if (this.currState !== 'SPACE') {
+          this.launchToOrbit();
+        }
+        this.player.angle += 0.012;
+        this.data.isPulseActive = true;
+        this.player.vx = Math.cos(this.player.angle) * 30.0;
+        this.player.vy = Math.sin(this.player.angle) * 30.0;
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 45 === 0) {
+          this.fireSpaceWeapons();
+        }
+        break;
+      }
+
+      case 'STARSHIP_CYCLE': {
+        if (this.currState !== 'SPACE') {
+          this.launchToOrbit();
+        }
+        this.data.isPulseActive = false;
+        this.player.vx = Math.cos(this.player.angle) * 8.5;
+        this.player.vy = Math.sin(this.player.angle) * 8.5;
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 65 === 0) {
+          this.cycleStarship();
+        }
+        if (this.demoActionSubTimer % 80 === 0) {
+          this.fireSpaceWeapons();
+        }
+        break;
+      }
+
+      case 'GALAXY_MAP': {
+        this.data.demoShowcase.activeModal = 'galaxy-map';
+        this.data.isPulseActive = false;
+        this.player.vx *= 0.94;
+        this.player.vy *= 0.94;
+        break;
+      }
+
+      case 'PLANET_APPROACH': {
+        this.data.demoShowcase.activeModal = null;
+        if (this.currState !== 'SPACE') {
+          this.advanceDemoPhase();
+          return;
+        }
+        if (!this.autoPilotTargetPlanet) {
+          this.selectRandomAutoPilotPlanet();
+        }
+        const target = this.autoPilotTargetPlanet;
+        if (target) {
+          const dx = target.x - this.player.x;
+          const dy = target.y - this.player.y;
+          const dist = Math.hypot(dx, dy);
+          const targetAngle = Math.atan2(dy, dx);
+          let diff = targetAngle - this.player.angle;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          this.player.angle += diff * 0.12;
+
+          const isPulse = dist > target.r + 250;
+          this.data.isPulseActive = isPulse;
+          const spd = isPulse ? 32.0 : 12.0;
+          this.player.vx = Math.cos(this.player.angle) * spd;
+          this.player.vy = Math.sin(this.player.angle) * spd;
+
+          if (dist <= target.r * 0.85) {
+            this.data.isPulseActive = false;
+            this.landCurrentShip(target);
+            AudioSys.playDiscoveryFanfare();
+            this.advanceDemoPhase();
+            return;
+          }
+        }
+        break;
+      }
+
+      case 'EXOSUIT_EXPLORE': {
+        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
+          this.landCurrentShip(this.entities.planets[0]);
+        }
+        this.data.demoShowcase.activeModal = null;
+        this.player.px += Math.cos(this.autoPilotWanderAngle) * 3.4;
+        this.player.py += Math.sin(this.autoPilotWanderAngle) * 3.4;
+        this.autoPilotWanderAngle += 0.032;
+        this.player.facing = Math.cos(this.autoPilotWanderAngle) > 0 ? 1 : -1;
+        this.player.anim += 0.2;
+
+        this.demoActionSubTimer++;
+        const jetpackCycle = this.demoActionSubTimer % 90;
+        if (jetpackCycle > 25 && jetpackCycle < 60) {
+          this.player.isJetpacking = true;
+          this.data.jetpackFuel = Math.max(25, this.data.jetpackFuel - 0.4);
+        } else {
+          this.player.isJetpacking = false;
+          this.data.jetpackFuel = Math.min(100, this.data.jetpackFuel + 0.8);
+        }
+        break;
+      }
+
+      case 'ANALYSIS_VISOR': {
+        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
+          this.landCurrentShip(this.entities.planets[0]);
+        }
+        this.data.demoShowcase.activeModal = null;
+        this.data.isVisorActive = true;
+        this.player.isJetpacking = false;
+        this.player.px += Math.cos(this.autoPilotWanderAngle) * 1.2;
+        this.player.py += Math.sin(this.autoPilotWanderAngle) * 1.2;
+        this.autoPilotWanderAngle += 0.015;
+        this.player.anim += 0.1;
+
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 75 === 0) {
+          this.triggerScanPulse();
+        }
+        break;
+      }
+
+      case 'TOOL_MODES': {
+        this.data.demoShowcase.activeModal = null;
+        this.data.isVisorActive = false;
+        this.setCameraZoom(1.0);
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 65 === 0) {
+          this.cycleToolMode();
+        }
+        this.player.isMining = true;
+        if (this.data.activePlanet) {
+          this.handlePlanetFire(this.data.activePlanet);
+        }
+        break;
+      }
+
+      case 'COMBAT_WEAPONS': {
+        this.data.demoShowcase.activeModal = null;
+        this.data.toolMode = 'BOLTCASTER';
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 60 === 0) {
+          this.cycleCombatWeapon();
+        }
+        this.player.isMining = true;
+        if (this.demoActionSubTimer % 8 === 0 && this.data.activePlanet) {
+          this.handlePlanetFire(this.data.activePlanet);
+        }
+        break;
+      }
+
+      case 'SECONDARY_ORDNANCE': {
+        this.data.demoShowcase.activeModal = null;
+        this.data.toolMode = 'BOLTCASTER';
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 80 === 0) {
+          this.cycleSecondaryWeapon();
+          this.fireSecondaryWeapon();
+        }
+        break;
+      }
+
+      case 'WEAPON_ARSENAL_MODAL': {
+        this.data.demoShowcase.activeModal = 'weapon-arsenal';
+        this.player.isMining = false;
+        const tabs = ['primary', 'secondary', 'upgrades', 'overclock'];
+        const tabIdx = Math.floor((elapsed / 1200) % tabs.length);
+        this.data.demoShowcase.modalTab = tabs[tabIdx];
+        if (tabIdx === 3 && !this.data.combatWeapons.overclockActive && elapsed > 3600) {
+          this.overclockWeaponMatrix();
+        }
+        break;
+      }
+
+      case 'INVENTORY_MODAL': {
+        this.data.demoShowcase.activeModal = 'inventory';
+        this.player.isMining = false;
+        if (elapsed > 2200 && this.demoLastActionTick === 0) {
+          this.demoLastActionTick = 1;
+          this.rechargeHazard();
+        }
+        break;
+      }
+
+      case 'NAUTILON_SUBMARINE': {
+        this.data.demoShowcase.activeModal = null;
+        this.data.nautilon.boarded = true;
+        this.player.px += Math.cos(this.autoPilotWanderAngle) * 3.0;
+        this.player.py += Math.sin(this.autoPilotWanderAngle) * 3.0;
+        this.autoPilotWanderAngle += 0.022;
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 85 === 0) {
+          this.triggerNautilonSonar();
+        }
+        break;
+      }
+
+      case 'COMPANION_MOUNT': {
+        if (this.data.nautilon.boarded) {
+          this.dismountNautilon();
+        }
+        this.data.demoShowcase.activeModal = 'egg-sequencer';
+        break;
+      }
+
+      case 'LAUNCH_ORBIT': {
+        this.data.demoShowcase.activeModal = null;
+        if (this.data.nautilon.boarded) {
+          this.dismountNautilon();
+        }
+        if (this.currState === 'PLANET') {
+          const shipDist = Math.hypot(this.parkedShip.x - this.player.px, this.parkedShip.y - this.player.py);
+          if (shipDist > 45) {
+            const toShipAngle = Math.atan2(this.parkedShip.y - this.player.py, this.parkedShip.x - this.player.px);
+            this.player.px += Math.cos(toShipAngle) * 4.6;
+            this.player.py += Math.sin(toShipAngle) * 4.6;
+            this.player.facing = Math.cos(toShipAngle) > 0 ? 1 : -1;
+            this.player.anim += 0.25;
+          } else {
+            const prevPlanet = this.data.activePlanet?.name;
+            this.launchToOrbit();
+            this.selectRandomAutoPilotPlanet(prevPlanet);
+            this.advanceDemoPhase();
+            return;
+          }
+        } else {
+          this.data.isPulseActive = true;
+          this.player.vx = Math.cos(this.player.angle) * 32.0;
+          this.player.vy = Math.sin(this.player.angle) * 32.0;
+        }
+        break;
       }
     }
-    this.notify();
   }
 
   public setCameraZoom(zoom: number) {
@@ -850,6 +1374,13 @@ export class GameEngine {
     this.notify();
   }
 
+  public triggerNautilonSonar() {
+    AudioSys.playNote(220, 'sine', 0.35, 0.4);
+    setTimeout(() => AudioSys.playNote(440, 'sine', 0.2, 0.3), 150);
+    this.scanSunkenRuins();
+    this.spawnFloatText("📡 노틸론 고출력 소나 스캔 // 심해 유적 및 수중 잔해 좌표 수신", undefined, this.height / 2 - 70, '#38bdf8');
+  }
+
   public dismountNautilon() {
     this.data.nautilon.boarded = false;
     AudioSys.playNote(300, 'sine', 0.15, 0.2);
@@ -948,6 +1479,150 @@ export class GameEngine {
     AudioSys.playNote(440, 'sine', 0.15, 0.2);
     this.spawnFloatText("💎 해달 코어 정제 완료 (+1 코어, +150 ⬡)", undefined, undefined, '#a855f7');
     this.notify();
+  }
+
+  // Combat Arsenal & Ordnance Matrix System (v5.50.0 Sentinel & Waypoint)
+  public testFireActiveCombatWeapon() {
+    const cw = this.data.combatWeapons;
+    const activeW = cw.weapons[cw.activeWeapon] || cw.weapons.boltcaster;
+    AudioSys.playBoltcaster();
+    const dps = Math.round((activeW.baseDps || 3000) * (cw.overclockActive ? 1.5 : 1) * (activeW.supercharged ? 1.3 : 1));
+    this.spawnFloatText(`💥 [사격 시험] ${activeW.name.split(' ')[0]} 발사! (${dps} DPS)`, undefined, this.height / 2 - 70, activeW.color || '#f97316');
+    this.notify();
+  }
+
+  public cycleCombatWeapon() {
+    const cw = this.data.combatWeapons;
+    const keys = Object.keys(cw.weapons);
+    const currIdx = keys.indexOf(cw.activeWeapon);
+    const nextIdx = (currIdx + 1) % keys.length;
+    this.equipCombatWeapon(keys[nextIdx]);
+  }
+
+  public equipCombatWeapon(weaponId: string) {
+    const cw = this.data.combatWeapons;
+    if (!cw.weapons[weaponId]) return;
+    cw.activeWeapon = weaponId;
+    const w = cw.weapons[weaponId];
+    this.data.toolMode = 'BOLTCASTER';
+    AudioSys.playNote(440, 'triangle', 0.1, 0.2);
+    setTimeout(() => AudioSys.playNote(659.25, 'sine', 0.15, 0.25), 80);
+    this.spawnFloatText(`🔫 주무기 장착: ${w.name.split(' ')[0]}`, undefined, this.height / 2 - 60, w.color || '#facc15');
+    this.notify();
+  }
+
+  public superchargeWeapon(weaponId: string) {
+    const cw = this.data.combatWeapons;
+    const w = cw.weapons[weaponId];
+    if (!w) return;
+    if (this.data.nanites < 500 && !w.supercharged) {
+      this.data.nanites += 500;
+    }
+    if (!w.supercharged) {
+      this.data.nanites = Math.max(0, this.data.nanites - 500);
+    }
+    w.supercharged = !w.supercharged;
+    w.dps = Math.round(w.baseDps * (w.supercharged ? 1.5 : 1.0));
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText(`⚡ ${w.name.split(' ')[0]} 과급 슬롯 ${w.supercharged ? '활성화! (+50% 화력)' : '해제'}`, undefined, this.height / 2 - 60, '#00e5ff');
+    this.notify();
+  }
+
+  public refineSalvagedGlassWeapon() {
+    const cw = this.data.combatWeapons;
+    cw.glassRefined = true;
+    this.data.units += 180000;
+    this.data.nanites += 250;
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText("🔮 인양된 유리 정제 완료! (+180k ₩, +250 ⬡, 센티넬 무기 파편 모듈)", undefined, this.height / 2 - 70, '#c084fc');
+    this.notify();
+  }
+
+  public supplyFieldMunitions() {
+    const cw = this.data.combatWeapons;
+    cw.munitionsSupplied = true;
+    this.data.nanites += 150;
+    this.data.ammo = this.data.maxAmmo;
+    for (const k in cw.weapons) {
+      cw.weapons[k].curMag = cw.weapons[k].magSize;
+    }
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText("📦 야전 탄약 캡슐 투하 // 모든 화기 탄약 100% 즉시 보급 (+150 ⬡)", undefined, this.height / 2 - 70, '#fbbf24');
+    this.notify();
+  }
+
+  public overclockWeaponMatrix() {
+    const cw = this.data.combatWeapons;
+    cw.overclockActive = true;
+    this.data.nanites += 200;
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText("⚡ 과급 슬롯 과부하 공명 가동! (공격력 +50%, 연사력 +35%, +200 ⬡)", undefined, this.height / 2 - 70, '#06b6d4');
+    this.notify();
+  }
+
+  public claimArmoryMunitionsGrant() {
+    const cw = this.data.combatWeapons;
+    cw.grantClaimed = true;
+    this.data.units += 320000;
+    this.data.nanites += 450;
+    this.data.quicksilver += 150;
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText("📋 무기고 병참 지원금 수령! (+320k ₩, +450 ⬡, +150 ◈)", undefined, this.height / 2 - 70, '#f97316');
+    this.notify();
+  }
+
+  public equipSecondaryWeapon(weaponKey: 'plasmaLauncher' | 'geologyCannon' | 'personalForcefield' | 'cloakingDevice' | 'paralysisMortar') {
+    this.data.secondaryWeapons.active = weaponKey;
+    AudioSys.playNote(520, 'sine', 0.1, 0.2);
+    this.spawnFloatText(`💣 보조 중화기 전환: ${weaponKey.toUpperCase()}`, undefined, this.height / 2 - 60, '#38bdf8');
+    this.notify();
+  }
+
+  public fireSecondaryWeapon() {
+    const sec = this.data.secondaryWeapons;
+    const active = sec.active;
+    if ((sec.ammo[active] || 0) <= 0) {
+      this.spawnFloatText(`⚠️ ${active.toUpperCase()} 탄약/에너지가 고갈되었습니다!`, undefined, this.height / 2 - 60, '#ef4444');
+      return;
+    }
+    sec.ammo[active] = Math.max(0, (sec.ammo[active] || 0) - 1);
+    AudioSys.playNote(180, 'sawtooth', 0.35, 0.4);
+    this.spawnFloatText(`💥 [보조 발사] ${this.getSecondaryWeaponName(active)} 사격! (잔탄: ${sec.ammo[active]})`, undefined, this.height / 2 - 70, '#f97316');
+    this.notify();
+  }
+
+  public cycleSecondaryWeapon() {
+    const sec = this.data.secondaryWeapons;
+    const order: Array<'plasmaLauncher' | 'geologyCannon' | 'personalForcefield' | 'cloakingDevice' | 'paralysisMortar'> = [
+      'plasmaLauncher', 'geologyCannon', 'paralysisMortar', 'personalForcefield', 'cloakingDevice'
+    ];
+    const currIdx = order.indexOf(sec.active);
+    const nextIdx = (currIdx + 1) % order.length;
+    this.equipSecondaryWeapon(order[nextIdx]);
+  }
+
+  public getSecondaryWeaponName(key?: string): string {
+    const k = key || this.data.secondaryWeapons.active;
+    switch (k) {
+      case 'plasmaLauncher': return '플라즈마 런처';
+      case 'geologyCannon': return '지질학 캐논';
+      case 'paralysisMortar': return '마비 박격포';
+      case 'personalForcefield': return '개인 역장 방패';
+      case 'cloakingDevice': return '은폐 장치';
+      default: return '보조 무기';
+    }
+  }
+
+  public getSecondaryWeaponIcon(key?: string): string {
+    const k = key || this.data.secondaryWeapons.active;
+    switch (k) {
+      case 'plasmaLauncher': return '💥';
+      case 'geologyCannon': return '🌋';
+      case 'paralysisMortar': return '⚡';
+      case 'personalForcefield': return '🛡️';
+      case 'cloakingDevice': return '👻';
+      default: return '💣';
+    }
   }
 
   public getNearestPlanet(): { planet: PlanetEntity; distance: number } | null {
@@ -1060,44 +1735,7 @@ export class GameEngine {
     // SPACE STATE
     if (this.currState === 'SPACE') {
       if (this.isAutoPilot) {
-        // AUTOPILOT AUTONOMOUS NAVIGATION
-        // Check if target is set
-        if (!this.autoPilotTargetPlanet) {
-          this.selectRandomAutoPilotPlanet();
-          this.autoPilotPlanetStartTime = now;
-        }
-
-        const target = this.autoPilotTargetPlanet;
-        if (target) {
-          const dx = target.x - this.player.x;
-          const dy = target.y - this.player.y;
-          const dist = Math.hypot(dx, dy);
-
-          if (dist > target.r * 0.75) {
-            // Cruise / Pulse toward planet
-            const directAngle = Math.atan2(dy, dx);
-            let angleDiff = directAngle - this.player.angle;
-            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-            this.player.angle += angleDiff * 0.09;
-
-            const pulse = dist > target.r + 300;
-            this.data.isPulseActive = pulse;
-            const spd = pulse ? 28.0 : 8.5;
-            this.player.vx = Math.cos(this.player.angle) * spd;
-            this.player.vy = Math.sin(this.player.angle) * spd;
-          } else {
-            // Reached planet! Land and switch to human mode to mine ores!
-            this.data.isPulseActive = false;
-            this.landCurrentShip(target);
-            this.autoPilotPlanetStartTime = now;
-            this.autoPilotResourceTimer = 0;
-            AudioSys.playDiscoveryFanfare();
-            this.spawnFloatText(`🛬 [오토파일럿] ${target.name} 착륙 완료!`, undefined, undefined, '#10b981');
-            this.spawnFloatText(`👤 사람(보행) 모드로 전환 // 지표면 광석 채굴 시작`, undefined, this.height / 2 - 25, '#00e5ff');
-            return;
-          }
-        }
+        this.updateDemoShowcase();
       } else {
         // MANUAL PLAYER FLIGHT CONTROLS
         const isThrusting = (this.touchControls.isJetpacking || this.keyboard.space || inputLen > 0.1);
@@ -1213,107 +1851,7 @@ export class GameEngine {
       const p = this.data.activePlanet;
 
       if (this.isAutoPilot) {
-        // AUTOPILOT IN HUMAN MODE ON PLANET:
-        // 1. Check if 3 minutes (180,000ms) on this planet have elapsed
-        if (now - this.autoPilotPlanetStartTime >= 180000) {
-          const shipDist = Math.hypot(this.parkedShip.x - this.player.px, this.parkedShip.y - this.player.py);
-          if (shipDist > 55) {
-            // Walk toward parked starship
-            const angleToShip = Math.atan2(this.parkedShip.y - this.player.py, this.parkedShip.x - this.player.px);
-            this.player.px += Math.cos(angleToShip) * 3.6;
-            this.player.py += Math.sin(angleToShip) * 3.6;
-            this.player.anim += 0.2;
-            this.player.facing = Math.cos(angleToShip) > 0 ? 1 : -1;
-            this.player.isMining = false;
-          } else {
-            // Board ship, launch into space, pick next random planet!
-            const prevPlanetName = p.name;
-            this.launchToOrbit();
-            this.selectRandomAutoPilotPlanet(prevPlanetName);
-            this.autoPilotPlanetStartTime = now;
-            AudioSys.playDiscoveryFanfare();
-            this.spawnFloatText(`⏱️ [오토파일럿] 3분 탐사 완료! 우주선 탑승 // 다음 행성 [${this.autoPilotTargetPlanet?.name}]으로 이동`, undefined, undefined, '#c084fc');
-            return;
-          }
-        } else {
-          // Within 3 minutes: AUTONOMOUS WALKING AND MINING ORE DEPOSITS!
-          let nearestDep: DepositEntity | null = null;
-          let minDist = Infinity;
-          for (const d of p.deposits) {
-            if (d.hp > 0) {
-              const dDist = Math.hypot(d.lx - this.player.px, d.ly - this.player.py);
-              if (dDist < minDist) {
-                minDist = dDist;
-                nearestDep = d;
-              }
-            }
-          }
-
-          if (nearestDep) {
-            const dx = nearestDep.lx - this.player.px;
-            const dy = nearestDep.ly - this.player.py;
-            const dist = Math.hypot(dx, dy);
-
-            if (dist > 85) {
-              // Walk towards deposit
-              const walkAngle = Math.atan2(dy, dx);
-              this.player.px += Math.cos(walkAngle) * 3.2;
-              this.player.py += Math.sin(walkAngle) * 3.2;
-              this.player.anim += 0.2;
-              this.player.facing = dx > 0 ? 1 : -1;
-              this.player.isMining = false;
-            } else {
-              // Within mining range: face deposit and fire mining beam!
-              this.player.facing = dx > 0 ? 1 : -1;
-              this.player.anim = 0;
-              this.player.isMining = true;
-
-              this.autoPilotResourceTimer++;
-              if (this.autoPilotResourceTimer % 6 === 0) {
-                nearestDep.hp -= 3.0;
-                AudioSys.playMineBeam();
-
-                // Periodic environmental & weapon recharge
-                this.data.lifeSupport = Math.min(100, this.data.lifeSupport + 0.5);
-                this.data.hazard = Math.min(100, this.data.hazard + 0.5);
-
-                if (nearestDep.hp <= 0) {
-                  const resType = nearestDep.type as keyof typeof this.data.inv;
-                  const yieldQty = Math.floor(18 + Math.random() * 18);
-                  const creds = Math.floor(200 + Math.random() * 250);
-                  const nanites = Math.floor(5 + Math.random() * 10);
-                  if (this.data.inv[resType] !== undefined) {
-                    this.data.inv[resType] += yieldQty;
-                  }
-                  this.data.units += creds;
-                  this.data.nanites += nanites;
-                  this.autoPilotTotalResourcesGained += yieldQty;
-
-                  const names: Record<string, string> = {
-                    ferrite: '페라이트 광석',
-                    carbon: '탄소 농축물',
-                    sodium: '나트륨 결정',
-                    oxygen: '산소 캡슐',
-                    dihydrogen: '이수소 결정'
-                  };
-                  this.spawnFloatText(`⛏️ 광석 채굴 완료: +${yieldQty} ${names[resType] || resType} (+${creds}₩, +${nanites}⬡)`, undefined, undefined, '#00e5ff');
-                  AudioSys.playDiscoveryFanfare();
-                  this.notify();
-                }
-              }
-            }
-          } else {
-            // All deposits mined or none left: wander or respawn
-            this.player.isMining = false;
-            this.player.px += Math.cos(this.autoPilotWanderAngle) * 2.2;
-            this.player.py += Math.sin(this.autoPilotWanderAngle) * 2.2;
-            this.autoPilotWanderAngle += 0.025;
-            this.player.anim += 0.15;
-            if (p.deposits.every(d => d.hp <= 0)) {
-              p.deposits.forEach(d => { d.hp = 10; });
-            }
-          }
-        }
+        this.updateDemoShowcase();
       } else {
         // Walking movement
         const walkSpeed = this.keyboard.shift ? 4.2 : 2.8;
@@ -1690,8 +2228,17 @@ export class GameEngine {
     this.ctx = canvas.getContext('2d');
     if (!this.ctx) return;
 
-    this.width = canvas.width = window.innerWidth;
-    this.height = canvas.height = window.innerHeight;
+    // Mobile aspect ratio fix: strictly match buffer resolution to actual client layout rect
+    const rect = canvas.getBoundingClientRect();
+    const curW = Math.round(rect.width || canvas.clientWidth || window.innerWidth);
+    const curH = Math.round(rect.height || canvas.clientHeight || window.innerHeight);
+
+    if (canvas.width !== curW || canvas.height !== curH) {
+      canvas.width = curW;
+      canvas.height = curH;
+    }
+    this.width = curW;
+    this.height = curH;
     const ctx = this.ctx;
 
     ctx.fillStyle = '#02040a';
