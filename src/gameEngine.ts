@@ -24,8 +24,78 @@ import {
   CombatWeaponsData,
   SecondaryWeaponsData,
   DemoShowcaseState,
-  DemoShowcasePhase
+  DemoShowcasePhase,
+  DifficultyPreset,
+  DifficultySettings
 } from './types';
+
+export const DIFFICULTY_PRESETS: Record<Exclude<DifficultyPreset, 'CUSTOM'>, DifficultySettings> = {
+  NORMAL: {
+    preset: 'NORMAL',
+    hazardDrain: 'STANDARD',
+    lifeSupportDrain: 'STANDARD',
+    combatDifficulty: 'STANDARD',
+    sentinelAggression: 'STANDARD',
+    craftingCost: 'STANDARD',
+    purchaseCost: 'STANDARD',
+    fuelUsage: 'STANDARD',
+    deathConsequence: 'GRAVE',
+    sprintStamina: 'STANDARD',
+    scannerRecharge: 'STANDARD'
+  },
+  RELAXED: {
+    preset: 'RELAXED',
+    hazardDrain: 'RELAXED',
+    lifeSupportDrain: 'RELAXED',
+    combatDifficulty: 'WEAK',
+    sentinelAggression: 'LOW',
+    craftingCost: 'STANDARD',
+    purchaseCost: 'DISCOUNT',
+    fuelUsage: 'FREE',
+    deathConsequence: 'NONE',
+    sprintStamina: 'INFINITE',
+    scannerRecharge: 'FAST'
+  },
+  SURVIVAL: {
+    preset: 'SURVIVAL',
+    hazardDrain: 'HARSH',
+    lifeSupportDrain: 'HARSH',
+    combatDifficulty: 'CHALLENGING',
+    sentinelAggression: 'HOSTILE',
+    craftingCost: 'EXPENSIVE',
+    purchaseCost: 'HIGH',
+    fuelUsage: 'HIGH',
+    deathConsequence: 'PERMADEATH',
+    sprintStamina: 'LIMITED',
+    scannerRecharge: 'STANDARD'
+  },
+  PERMADEATH: {
+    preset: 'PERMADEATH',
+    hazardDrain: 'HARSH',
+    lifeSupportDrain: 'HARSH',
+    combatDifficulty: 'CHALLENGING',
+    sentinelAggression: 'HOSTILE',
+    craftingCost: 'EXPENSIVE',
+    purchaseCost: 'HIGH',
+    fuelUsage: 'HIGH',
+    deathConsequence: 'PERMADEATH',
+    sprintStamina: 'LIMITED',
+    scannerRecharge: 'STANDARD'
+  },
+  CREATIVE: {
+    preset: 'CREATIVE',
+    hazardDrain: 'CREATIVE',
+    lifeSupportDrain: 'CREATIVE',
+    combatDifficulty: 'WEAK',
+    sentinelAggression: 'LOW',
+    craftingCost: 'FREE',
+    purchaseCost: 'DISCOUNT',
+    fuelUsage: 'FREE',
+    deathConsequence: 'NONE',
+    sprintStamina: 'INFINITE',
+    scannerRecharge: 'INSTANT'
+  }
+};
 
 export interface FloatingText {
   id: number;
@@ -91,6 +161,8 @@ export class GameEngine {
     nanites: 360,
     quicksilver: 0,
     taintedMetal: 500,
+    difficultySettings: { ...DIFFICULTY_PRESETS.NORMAL } as DifficultySettings,
+    utopiaSpeederClaimed: false,
     shield: 100,
     maxShield: 100,
     hazard: 100,
@@ -1577,9 +1649,67 @@ export class GameEngine {
     this.notify();
   }
 
+  public lastScanTime: number = 0;
+
   public triggerScanPulse() {
+    const now = Date.now();
+    const rechargeSetting = this.data.difficultySettings?.scannerRecharge || 'STANDARD';
+    const cooldownMs = rechargeSetting === 'INSTANT' ? 400 : (rechargeSetting === 'FAST' ? 3000 : 8000);
+    
+    if (now - this.lastScanTime < cooldownMs) {
+      const remainSec = ((cooldownMs - (now - this.lastScanTime)) / 1000).toFixed(1);
+      this.spawnFloatText(`⏳ 스캐너 재충전 중 (${remainSec}초 대기)`, undefined, undefined, '#94a3b8');
+      return;
+    }
+    this.lastScanTime = now;
     AudioSys.playScanPulse();
     this.spawnFloatText("📡 스캐너 펄스 발동 // 지형 자원 탐지", undefined, undefined, '#00e5ff');
+  }
+
+  // --- WAYPOINT 4.0 DIFFICULTY SYSTEM (v5.51.0) ---
+  public applyDifficultyPreset(presetKey: DifficultyPreset) {
+    if (presetKey === 'CUSTOM') {
+      this.data.difficultySettings.preset = 'CUSTOM';
+    } else if (DIFFICULTY_PRESETS[presetKey as keyof typeof DIFFICULTY_PRESETS]) {
+      this.data.difficultySettings = { ...DIFFICULTY_PRESETS[presetKey as keyof typeof DIFFICULTY_PRESETS] };
+    }
+    AudioSys.playRecharge();
+    this.spawnFloatText(`⚙️ 난이도 프리셋 적용: [${presetKey}]`, undefined, this.height / 2 - 70, '#f59e0b');
+    this.notify();
+  }
+
+  public setDifficultyParam<K extends keyof DifficultySettings>(paramName: K, value: DifficultySettings[K]) {
+    if (!this.data.difficultySettings) {
+      this.data.difficultySettings = { ...DIFFICULTY_PRESETS.NORMAL };
+    }
+    this.data.difficultySettings[paramName] = value;
+    this.data.difficultySettings.preset = 'CUSTOM';
+    AudioSys.playNote(587, 'sine', 0.08, 0.2);
+    this.notify();
+  }
+
+  public claimUtopiaSpeeder() {
+    this.data.shipType = 'UTOPIA_SPEEDER';
+    this.data.maxShield = 320;
+    this.data.shield = 320;
+    this.data.utopiaSpeederClaimed = true;
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText("🚀 UTOPIA SPEEDER STARSHIP CLAIMED // SPEED & AGILITY MAXIMIZED!", undefined, this.height / 2 - 70, '#00e5ff');
+    this.notify();
+  }
+
+  public takeDamage(amount: number) {
+    const diff = this.data.difficultySettings || DIFFICULTY_PRESETS.NORMAL;
+    if (diff.hazardDrain === 'CREATIVE') return; // Creative mode: God mode
+    if (diff.combatDifficulty === 'WEAK') amount *= 0.5;
+    else if (diff.combatDifficulty === 'CHALLENGING') amount *= 1.6;
+
+    if (this.data.shield > 0) {
+      this.data.shield = Math.max(0, this.data.shield - amount);
+    } else {
+      this.data.hazard = Math.max(0, this.data.hazard - amount * 0.5);
+    }
+    this.notify();
   }
 
   // Nautilon Submarine System (The Abyss 1.70 & Aquarius 5.10)
@@ -2102,7 +2232,9 @@ export class GameEngine {
           } else {
             this.player.py -= 3.8;
           }
-          this.data.lifeSupport = Math.max(0, this.data.lifeSupport - 0.04);
+          const staminaSetting = this.data.difficultySettings?.sprintStamina || 'STANDARD';
+          const staminaDrain = staminaSetting === 'INFINITE' ? 0 : (staminaSetting === 'LIMITED' ? 0.08 : 0.04);
+          this.data.lifeSupport = Math.max(0, this.data.lifeSupport - staminaDrain);
           AudioSys.playJetpack();
         } else {
           this.player.isJetpacking = false;
@@ -2137,11 +2269,26 @@ export class GameEngine {
         this.boundaryCooldown--;
       }
 
-      // Hazard & Life support drain
-      if (p.hazardType !== 'TEMPERATE') {
-        this.data.hazard = Math.max(0, this.data.hazard - 0.02);
+      // Hazard & Life support drain (Waypoint 4.0 Difficulty scaling)
+      const hazardSetting = this.data.difficultySettings?.hazardDrain || 'STANDARD';
+      let hazardMultiplier = 1.0;
+      if (hazardSetting === 'CREATIVE') hazardMultiplier = 0;
+      else if (hazardSetting === 'RELAXED') hazardMultiplier = 0.4;
+      else if (hazardSetting === 'HARSH') hazardMultiplier = 1.8;
+
+      if (p.hazardType !== 'TEMPERATE' && hazardMultiplier > 0) {
+        this.data.hazard = Math.max(0, this.data.hazard - 0.02 * hazardMultiplier);
       }
-      this.data.lifeSupport = Math.max(0, this.data.lifeSupport - 0.008);
+
+      const lifeSetting = this.data.difficultySettings?.lifeSupportDrain || 'STANDARD';
+      let lifeMultiplier = 1.0;
+      if (lifeSetting === 'CREATIVE') lifeMultiplier = 0;
+      else if (lifeSetting === 'RELAXED') lifeMultiplier = 0.5;
+      else if (lifeSetting === 'HARSH') lifeMultiplier = 1.8;
+
+      if (lifeMultiplier > 0) {
+        this.data.lifeSupport = Math.max(0, this.data.lifeSupport - 0.008 * lifeMultiplier);
+      }
 
       // Update Procedural Fauna (외계 동물 배회 및 애니메이션)
       if (p.fauna) {

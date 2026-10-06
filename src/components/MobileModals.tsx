@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, RefreshCw, Zap, Rocket, Shield, Sparkles, Check, ChevronRight } from 'lucide-react';
 import { game } from '../gameEngine';
 import { AudioSys } from '../audio';
-import { ToolMode } from '../types';
+import { ToolMode, DifficultyPreset, DifficultySettings } from '../types';
 
 interface MobileModalsProps {
   activeModal: string | null;
@@ -11,6 +11,8 @@ interface MobileModalsProps {
 
 export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose }) => {
   const [subTab, setSubTab] = useState(0);
+  const [, setTick] = useState(0);
+  const triggerRender = () => setTick((t) => t + 1);
 
   if (!activeModal) return null;
 
@@ -26,10 +28,11 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
         <div className="px-4 py-3 bg-slate-900 border-b border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="text-xl">
-              {activeModal === 'nautilon-sonar' ? '🌊' : activeModal === 'inventory' ? '🎒' : activeModal === 'galaxy-map' ? '🌌' : activeModal === 'solar-ship' ? '⛵' : activeModal === 'laylaps' ? '🤖' : activeModal === 'fishing' ? '🎣' : activeModal === 'black-hole' ? '🕳️' : activeModal === 'portal' ? '🌀' : activeModal === 'atlas-path' ? '🔴' : activeModal === 'wonders' ? '✨' : activeModal === 'supercharge' ? '⚡' : '🚀'}
+              {activeModal === 'custom-difficulty' ? '⚙️' : activeModal === 'nautilon-sonar' ? '🌊' : activeModal === 'inventory' ? '🎒' : activeModal === 'galaxy-map' ? '🌌' : activeModal === 'solar-ship' ? '⛵' : activeModal === 'laylaps' ? '🤖' : activeModal === 'fishing' ? '🎣' : activeModal === 'black-hole' ? '🕳️' : activeModal === 'portal' ? '🌀' : activeModal === 'atlas-path' ? '🔴' : activeModal === 'wonders' ? '✨' : activeModal === 'supercharge' ? '⚡' : '🚀'}
             </span>
             <div className="flex flex-col truncate">
               <span className="text-xs sm:text-sm font-bold text-white nms-header-font truncate">
+                {activeModal === 'custom-difficulty' && '커스텀 난이도 & 10대 게임플레이 조절 콘솔 (Waypoint 4.0 [F9])'}
                 {activeModal === 'nautilon-sonar' && '노틸론 잠수정 & 심해 고출력 소나 스캐너 (The Abyss & Aquarius)'}
                 {activeModal === 'inventory' && '엑소슈트 인벤토리 (Exosuit Inventory)'}
                 {activeModal === 'quick-recharge' && '퀵 긴급 충전 (Quick Recharge)'}
@@ -3328,59 +3331,272 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             </div>
           )}
 
-          {/* 49. WAYPOINT 4.0 CUSTOM GAME DIFFICULTY */}
-          {activeModal === 'custom-difficulty' && (
-            <div className="space-y-3">
-              <div className="p-4 bg-amber-950/40 rounded-xl border border-amber-400 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">⚙️</span>
-                  <div>
-                    <span className="text-sm font-bold text-white block">커스텀 게임 모드 & 8대 게임플레이 난이도 조절</span>
-                    <span className="text-[10px] text-amber-300">유해 환경, 전투, 센티넬, 제작 비용, 사망 패널티 실시간 튜닝</span>
+          {/* 49. WAYPOINT 4.0 CUSTOM GAME DIFFICULTY (v5.51.0) */}
+          {activeModal === 'custom-difficulty' && (() => {
+            const diff = game.data.difficultySettings || {
+              preset: 'NORMAL',
+              hazardDrain: 'STANDARD',
+              lifeSupportDrain: 'STANDARD',
+              combatDifficulty: 'STANDARD',
+              sentinelAggression: 'STANDARD',
+              craftingCost: 'STANDARD',
+              purchaseCost: 'STANDARD',
+              fuelUsage: 'STANDARD',
+              deathConsequence: 'GRAVE',
+              sprintStamina: 'STANDARD',
+              scannerRecharge: 'STANDARD'
+            };
+
+            const presetDescriptions: Record<string, string> = {
+              NORMAL: 'NORMAL (표준 탐험)',
+              RELAXED: 'RELAXED (완화 모드)',
+              SURVIVAL: 'SURVIVAL (생존 도전)',
+              PERMADEATH: 'PERMADEATH (영구 사망 도전)',
+              CREATIVE: 'CREATIVE (창작 모드)',
+              CUSTOM: 'CUSTOM (사용자 정의)'
+            };
+
+            const granularParams: Array<{
+              key: keyof DifficultySettings;
+              name: string;
+              current: string;
+              options: Array<{ value: string; label: string }>;
+            }> = [
+              {
+                key: 'hazardDrain',
+                name: '1. 환경 보호 소모율',
+                current: diff.hazardDrain,
+                options: [
+                  { value: 'CREATIVE', label: '무제한(0x)' },
+                  { value: 'RELAXED', label: '완화(0.4x)' },
+                  { value: 'STANDARD', label: '표준(1.0x)' },
+                  { value: 'HARSH', label: '혹독(1.8x)' }
+                ]
+              },
+              {
+                key: 'lifeSupportDrain',
+                name: '2. 생명 유지 소모율',
+                current: diff.lifeSupportDrain,
+                options: [
+                  { value: 'CREATIVE', label: '무제한(0x)' },
+                  { value: 'RELAXED', label: '완화(0.5x)' },
+                  { value: 'STANDARD', label: '표준(1.0x)' },
+                  { value: 'HARSH', label: '혹독(1.8x)' }
+                ]
+              },
+              {
+                key: 'combatDifficulty',
+                name: '3. 전투 난이도 & 대미지',
+                current: diff.combatDifficulty,
+                options: [
+                  { value: 'WEAK', label: '약함(0.6x)' },
+                  { value: 'STANDARD', label: '표준(1.0x)' },
+                  { value: 'CHALLENGING', label: '도전(1.6x)' }
+                ]
+              },
+              {
+                key: 'sentinelAggression',
+                name: '4. 센티넬 공격성 & 경계',
+                current: diff.sentinelAggression,
+                options: [
+                  { value: 'LOW', label: '비선제' },
+                  { value: 'STANDARD', label: '표준 반응' },
+                  { value: 'HOSTILE', label: '상시 적대' }
+                ]
+              },
+              {
+                key: 'craftingCost',
+                name: '5. 자원 제작 비용',
+                current: diff.craftingCost,
+                options: [
+                  { value: 'FREE', label: '무료(0자원)' },
+                  { value: 'STANDARD', label: '표준' },
+                  { value: 'EXPENSIVE', label: '고비용(1.5x)' }
+                ]
+              },
+              {
+                key: 'purchaseCost',
+                name: '6. 상점 구매 경제 난이도',
+                current: diff.purchaseCost,
+                options: [
+                  { value: 'DISCOUNT', label: '할인(0.7x)' },
+                  { value: 'STANDARD', label: '표준 가격' },
+                  { value: 'HIGH', label: '인플레(1.5x)' }
+                ]
+              },
+              {
+                key: 'fuelUsage',
+                name: '7. 우주선 펄스/워프 연료 소모',
+                current: diff.fuelUsage,
+                options: [
+                  { value: 'FREE', label: '무료(0소모)' },
+                  { value: 'STANDARD', label: '표준 소모' },
+                  { value: 'HIGH', label: '고소모(1.5x)' }
+                ]
+              },
+              {
+                key: 'deathConsequence',
+                name: '8. 사망 패널티 (페널티)',
+                current: diff.deathConsequence,
+                options: [
+                  { value: 'NONE', label: '손실 없음' },
+                  { value: 'GRAVE', label: '묘비(GRAVE)' },
+                  { value: 'PERMADEATH', label: '영구 삭제' }
+                ]
+              },
+              {
+                key: 'sprintStamina',
+                name: '9. 제트팩 & 스태미나',
+                current: diff.sprintStamina,
+                options: [
+                  { value: 'INFINITE', label: '무제한(∞)' },
+                  { value: 'STANDARD', label: '표준(1.0x)' },
+                  { value: 'LIMITED', label: '제한(0.5x)' }
+                ]
+              },
+              {
+                key: 'scannerRecharge',
+                name: '10. 스캐너 재충전 쿨다운',
+                current: diff.scannerRecharge,
+                options: [
+                  { value: 'INSTANT', label: '즉시(0s)' },
+                  { value: 'FAST', label: '빠름(3s)' },
+                  { value: 'STANDARD', label: '표준(8s)' }
+                ]
+              }
+            ];
+
+            return (
+              <div className="space-y-4">
+                {/* Header Summary Banner */}
+                <div className="p-3.5 bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/40 rounded-xl border border-amber-500/50 flex flex-col gap-1.5 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl text-amber-400 animate-pulse">⚙️</span>
+                      <span className="text-[11px] font-bold text-amber-300 tracking-wider">WAYPOINT 4.0 // 난이도 엔진 매트릭스</span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40 font-bold">
+                      v5.51.0 LIVE
+                    </span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    현재 프리셋: <span className="text-amber-400">{presetDescriptions[diff.preset] || diff.preset}</span>
+                  </div>
+                  <p className="text-[10px] text-gray-300">
+                    전투 난이도, 생명 유지, 스캐너 쿨다운, 자원 제작 비용 및 사망 패널티를 실시간으로 맞춤 변경할 수 있습니다. [F9] 단축키 지원.
+                  </p>
+                </div>
+
+                {/* 5 Official Presets Row */}
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 mb-1.5 flex items-center justify-between">
+                    <span>공식 게임 프리셋 선택 (5 Official Presets)</span>
+                    <span className="text-amber-400 font-normal">즉시 일괄 적용</span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                    {(['NORMAL', 'RELAXED', 'SURVIVAL', 'PERMADEATH', 'CREATIVE', 'CUSTOM'] as DifficultyPreset[]).map((pKey) => {
+                      const isActive = diff.preset === pKey;
+                      const isPermadeath = pKey === 'PERMADEATH';
+                      return (
+                        <button
+                          key={pKey}
+                          onClick={() => {
+                            game.applyDifficultyPreset(pKey);
+                            triggerRender();
+                          }}
+                          className={`py-2 px-1.5 rounded-lg text-center font-bold text-[10px] transition-all cursor-pointer border ${
+                            isActive
+                              ? isPermadeath
+                                ? 'bg-rose-600 text-white border-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.6)]'
+                                : 'bg-amber-600 text-white border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.5)]'
+                              : isPermadeath
+                              ? 'bg-slate-900 text-rose-300 border-rose-900/50 hover:bg-rose-950/60'
+                              : 'bg-slate-900 text-gray-400 border-white/10 hover:bg-slate-800 hover:text-white'
+                          }`}
+                        >
+                          {pKey}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    game.data.shipType = 'UTOPIA_SPEEDER';
-                    game.data.maxShield = 320;
-                    game.data.shield = 320;
-                    AudioSys.playDiscoveryFanfare();
-                    game.spawnFloatText("🚀 원정 9 특수기 '유토피아 스피더' 즉시 탑승 완료!", undefined, undefined, '#00e5ff');
-                  }}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
-                >
-                  🚀 유토피아 스피더 탑승
-                </button>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-3 bg-slate-900 rounded-xl border border-white/10 flex justify-between items-center">
-                  <span>여유 모드 (RELAXED)</span>
-                  <button
-                    onClick={() => {
-                      AudioSys.playRecharge();
-                      game.spawnFloatText("🌿 난이도 프리셋: RELAXED (완화된 여유 모드) 적용!", undefined, undefined, '#10b981');
-                    }}
-                    className="px-2.5 py-1 bg-emerald-700 text-white rounded text-[10px] font-bold"
-                  >
-                    적용
-                  </button>
+                {/* 10 Granular Modifiers Grid */}
+                <div className="space-y-2">
+                  <div className="text-[10px] font-bold text-gray-400 flex items-center justify-between">
+                    <span>10대 세부 튜닝 매개변수 (Granular Modifiers)</span>
+                    <span className="text-cyan-400 font-normal">변경 시 [CUSTOM] 전환</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {granularParams.map((param) => (
+                      <div
+                        key={param.key}
+                        className="bg-slate-900/90 p-2.5 rounded-xl border border-white/10 flex flex-col gap-1.5"
+                      >
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="font-bold text-white truncate">{param.name}</span>
+                          <span className="text-[10px] text-amber-400 font-bold shrink-0 ml-1">
+                            {param.current}
+                          </span>
+                        </div>
+                        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${param.options.length}, minmax(0, 1fr))` }}>
+                          {param.options.map((opt) => {
+                            const isSelected = opt.value === param.current;
+                            return (
+                              <button
+                                key={opt.value}
+                                onClick={() => {
+                                  game.setDifficultyParam(param.key as any, opt.value as any);
+                                  triggerRender();
+                                }}
+                                className={`py-1 px-1 rounded text-[10px] font-bold transition-all text-center truncate cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-600 text-white border border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                    : 'bg-slate-950 text-gray-400 border border-white/10 hover:text-white hover:bg-slate-800'
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl border border-white/10 flex justify-between items-center">
-                  <span>생존 모드 (SURVIVAL)</span>
+
+                {/* Utopia Speeder Requisition Banner */}
+                <div className="p-3 bg-gradient-to-r from-cyan-950/70 via-slate-900 to-blue-950/70 rounded-xl border border-cyan-500/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">⚡</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-white">유토피아 스피더(Utopia Speeder) 특수기</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-600/30 text-cyan-300 border border-cyan-500/50">
+                          {game.data.shipType === 'UTOPIA_SPEEDER' ? '탑승 중' : '원정 9 보상'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-400">초고속 웨지형 공기역학 동체, 대기권 최고속도 +40%, 부스트 가속 +50%.</p>
+                    </div>
+                  </div>
                   <button
+                    disabled={game.data.shipType === 'UTOPIA_SPEEDER'}
                     onClick={() => {
-                      AudioSys.playWarning();
-                      game.spawnFloatText("💀 난이도 프리셋: SURVIVAL (극한 생존 모드) 적용!", undefined, undefined, '#ef4444');
+                      game.claimUtopiaSpeeder();
+                      triggerRender();
                     }}
-                    className="px-2.5 py-1 bg-red-700 text-white rounded text-[10px] font-bold"
+                    className={`w-full sm:w-auto px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap border ${
+                      game.data.shipType === 'UTOPIA_SPEEDER'
+                        ? 'bg-slate-800 text-gray-500 border-white/10 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white border-cyan-300/50 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                    }`}
                   >
-                    적용
+                    {game.data.shipType === 'UTOPIA_SPEEDER' ? '✓ 조종석 활성화 완료' : '🚀 유토피아 스피더 즉시 탑승'}
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* 51. NAUTILON SUBMARINE & HIGH-POWER SONAR MATRIX (v5.23.0 The Abyss & Aquarius) */}
           {activeModal === 'nautilon-sonar' && (

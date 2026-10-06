@@ -446,3 +446,19 @@ export interface DemoShowcaseState {
   phaseElapsed: number;
 }
 
+export type DifficultyPreset = 'NORMAL' | 'RELAXED' | 'SURVIVAL' | 'PERMADEATH' | 'CREATIVE' | 'CUSTOM';
+
+export interface DifficultySettings {
+  preset: DifficultyPreset;
+  hazardDrain: 'CREATIVE' | 'RELAXED' | 'STANDARD' | 'HARSH';
+  lifeSupportDrain: 'CREATIVE' | 'RELAXED' | 'STANDARD' | 'HARSH';
+  combatDifficulty: 'WEAK' | 'STANDARD' | 'CHALLENGING';
+  sentinelAggression: 'LOW' | 'STANDARD' | 'HOSTILE';
+  craftingCost: 'FREE' | 'STANDARD' | 'EXPENSIVE';
+  purchaseCost: 'DISCOUNT' | 'STANDARD' | 'HIGH';
+  fuelUsage: 'FREE' | 'STANDARD' | 'HIGH';
+  deathConsequence: 'NONE' | 'GRAVE' | 'PERMADEATH';
+  sprintStamina: 'INFINITE' | 'STANDARD' | 'LIMITED';
+  scannerRecharge: 'INSTANT' | 'FAST' | 'STANDARD';
+}
+

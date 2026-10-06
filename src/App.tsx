@@ -262,8 +262,8 @@ export default function App() {
       }
       if (code === 'F9') {
         e.preventDefault();
-        if (e.shiftKey) setActiveModal((prev) => (prev === 'custom-difficulty' ? null : 'custom-difficulty'));
-        else setActiveModal((prev) => (prev === 'supercharge' ? null : 'supercharge'));
+        if (e.shiftKey) setActiveModal((prev) => (prev === 'supercharge' ? null : 'supercharge'));
+        else setActiveModal((prev) => (prev === 'custom-difficulty' ? null : 'custom-difficulty'));
       }
       if (code === 'F10') { e.preventDefault(); setActiveModal((prev) => (prev === 'appearance' ? null : 'appearance')); }
       if (code === 'F11') {
@@ -444,6 +444,7 @@ export default function App() {
         onZoomOut={() => game.zoomOut()}
         onResetZoom={() => game.resetZoom()}
         onOpenArsenal={() => setActiveModal('weapon-arsenal')}
+        onOpenDifficulty={() => setActiveModal('custom-difficulty')}
         onOpenDrawer={() => {
           AudioSys.playNote(480, 'sine', 0.1);
           setIsQuickDrawerOpen(true);

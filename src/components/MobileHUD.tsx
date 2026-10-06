@@ -36,6 +36,7 @@ interface MobileHUDProps {
   onZoomOut?: () => void;
   onResetZoom?: () => void;
   onOpenArsenal?: () => void;
+  onOpenDifficulty?: () => void;
 }
 
 export const MobileHUD: React.FC<MobileHUDProps> = ({
@@ -68,7 +69,8 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
   onZoomIn = () => game.zoomIn(),
   onZoomOut = () => game.zoomOut(),
   onResetZoom = () => game.resetZoom(),
-  onOpenArsenal
+  onOpenArsenal,
+  onOpenDifficulty
 }) => {
   const [showLandingGuide, setShowLandingGuide] = useState(false);
 
@@ -296,6 +298,23 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
             >
               <span>🔫</span>
               <span className="font-mono text-[9px] font-extrabold hidden xs:inline sm:inline">화기</span>
+            </button>
+          )}
+
+          {/* v5.51.0 Waypoint 4.0 Custom Difficulty Quick Button */}
+          {onOpenDifficulty && (
+            <button
+              onClick={() => {
+                AudioSys.unlockOnFirstInteraction();
+                onOpenDifficulty();
+              }}
+              className="h-8 sm:h-9 px-1.5 sm:px-2 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 hover:to-yellow-500 text-white font-bold rounded-lg border border-amber-300/80 text-[9.5px] sm:text-xs flex items-center gap-1 shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+              title="커스텀 난이도 & 10대 게임플레이 조절 매트릭스 [F9]"
+            >
+              <span>⚙️</span>
+              <span className="font-mono text-[9px] font-extrabold hidden xs:inline sm:inline">
+                {game.data.difficultySettings?.preset || 'NORMAL'}
+              </span>
             </button>
           )}
 

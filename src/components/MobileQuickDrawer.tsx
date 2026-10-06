@@ -773,12 +773,12 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
     },
     {
       id: 'custom-difficulty',
-      name: '커스텀 게임 모드 & 8대 난이도 조절',
+      name: '커스텀 난이도 & 10대 게임플레이 조절 매트릭스',
       category: 'gear',
       icon: '⚙️',
-      hotkey: '[Shift+F9]',
+      hotkey: '[F9]',
       color: 'border-amber-400/50 bg-amber-950/40 text-amber-300',
-      desc: '유해 환경, 전투, 센티넬, 제작 비용, 사망 패널티 실시간 튜닝',
+      desc: '5대 공식 프리셋, 10대 세부 매개변수 실시간 조절 및 유토피아 스피더',
       onClick: () => onOpenModal('custom-difficulty')
     }
   ];
@@ -873,12 +873,12 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="text-xl shrink-0">🎮</span>
             <div className="truncate">
-              <span className="text-xs font-bold text-cyan-200 font-mono block truncate">No Man's Sky 2D v5.50.0 원본 아케이드</span>
+              <span className="text-xs font-bold text-cyan-200 font-mono block truncate">No Man's Sky 2D v5.51.0 원본 아케이드 (Waypoint 4.0)</span>
               <span className="text-[9px] text-gray-400 font-mono">새 탭 전체화면으로 실행 (PC/태블릿 추천)</span>
             </div>
           </div>
           <a
-            href="./v5.50.0.html"
+            href="./v5.51.0.html"
             target="_blank"
             rel="noopener noreferrer"
             className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[10px] font-bold font-mono shrink-0 shadow flex items-center gap-1 no-underline active:scale-95"
