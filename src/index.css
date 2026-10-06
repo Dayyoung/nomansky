@@ -932,13 +932,11 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; }
    6. EXOSUIT, SENTINEL & COMBAT SYSTEMS
    ========================================================================== */
 #sentinel-alert-container {
-  position: fixed;
-  top: max(16px, env(safe-area-inset-top));
-  right: max(170px, calc(env(safe-area-inset-right) + 160px));
   display: flex;
   align-items: center;
   gap: 6px;
-  z-index: 120;
+  position: relative;
+  z-index: 20;
 }
 
 .sentinel-diamond {
@@ -963,17 +961,14 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 }
 
 #multitool-hud {
-  position: fixed;
-  top: max(16px, env(safe-area-inset-top));
-  right: max(16px, env(safe-area-inset-right));
+  position: relative;
   background: var(--nms-card-bg);
   border: 1px solid rgba(0, 229, 255, 0.35);
   clip-path: var(--nms-clip-corner);
-  padding: 10px 16px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  z-index: 120;
+  gap: 4px;
   backdrop-filter: blur(8px);
 }
 

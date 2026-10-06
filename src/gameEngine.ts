@@ -747,98 +747,168 @@ export class GameEngine {
   }> = [
     {
       phase: 'SPACE_PULSE',
-      title: '🚀 초광속 펄스 드라이브 & 성간 항법',
-      description: '우주선 펄스 추진기를 가동하여 광활한 유클리드 성계를 36 u/s 초광속으로 쾌속 순항합니다.',
+      title: '🚀 1/24. 초광속 펄스 드라이브 & 소행성 채굴',
+      description: '우주선 펄스 추진기를 가동하여 광활한 유클리드 성계를 36 u/s 초광속으로 쾌속 순항하고 삼중수소를 수확합니다.',
       subText: '[Space / 펄스부스트] 초광속 가속 | [포톤 캐논] 소행성 파괴',
       duration: 5000
     },
     {
+      phase: 'SPACE_COMBAT',
+      title: '⚔️ 2/24. 해적 우주선 조우 & 성간 도그파이트',
+      description: '약탈자 해적 전투기 출현! 락온 조준 레이저와 유도 로켓을 퍼부어 해적선을 격침하고 현상금을 획득합니다.',
+      subText: '[포톤 캐논] 연속 사격 | [방어막 🛡️] 편향장 가동 및 2,500₩ 현상금 획득',
+      duration: 5000
+    },
+    {
       phase: 'STARSHIP_CYCLE',
-      title: '🛸 4대 특수 함선 격납고 [K]',
+      title: '🛸 3/24. 4대 특수 함선 격납고 순환 [K]',
       description: '솔라선(베스퍼 세일), 센티넬 인터셉터, 생체함선 등 성간 함대 주력기를 실시간으로 교체합니다.',
       subText: '[K] 함선 순환 | 기종별 고유 비행 역학과 칵핏 게이지 전환',
       duration: 5000
     },
     {
+      phase: 'SPACE_STATION',
+      title: '🏛️ 4/24. 성계 우주정거장 진입 & 은하 무역 단말기',
+      description: '우주정거장 입구 유도 광선을 타고 안전하게 도킹하여 은하 무역 시세를 확인하고 희귀 특산품을 거래합니다.',
+      subText: '[E] 우주정거장 도킹 | 은하 무역망 & 지도제작소',
+      duration: 4500
+    },
+    {
       phase: 'GALAXY_MAP',
-      title: '🌌 성간 은하 지도 매트릭스 [M]',
+      title: '🌌 5/24. 성간 은하 지도 매트릭스 [M]',
       description: '은하계 중심점(Galactic Center)과 성계 간의 성간 워프 하이퍼드라이브 경로를 차트화합니다.',
       subText: '[M] 은하 지도 | 워프 하이퍼코어로 다음 성계로 도약',
-      duration: 4000
+      duration: 4500
     },
     {
       phase: 'PLANET_APPROACH',
-      title: '🔥 행성 대기권 돌파 & 역추진 착륙 [E]',
-      description: '미개척 외계 행성의 대기권을 돌파하여 지표면에 안전하게 착륙하고 엑소슈트로 하선합니다.',
-      subText: '[E] 길게 누름 착륙 | 궤도에서 지표면 보행 모드로 자연스럽게 전환',
-      duration: 6000
+      title: '🔥 6/24. 행성 대기권 돌파 & 충격파 마찰 진입',
+      description: '외계 행성 중력권에 진입하여 대기 마찰 열화염을 뚫고 지표면을 향해 급강하, 최적의 착륙지를 선정합니다.',
+      subText: '초음속 대기 진입 플라즈마 | 고도계 강하 및 저공 비행',
+      duration: 5500
+    },
+    {
+      phase: 'PLANET_TOUCHDOWN',
+      title: '🛬 7/24. 역추진 로켓 점화 & 지표면 안전 착륙 [E]',
+      description: '지표면 근접 시 역추진 분사로 감속하여 부드럽게 착지하고, 조종석을 열고 미지의 외계 지표면에 하선합니다.',
+      subText: '[E] 안전 착륙 | 지표면 엑소슈트 도보 모드로 원활하게 전환',
+      duration: 4500
     },
     {
       phase: 'EXOSUIT_EXPLORE',
-      title: '🪐 엑소슈트 지표면 탐사 & 제트팩 도약 [Space]',
+      title: '🪐 8/24. 엑소슈트 지표면 탐사 & 제트팩 도약 [Space]',
       description: '외계 행성의 가혹한 중력과 환경 방호막 속에서 고성능 제트팩을 가동해 입체적으로 기동합니다.',
       subText: '[A/D/조이스틱] 보행 탐사 | [Space/제트팩] 고공 추진 도약',
       duration: 5000
     },
     {
+      phase: 'RESOURCE_MINING',
+      title: '⛏️ 9/24. 다목적 도구 채굴 레이저 & 필수 원소 채광',
+      description: '지표면의 식물, 나트륨 광맥, 페라이트 먼지 광상을 채굴 레이저로 분해하여 생존 및 충전 자원을 수집합니다.',
+      subText: '[채굴광선] 연속 레이저 | 탄소, 산소, 나트륨 광맥 수확',
+      duration: 5000
+    },
+    {
       phase: 'ANALYSIS_VISOR',
-      title: '🔍 분석 바이저 & 지형 스캐너 [F / C]',
+      title: '🔍 10/24. 고배율 분석 바이저 & 지형 스캐너 [F / C]',
       description: '바이저 렌즈를 활성화하여 숨겨진 나노 자원 광맥과 미지의 외계 동식물을 원거리 스캔 분석합니다.',
       subText: '[F] 분석 바이저 오버레이 | [C] 지형 스캔 펄스 방출',
       duration: 4500
     },
     {
       phase: 'TOOL_MODES',
-      title: '⚡ 다목적 도구 4대 유틸리티 모드 [G]',
-      description: '채굴 광선, 볼트캐스터 소총, 지형 조작기, 오토파지 볼타익 스태프를 상황에 맞게 전환합니다.',
+      title: '⚡ 11/24. 다목적 도구 4대 유틸리티 모드 순환 [G]',
+      description: '채굴 광선, 볼트캐스터 소총, 지형 조작기(동굴 굴착), 오토파지 볼타익 스태프를 상황에 맞게 전환합니다.',
       subText: '[G] 도구 순환 | 타겟별 자동 조준 유도 레이저 발사',
       duration: 4500
     },
     {
+      phase: 'SENTINEL_PATROL',
+      title: '🤖 12/24. 센티넬 순찰 드론 조우 & 경계 태세 AI',
+      description: '행성 감시 드론이 스캔 콘(Scanning Cone)을 투사하며 순찰 중 채굴 행위를 감지하고 경계 경보를 울립니다.',
+      subText: '스캔 서치라이트 콘 투사 | 센티넬 위협 1단계 발령',
+      duration: 5000
+    },
+    {
       phase: 'COMBAT_WEAPONS',
-      title: '🔫 Sentinel 3.8: 5대 전문 전투 화기 시연',
+      title: '🔫 13/24. Sentinel 3.8: 5대 전문 전투 화기 실사격',
       description: '볼트캐스터, 산탄 블래스터, 펄스 스피터, 중성자 캐논 등 전문 전투 주무기의 가공할 화력을 시연합니다.',
       subText: '[주무기 🔄] 순환 | 과급 슬롯(Supercharged ⚡) 50% 공격력 증폭',
       duration: 5500
     },
     {
       phase: 'SECONDARY_ORDNANCE',
-      title: '💥 중화기 보조 유탄 & 폭발물 투하 [Q]',
-      description: '플라즈마 런처와 마비 박격포를 원터치로 발사하여 센티넬 경비병과 장애물을 단숨에 분쇄합니다.',
+      title: '💥 14/24. 중화기 보조 유탄 투하 & 전술 은폐장 [Q]',
+      description: '플라즈마 런처 폭발탄 투하, 마비 박격포로 드론 군집을 제압하고 클로킹 디바이스로 은폐합니다.',
       subText: '[Q] 보조 무기 발사 | [Shift+Q / G] 플라즈마·지질학·마비박격포 전환',
       duration: 4500
     },
     {
       phase: 'WEAPON_ARSENAL_MODAL',
-      title: '📋 다목적 도구 전투 화기 사령부 [Alt+X / /]',
+      title: '📋 15/24. 다목적 도구 전투 화기 사령부 [Alt+X / /]',
       description: 'Sentinel & Waypoint 4.0: 5대 주무기, 보조 유탄 발사관, 과급 슬롯 오버클럭을 통합 통제합니다.',
       subText: '4-탭 사령부 매트릭스 | 야전 탄약 캡슐 투하 및 센티넬 모듈 정제',
       duration: 4500
     },
     {
       phase: 'INVENTORY_MODAL',
-      title: '🎒 엑소슈트 & 함선 인벤토리 관리 [Tab]',
+      title: '🎒 16/24. 엑소슈트 & 함선 인벤토리 관리 및 제작 [Tab]',
       description: '채굴한 페라이트, 산소, 나트륨 등 핵심 원소 화물과 엑소슈트 방호 기술 모듈을 정비합니다.',
       subText: '[Tab] 인벤토리 | 자원 조합 및 환경 방호 차폐막 충전',
       duration: 4000
     },
     {
+      phase: 'BASE_BUILDING',
+      title: '🏗️ 17/24. 기지 컴퓨터 영토 선포 & 휴대용 정제기 [Z]',
+      description: '행성 지표면에 기지 컴퓨터를 등록하여 영토를 개척하고, 휴대용 정제기로 순수 페라이트를 정제합니다.',
+      subText: '[Z] 기지 건설 메뉴 | 자원 정제 및 산업 가스 추출',
+      duration: 4500
+    },
+    {
+      phase: 'ANCIENT_MONOLITH',
+      title: '🗿 18/24. 고대 외계 모놀리스 수수께끼 & 지식의 돌',
+      description: '고대 외계 문명의 비석에 손을 얹어 시련 수수께끼를 풀고, 지식의 돌에서 고대 언어 단어를 습득합니다.',
+      subText: '[E] 모놀리스 감응 | 코르박스/바이킨 고대어 해독',
+      duration: 4500
+    },
+    {
+      phase: 'ANCIENT_PORTAL',
+      title: '🌀 19/24. 고대 포탈 16대 은하 글리프 다이얼 가동',
+      description: '16개의 신비로운 별자리 글리프 좌표를 순서대로 입력하여 은하계 전체를 잇는 웜홀을 개방합니다.',
+      subText: '16개 글리프 시퀀스 충전 | 시공간 차원 도약 게이트웨이',
+      duration: 4500
+    },
+    {
       phase: 'NAUTILON_SUBMARINE',
-      title: '🌊 노틸론 S급 잠수정 & 심해 탐사 [0 / Alt+0]',
+      title: '🌊 20/24. 노틸론 S급 잠수정 & 심해 탐사 [0 / Alt+0]',
       description: '심해 바다로 뛰어들어 고출력 수중 소나를 가동하고 침몰선과 심연의 공포를 탐색합니다.',
       subText: '[0] 노틸론 탑승 | [소나 📡] 침몰 화물선 및 해저 유적 탐색',
       duration: 5000
     },
     {
+      phase: 'AQUARIUS_FISHING',
+      title: '🎣 21/24. 아쿠아리우스 해양 낚싯대 & 수생 도감',
+      description: '자동 부유 낚시 플랫폼을 전개하고 특수 미끼를 투척하여 외계 심해 어종을 낚아 올립니다.',
+      subText: '[낚시 🎣] 텐션 게이지 조율 | 전설 심해 수생종 낚시',
+      duration: 4500
+    },
+    {
       phase: 'COMPANION_MOUNT',
-      title: '🐾 외계 동반자 교감 & 유전자 시퀀서 [U]',
-      description: '행성 토착 거대 타이탄 생명체를 길들여 탑승하고, 스페이스 아노말리에서 배아 유전자를 조작합니다.',
-      subText: '[U] 동반자 교감 | 배아 크기/성향/돌연변이 시퀀싱',
+      title: '🐾 22/24. 외계 생명체 크리처 펠릿 조련 & 탑승 [U]',
+      description: '초식/거대 외계 생명체에게 크리처 펠릿을 먹여 길들이고, 직접 등에 올라타 대지를 질주합니다.',
+      subText: '[U] 동반자 교감 | 크리처 펠릿 급여 및 탑승 라이딩',
+      duration: 4500
+    },
+    {
+      phase: 'EGG_SEQUENCER',
+      title: '🧬 23/24. 아노말리 알 염기서열기 & 유전자 개조',
+      description: '스페이스 아노말리에서 배아의 유전자 코드를 조작하여 거대화, 희귀 돌연변이, 충성도 성향을 주입합니다.',
+      subText: '무게/크기 증폭 | 성향 개조 및 돌연변이 촉매 투여',
       duration: 4500
     },
     {
       phase: 'LAUNCH_ORBIT',
-      title: '🚀 우주선 탑승 & 궤도 수직 발사 [T / E]',
+      title: '🚀 24/24. 우주선 귀환 탑승 & 궤도 수직 발사 [T / E]',
       description: '지표면 탐사를 마치고 우주선에 탑승하여 성간 궤도로 쾌속 발진, 다음 새로운 미지의 행성으로 항해합니다.',
       subText: '[E/탑승] 우주선 탑승 | [T/발사] 궤도로 로켓 점화 발사',
       duration: 5500
@@ -849,13 +919,6 @@ export class GameEngine {
   public demoPhaseStartTime: number = 0;
   public demoActionSubTimer: number = 0;
   private demoLastActionTick: number = 0;
-
-  public notifyUserInput() {
-    this.lastInputTime = Date.now();
-    if (this.isAutoPilot) {
-      this.disengageAutoPilot();
-    }
-  }
 
   public toggleAutoPilot() {
     if (this.isAutoPilot) {
@@ -891,14 +954,14 @@ export class GameEngine {
     if (forceStartPhase !== undefined) {
       startIdx = forceStartPhase;
     } else if (this.currState === 'PLANET') {
-      startIdx = 4; // Start from EXOSUIT_EXPLORE on planet
+      startIdx = 7; // Start from EXOSUIT_EXPLORE on planet
     } else {
       startIdx = 0; // Start from SPACE_PULSE in space
     }
 
     this.setupDemoPhase(startIdx);
     AudioSys.playDiscoveryFanfare();
-    this.spawnFloatText("🎬 AI 데모 쇼케이스 가동! 전 기능 순차 시연 시작", undefined, undefined, '#00e5ff');
+    this.spawnFloatText("🎬 AI 데모 쇼케이스 가동! 24단계 전 기능 순차 시연 시작", undefined, undefined, '#00e5ff');
     this.notify();
   }
 
@@ -929,9 +992,22 @@ export class GameEngine {
         this.data.isPulseActive = true;
         this.selectRandomAutoPilotPlanet();
         break;
+      case 'SPACE_COMBAT':
+        if (this.currState !== 'SPACE') this.launchToOrbit();
+        this.data.isPulseActive = false;
+        this.data.pirateCountdown = 120;
+        AudioSys.playNote(260, 'sawtooth', 0.25);
+        this.spawnFloatText("⚠️ 경보: 해적 약탈기 급습! 도그파이트 요격 개시", undefined, undefined, '#ff3366');
+        break;
       case 'STARSHIP_CYCLE':
         if (this.currState !== 'SPACE') this.launchToOrbit();
         this.data.isPulseActive = false;
+        break;
+      case 'SPACE_STATION':
+        if (this.currState !== 'SPACE') this.launchToOrbit();
+        this.data.isPulseActive = false;
+        this.data.demoShowcase.activeModal = 'trade-outpost';
+        AudioSys.playNote(520, 'sine', 0.15);
         break;
       case 'GALAXY_MAP':
         this.data.demoShowcase.activeModal = 'galaxy-map';
@@ -939,12 +1015,20 @@ export class GameEngine {
         break;
       case 'PLANET_APPROACH':
         if (this.currState !== 'SPACE') {
-          // If already on planet, advance to next phase
           setTimeout(() => this.advanceDemoPhase(), 100);
         } else {
           this.data.isPulseActive = true;
           if (!this.autoPilotTargetPlanet) this.selectRandomAutoPilotPlanet();
         }
+        break;
+      case 'PLANET_TOUCHDOWN':
+        this.data.demoShowcase.activeModal = null;
+        if (this.currState === 'SPACE' && this.entities.planets.length > 0) {
+          const target = this.autoPilotTargetPlanet || this.entities.planets[0];
+          this.landCurrentShip(target);
+        }
+        AudioSys.playDiscoveryFanfare();
+        this.spawnFloatText("🛬 지표면 안착 완료 // 엑소슈트 도보 모드 가동", undefined, undefined, '#10b981');
         break;
       case 'EXOSUIT_EXPLORE':
         if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
@@ -952,6 +1036,13 @@ export class GameEngine {
         }
         this.data.isVisorActive = false;
         this.player.isMining = false;
+        break;
+      case 'RESOURCE_MINING':
+        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
+          this.landCurrentShip(this.entities.planets[0]);
+        }
+        this.data.toolMode = 'MINING BEAM';
+        this.data.isVisorActive = false;
         break;
       case 'ANALYSIS_VISOR':
         if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
@@ -964,6 +1055,12 @@ export class GameEngine {
       case 'TOOL_MODES':
         this.data.isVisorActive = false;
         this.setCameraZoom(1.0);
+        break;
+      case 'SENTINEL_PATROL':
+        this.data.isVisorActive = false;
+        this.data.sentinelAlert = 1;
+        AudioSys.playNote(300, 'sawtooth', 0.2);
+        this.spawnFloatText("🤖 센티넬 경비 드론 탐지 // 스캔 서치라이트 전개", undefined, undefined, '#ef4444');
         break;
       case 'COMBAT_WEAPONS':
         this.data.toolMode = 'BOLTCASTER';
@@ -981,12 +1078,35 @@ export class GameEngine {
         this.data.demoShowcase.activeModal = 'inventory';
         AudioSys.playNote(480, 'triangle', 0.15);
         break;
+      case 'BASE_BUILDING':
+        this.data.demoShowcase.activeModal = 'base-computer';
+        AudioSys.playNote(400, 'sine', 0.15);
+        break;
+      case 'ANCIENT_MONOLITH':
+        this.data.demoShowcase.activeModal = 'archaeology';
+        AudioSys.playNote(320, 'sine', 0.2);
+        break;
+      case 'ANCIENT_PORTAL':
+        this.data.demoShowcase.activeModal = 'portal';
+        AudioSys.playNote(440, 'triangle', 0.2);
+        break;
       case 'NAUTILON_SUBMARINE':
         this.data.nautilon.boarded = true;
         AudioSys.playNote(220, 'sawtooth', 0.3);
-        this.spawnFloatText("🌊 노틸론 S급 잠수함 탑승 // 심해 추진 가동", undefined, this.height / 2 - 50, '#38bdf8');
+        this.spawnFloatText("🌊 노틸론 S급 잠수정 탑승 // 심해 추진 가동", undefined, this.height / 2 - 50, '#38bdf8');
+        break;
+      case 'AQUARIUS_FISHING':
+        if (this.data.nautilon.boarded) this.dismountNautilon();
+        this.data.demoShowcase.activeModal = 'fishing';
+        AudioSys.playNote(540, 'sine', 0.15);
         break;
       case 'COMPANION_MOUNT':
+        if (this.data.nautilon.boarded) this.dismountNautilon();
+        this.data.demoShowcase.activeModal = null;
+        AudioSys.playNote(620, 'sine', 0.2);
+        this.spawnFloatText("🐾 외계 생명체 테이밍 완료 // 탑승 라이딩 개시", undefined, undefined, '#10b981');
+        break;
+      case 'EGG_SEQUENCER':
         this.data.demoShowcase.activeModal = 'egg-sequencer';
         AudioSys.playNote(700, 'sine', 0.2);
         break;
@@ -1031,6 +1151,31 @@ export class GameEngine {
         this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 45 === 0) {
           this.fireSpaceWeapons();
+          if (this.demoActionSubTimer % 90 === 0) {
+            this.spawnFloatText("+15 삼중수소 (소행성 채굴)", undefined, undefined, '#38bdf8');
+          }
+        }
+        break;
+      }
+
+      case 'SPACE_COMBAT': {
+        if (this.currState !== 'SPACE') {
+          this.launchToOrbit();
+        }
+        this.data.isPulseActive = false;
+        this.player.angle += 0.024;
+        this.player.vx = Math.cos(this.player.angle) * 12.0;
+        this.player.vy = Math.sin(this.player.angle) * 12.0;
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 22 === 0) {
+          this.fireSpaceWeapons();
+        }
+        if (elapsed > 3200 && this.demoLastActionTick === 0) {
+          this.demoLastActionTick = 1;
+          this.data.units += 2500;
+          this.data.nanites += 50;
+          AudioSys.playDiscoveryFanfare();
+          this.spawnFloatText("💥 해적 인터셉터 격침! (+2,500 ₩ 현상금, +50 ⬡)", undefined, undefined, '#fbbf24');
         }
         break;
       }
@@ -1049,6 +1194,14 @@ export class GameEngine {
         if (this.demoActionSubTimer % 80 === 0) {
           this.fireSpaceWeapons();
         }
+        break;
+      }
+
+      case 'SPACE_STATION': {
+        this.data.demoShowcase.activeModal = 'trade-outpost';
+        this.data.isPulseActive = false;
+        this.player.vx *= 0.92;
+        this.player.vy *= 0.92;
         break;
       }
 
@@ -1097,6 +1250,18 @@ export class GameEngine {
         break;
       }
 
+      case 'PLANET_TOUCHDOWN': {
+        this.data.demoShowcase.activeModal = null;
+        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
+          this.landCurrentShip(this.entities.planets[0]);
+        }
+        this.player.isMining = false;
+        this.player.px += Math.cos(this.autoPilotWanderAngle) * 2.0;
+        this.player.py += Math.sin(this.autoPilotWanderAngle) * 2.0;
+        this.player.anim += 0.15;
+        break;
+      }
+
       case 'EXOSUIT_EXPLORE': {
         if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
           this.landCurrentShip(this.entities.planets[0]);
@@ -1112,10 +1277,24 @@ export class GameEngine {
         const jetpackCycle = this.demoActionSubTimer % 90;
         if (jetpackCycle > 25 && jetpackCycle < 60) {
           this.player.isJetpacking = true;
-          this.data.jetpackFuel = Math.max(25, this.data.jetpackFuel - 0.4);
+          this.player.py -= 1.6;
+          if (this.demoActionSubTimer % 18 === 0) AudioSys.playJetpack();
         } else {
           this.player.isJetpacking = false;
-          this.data.jetpackFuel = Math.min(100, this.data.jetpackFuel + 0.8);
+        }
+        break;
+      }
+
+      case 'RESOURCE_MINING': {
+        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
+          this.landCurrentShip(this.entities.planets[0]);
+        }
+        this.data.demoShowcase.activeModal = null;
+        this.data.toolMode = 'MINING BEAM';
+        this.player.isMining = true;
+        this.demoActionSubTimer++;
+        if (this.data.activePlanet) {
+          this.handlePlanetFire(this.data.activePlanet);
         }
         break;
       }
@@ -1154,6 +1333,20 @@ export class GameEngine {
         break;
       }
 
+      case 'SENTINEL_PATROL': {
+        this.data.demoShowcase.activeModal = null;
+        this.data.isVisorActive = false;
+        this.player.isMining = false;
+        this.player.px += Math.cos(this.autoPilotWanderAngle) * 2.2;
+        this.player.py += Math.sin(this.autoPilotWanderAngle) * 2.2;
+        this.autoPilotWanderAngle += 0.02;
+        this.demoActionSubTimer++;
+        if (this.demoActionSubTimer % 60 === 0) {
+          AudioSys.playNote(340, 'sawtooth', 0.15);
+        }
+        break;
+      }
+
       case 'COMBAT_WEAPONS': {
         this.data.demoShowcase.activeModal = null;
         this.data.toolMode = 'BOLTCASTER';
@@ -1172,7 +1365,7 @@ export class GameEngine {
         this.data.demoShowcase.activeModal = null;
         this.data.toolMode = 'BOLTCASTER';
         this.demoActionSubTimer++;
-        if (this.demoActionSubTimer % 80 === 0) {
+        if (this.demoActionSubTimer % 75 === 0) {
           this.cycleSecondaryWeapon();
           this.fireSecondaryWeapon();
         }
@@ -1183,9 +1376,9 @@ export class GameEngine {
         this.data.demoShowcase.activeModal = 'weapon-arsenal';
         this.player.isMining = false;
         const tabs = ['primary', 'secondary', 'upgrades', 'overclock'];
-        const tabIdx = Math.floor((elapsed / 1200) % tabs.length);
+        const tabIdx = Math.floor((elapsed / 1100) % tabs.length);
         this.data.demoShowcase.modalTab = tabs[tabIdx];
-        if (tabIdx === 3 && !this.data.combatWeapons.overclockActive && elapsed > 3600) {
+        if (tabIdx === 3 && !this.data.combatWeapons.overclockActive && elapsed > 3300) {
           this.overclockWeaponMatrix();
         }
         break;
@@ -1194,10 +1387,28 @@ export class GameEngine {
       case 'INVENTORY_MODAL': {
         this.data.demoShowcase.activeModal = 'inventory';
         this.player.isMining = false;
-        if (elapsed > 2200 && this.demoLastActionTick === 0) {
+        if (elapsed > 2000 && this.demoLastActionTick === 0) {
           this.demoLastActionTick = 1;
           this.rechargeHazard();
         }
+        break;
+      }
+
+      case 'BASE_BUILDING': {
+        this.data.demoShowcase.activeModal = 'base-computer';
+        this.player.isMining = false;
+        break;
+      }
+
+      case 'ANCIENT_MONOLITH': {
+        this.data.demoShowcase.activeModal = 'archaeology';
+        this.player.isMining = false;
+        break;
+      }
+
+      case 'ANCIENT_PORTAL': {
+        this.data.demoShowcase.activeModal = 'portal';
+        this.player.isMining = false;
         break;
       }
 
@@ -1214,11 +1425,28 @@ export class GameEngine {
         break;
       }
 
+      case 'AQUARIUS_FISHING': {
+        this.data.demoShowcase.activeModal = 'fishing';
+        this.player.isMining = false;
+        break;
+      }
+
       case 'COMPANION_MOUNT': {
         if (this.data.nautilon.boarded) {
           this.dismountNautilon();
         }
+        this.data.demoShowcase.activeModal = null;
+        this.player.px += Math.cos(this.autoPilotWanderAngle) * 5.2;
+        this.player.py += Math.sin(this.autoPilotWanderAngle) * 5.2;
+        this.autoPilotWanderAngle += 0.028;
+        this.player.facing = Math.cos(this.autoPilotWanderAngle) > 0 ? 1 : -1;
+        this.player.anim += 0.35;
+        break;
+      }
+
+      case 'EGG_SEQUENCER': {
         this.data.demoShowcase.activeModal = 'egg-sequencer';
+        this.player.isMining = false;
         break;
       }
 

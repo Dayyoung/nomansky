@@ -868,6 +868,25 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
           ))}
         </div>
 
+        {/* Arcade mode quick launch banner */}
+        <div className="px-4 py-2 bg-gradient-to-r from-cyan-950/80 via-blue-950/80 to-purple-950/80 border-b border-cyan-400/30 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="text-xl shrink-0">🎮</span>
+            <div className="truncate">
+              <span className="text-xs font-bold text-cyan-200 font-mono block truncate">No Man's Sky 2D v5.50.0 원본 아케이드</span>
+              <span className="text-[9px] text-gray-400 font-mono">새 탭 전체화면으로 실행 (PC/태블릿 추천)</span>
+            </div>
+          </div>
+          <a
+            href="./v5.50.0.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[10px] font-bold font-mono shrink-0 shadow flex items-center gap-1 no-underline active:scale-95"
+          >
+            <span>실행 ↗</span>
+          </a>
+        </div>
+
         {/* Action Grid Items */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-3.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pb-safe">
           {filtered.map((item) => (

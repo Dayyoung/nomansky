@@ -811,46 +811,47 @@ export const PlanetaryMinimap: React.FC<PlanetaryMinimapProps> = ({
   return (
     <>
       {/* 1. Main Game HUD: Minimap Button + Independent Game Camera Zoom Controls */}
-      <div className="flex items-center gap-1 sm:gap-1.5 pointer-events-auto">
+      <div className="flex items-center gap-1.5 pointer-events-auto">
         {/* Fullscreen Minimap Trigger Button */}
         <button
           onClick={() => {
             AudioSys.playNote(580, 'sine', 0.12);
             setIsFullscreen(true);
           }}
-          className="h-8 sm:h-9 px-2 sm:px-3 bg-slate-950/90 hover:bg-slate-900 border border-cyan-400/80 text-cyan-300 rounded-lg flex items-center gap-1 text-[10px] sm:text-xs font-mono font-bold shadow-[0_0_15px_rgba(0,229,255,0.35)] cursor-pointer active:scale-95 transition-all pointer-events-auto shrink-0 group backdrop-blur-md"
+          className="h-9 px-3 bg-slate-950/90 hover:bg-slate-900 border border-cyan-400/80 text-cyan-300 rounded-lg flex items-center gap-1.5 text-xs font-mono font-bold shadow-[0_0_15px_rgba(0,229,255,0.35)] cursor-pointer active:scale-95 transition-all pointer-events-auto shrink-0 group backdrop-blur-md"
           title="미니맵 전체화면 열기 (Click for Fullscreen Map)"
         >
           <Compass
-            className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 group-hover:rotate-45 transition-transform animate-spin"
+            className="w-4 h-4 text-cyan-400 group-hover:rotate-45 transition-transform animate-spin"
             style={{ animationDuration: '10s' }}
           />
-          <span className="font-mono">지도</span>
-          <Maximize2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-400/70 ml-0.5 group-hover:scale-125 transition-transform" />
+          <span>미니맵</span>
+          <Maximize2 className="w-3 h-3 text-cyan-400/70 ml-0.5 group-hover:scale-125 transition-transform" />
         </button>
 
         {/* Dedicated Game Screen Camera Zoom Controls (게임 화면 확대/축소) */}
-        <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-950/85 backdrop-blur-md px-1 sm:px-1.5 py-0.5 sm:py-1 rounded-lg border border-cyan-500/30 text-[9px] sm:text-xs font-mono shadow-md">
+        <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md px-1.5 py-1 rounded-lg border border-cyan-500/30 text-xs font-mono shadow-md">
+          <span className="text-[10px] text-gray-400 hidden xs:inline ml-1">게임:</span>
           <button
             onClick={onZoomOut}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-slate-900 hover:bg-slate-800 text-cyan-300 flex items-center justify-center cursor-pointer active:scale-90 border border-white/10"
+            className="w-7 h-7 rounded bg-slate-900 hover:bg-slate-800 text-cyan-300 flex items-center justify-center cursor-pointer active:scale-90 border border-white/10"
             title="게임 화면 축소"
           >
-            <ZoomOut className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onResetZoom}
-            className="px-1 sm:px-1.5 h-6 sm:h-7 rounded bg-slate-900 hover:bg-slate-800 text-white text-[9px] sm:text-[10px] font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-white/10"
+            className="px-1.5 h-7 rounded bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-white/10"
             title="게임 화면 100% 초기화"
           >
             {Math.round(cameraZoom * 100)}%
           </button>
           <button
             onClick={onZoomIn}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-slate-900 hover:bg-slate-800 text-cyan-300 flex items-center justify-center cursor-pointer active:scale-90 border border-white/10"
+            className="w-7 h-7 rounded bg-slate-900 hover:bg-slate-800 text-cyan-300 flex items-center justify-center cursor-pointer active:scale-90 border border-white/10"
             title="게임 화면 확대"
           >
-            <ZoomIn className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <ZoomIn className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Shield, Flame, Heart } from 'lucide-react';
 import { game } from './gameEngine';
 import { AudioSys } from './audio';
 import { VirtualJoystick } from './components/VirtualJoystick';
@@ -455,10 +456,66 @@ export default function App() {
       )}
 
       {/* Touch Controls Layout (Landscape & Portrait Responsive) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-2.5 sm:p-5 pb-safe">
-        {/* Left Bottom: Virtual Thumb Joystick */}
-        <div className="pointer-events-auto shrink-0">
-          <VirtualJoystick onVectorChange={handleJoystickVector} radius={50} />
+      <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-2 sm:p-4 pb-safe max-w-full">
+        {/* Left Bottom: Vitals Status Cluster & Virtual Thumb Joystick */}
+        <div className="pointer-events-auto shrink-0 flex flex-col items-start gap-1 sm:gap-1.5 mb-0.5 max-w-[150px] xs:max-w-[170px] sm:max-w-[200px]">
+          {/* Shield Bar */}
+          <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-cyan-400/30">
+            <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-cyan-300 mb-0.5">
+              <span className="flex items-center gap-1">
+                <Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-400" />
+                <span>방어막</span>
+              </span>
+              <span>{Math.round(shield)}%</span>
+            </div>
+            <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-600 to-cyan-300 transition-all duration-150"
+                style={{ width: `${Math.max(0, Math.min(100, (shield / maxShield) * 100))}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Hazard Protection Bar */}
+          {gameState === 'PLANET' && (
+            <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-yellow-400/30">
+              <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-yellow-300 mb-0.5">
+                <span className="flex items-center gap-1">
+                  <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
+                  <span>환경방호</span>
+                </span>
+                <span>{Math.round(hazard)}%</span>
+              </div>
+              <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
+                <div
+                  className="h-full bg-gradient-to-r from-yellow-600 to-amber-400 transition-all duration-150"
+                  style={{ width: `${Math.max(0, Math.min(100, hazard))}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Life Support Bar */}
+          {gameState === 'PLANET' && (
+            <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-red-500/30">
+              <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-red-300 mb-0.5">
+                <span className="flex items-center gap-1">
+                  <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
+                  <span>생명유지</span>
+                </span>
+                <span>{Math.round(lifeSupport)}%</span>
+              </div>
+              <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
+                <div
+                  className="h-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-150"
+                  style={{ width: `${Math.max(0, Math.min(100, lifeSupport))}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Virtual Thumb Joystick */}
+          <VirtualJoystick onVectorChange={handleJoystickVector} radius={44} />
         </div>
 
         {/* Center Bottom: Starship Cockpit & Flight Gauges (#cockpit-hud v2) */}
@@ -553,42 +610,39 @@ export default function App() {
 
       {/* Nautilon Submarine Mounted HUD (v5.23.0 The Abyss & Aquarius) */}
       {isNautilonBoarded && (
-        <div id="nautilon-hud" className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-950/90 border border-blue-400/60 rounded-md px-4 sm:px-6 py-2.5 flex items-center gap-3 sm:gap-6 shadow-[0_0_30px_rgba(59,130,246,0.4)] z-40 pointer-events-auto">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl text-blue-400 animate-pulse">🌊</span>
-            <div>
-              <div className="text-[9px] text-gray-400 font-mono tracking-widest">SUBMERSIBLE EXOCRAFT</div>
-              <div className="text-xs sm:text-sm font-bold text-white nms-header-font tracking-wider">NAUTILON S-CLASS SUBMARINE</div>
+        <div id="nautilon-hud" className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-950/95 border border-blue-400/60 rounded-xl px-2.5 sm:px-6 py-1.5 sm:py-2.5 flex items-center gap-2 sm:gap-6 shadow-[0_0_30px_rgba(59,130,246,0.4)] z-40 pointer-events-auto max-w-[94vw] overflow-hidden">
+          <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+            <span className="text-xl sm:text-2xl text-blue-400 animate-pulse shrink-0">🌊</span>
+            <div className="truncate">
+              <div className="text-[7.5px] sm:text-[9px] text-gray-400 font-mono tracking-widest hidden xs:block">SUBMERSIBLE EXOCRAFT</div>
+              <div className="text-[11px] sm:text-sm font-bold text-white nms-header-font tracking-wider truncate">NAUTILON S-CLASS</div>
             </div>
           </div>
-          <div className="hidden sm:flex flex-col gap-1 w-32">
-            <div className="flex justify-between text-[10px] font-mono text-blue-300">
-              <span>HUMBOLDT DRIVE</span>
+          <div className="hidden sm:flex flex-col gap-1 w-28 sm:w-32 shrink-0">
+            <div className="flex justify-between text-[9px] sm:text-[10px] font-mono text-blue-300">
+              <span>HUMBOLDT</span>
               <span>{game.data.nautilon.engineOverclock ? '100% [OC]' : '100%'}</span>
             </div>
-            <div className="w-full bg-gray-900 h-2 rounded-full overflow-hidden border border-blue-400/30">
+            <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden border border-blue-400/30">
               <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 w-full" />
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-[9px] text-gray-400 font-mono">DIVING DEPTH</div>
-            <div className="text-xs sm:text-sm font-bold text-cyan-300 font-mono">-48.5 u</div>
+          <div className="text-right shrink-0">
+            <div className="text-[7.5px] sm:text-[9px] text-gray-400 font-mono">DEPTH</div>
+            <div className="text-[11px] sm:text-sm font-bold text-cyan-300 font-mono">-48.5u</div>
           </div>
-          <div className="text-[10px] font-mono bg-blue-950/60 border border-blue-400/40 px-2 py-1 rounded text-blue-300 font-bold hidden md:block">
-            100% WATER HAZARD IMMUNE
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-mono">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] font-mono shrink-0">
             <button
               onClick={() => setActiveModal('nautilon-sonar')}
-              className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold cursor-pointer shadow"
+              className="px-2 sm:px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold cursor-pointer shadow active:scale-95 text-[9px] sm:text-xs"
             >
-              [소나 📡]
+              [소나📡]
             </button>
             <button
               onClick={() => game.dismountNautilon()}
-              className="px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 cursor-pointer"
+              className="px-2 sm:px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 cursor-pointer active:scale-95 text-[9px] sm:text-xs"
             >
-              [E] 하선
+              [E]하선
             </button>
           </div>
         </div>
