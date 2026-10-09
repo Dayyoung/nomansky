@@ -5,6 +5,8 @@ import { AudioSys } from '../audio';
 import { ToolMode, DifficultyPreset, DifficultySettings } from '../types';
 
 const MODAL_METADATA: Record<string, { icon: string; title: string }> = {
+  'harmonic-interface': { icon: '🛸', title: '하모닉 인터페이스 & 센티넬 인터셉터 인양 사령부 (Interceptor 4.20)' },
+  'station-tech': { icon: '🔬', title: '우주정거장 4대 전문 기술 상인 모듈 (Orbital 4.60)' },
   'custom-difficulty': { icon: '⚙️', title: '커스텀 난이도 & 10대 게임플레이 조절 콘솔 (Waypoint 4.0 [F9])' },
   'nautilon-sonar': { icon: '🌊', title: '노틸론 잠수정 & 심해 고출력 소나 스캐너 (The Abyss & Aquarius)' },
   'inventory': { icon: '🎒', title: '엑소슈트 인벤토리 (Exosuit Inventory [Tab])' },
@@ -4008,8 +4010,269 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             </div>
           )}
 
-          {/* 52. DEFAULT FALLBACK MODAL HANDLER */}
-          {!['inventory', 'quick-recharge', 'galaxy-map', 'solar-ship', 'laylaps', 'fishing', 'black-hole', 'portal', 'wonders', 'supercharge', 'appearance', 'weapon-arsenal', 'station', 'sandworm', 'base-computer', 'abandoned-building', 'archaeology', 'specialist-terminals', 'pirate-flagship', 'large-refiner', 'atlantid-tool', 'livestock-ranch', 'organic-fleet', 'egg-sequencer', 'biodome', 'orbital-freighter', 'expedition', 'scrapper', 'trade-outpost', 'atlas-path', 'outlaw-station', 'manufacturing', 'minotaur', 'teleport', 'nutrient', 'discoveries', 'build-menu', 'milestones', 'hazard-protection', 'multi-tool-salvage', 'cartographer', 'exosuit-upgrade', 'guild-envoy', 'galactic-core', 'starship-weapons', 'floating-islands', 'boundary-failure', 'abyssal-horror', 'living-ship', 'derelict-freighter', 'extreme-weather', 'volcano', 'aquarium', 'spacewalk', 'bioluminescent-forest', 'race-initiator', 'titan-beetle', 'short-range-teleporter', 'em-generator', 'aquatic-base', 'power-grid', 'gas-harvester', 'ship-paint', 'custom-difficulty', 'nautilon-sonar'].includes(activeModal) && (
+          {/* 53. HARMONIC INTERFACE & SENTINEL INTERCEPTOR SALVAGE (Interceptor 4.20 / v5.65.0) */}
+          {activeModal === 'harmonic-interface' && (
+            <div className="space-y-3">
+              {/* Header Telemetry */}
+              <div className="p-3 bg-purple-950/50 rounded-xl border border-purple-500/50 flex flex-col gap-1.5 shadow-[0_0_20px_rgba(168,85,247,0.25)]">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl animate-pulse">🛸</span>
+                    <span className="text-[11px] font-bold text-purple-300 font-mono">INTERCEPTOR 4.20 // HARMONIC CAMP</span>
+                  </div>
+                  <span className="text-[9px] px-2 py-0.5 rounded bg-purple-600/30 text-purple-300 border border-purple-400/40 font-bold font-mono">
+                    DISSONANCE ONLINE
+                  </span>
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-white font-mono">
+                  하모닉 인터페이스 단말기 &amp; 센티넬 인터셉터 인양
+                </div>
+                <p className="text-[10px] text-gray-300">
+                  불협화음 신호를 해독하여 추락한 센티넬 인터셉터의 조종권을 탈취하고 고유 하이퍼드라이브를 기동합니다.
+                </p>
+              </div>
+
+              {/* Sub-tabs */}
+              <div className="flex gap-1.5 border-b border-purple-500/30 pb-1.5 text-[11px]">
+                <button
+                  onClick={() => setSubTab(0)}
+                  className={`px-3 py-1 rounded-lg font-bold font-mono transition-all cursor-pointer ${
+                    subTab === 0
+                      ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.4)]'
+                      : 'bg-slate-900 text-gray-400 border border-white/10 hover:text-white'
+                  }`}
+                >
+                  📟 암호 해독 (Cipher)
+                </button>
+                <button
+                  onClick={() => setSubTab(1)}
+                  className={`px-3 py-1 rounded-lg font-bold font-mono transition-all cursor-pointer ${
+                    subTab === 1
+                      ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.4)]'
+                      : 'bg-slate-900 text-gray-400 border border-white/10 hover:text-white'
+                  }`}
+                >
+                  🛸 인터셉터 인양 (Salvage)
+                </button>
+                <button
+                  onClick={() => setSubTab(2)}
+                  className={`px-3 py-1 rounded-lg font-bold font-mono transition-all cursor-pointer ${
+                    subTab === 2
+                      ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.4)]'
+                      : 'bg-slate-900 text-gray-400 border border-white/10 hover:text-white'
+                  }`}
+                >
+                  🔮 에코 로케이터 (Echo)
+                </button>
+              </div>
+
+              {/* Tab 0: Cipher */}
+              {subTab === 0 && (
+                <div className="space-y-2.5">
+                  <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col gap-2">
+                    <span className="text-xs font-bold text-purple-300 font-mono">수학 레지스터 오버라이드</span>
+                    <p className="text-[11px] text-gray-300 font-mono">
+                      [16] - [16] - [16] 하모닉 공진 주파수 입력. 암호화된 불협화음 방화벽을 우회하여 센티넬 함선 좌표를 추출합니다.
+                    </p>
+                    <button
+                      onClick={() => {
+                        AudioSys.playDiscoveryFanfare();
+                        game.data.nanites = (game.data.nanites || 0) + 380;
+                        game.spawnFloatText("🔓 하모닉 암호 해독 완료 // +380 ⬡ 나노로봇 수신!", undefined, undefined, '#a855f7');
+                      }}
+                      className="w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                    >
+                      📟 암호 오버라이드 실행 (+380 ⬡)
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 1: Salvage Interceptor */}
+              {subTab === 1 && (
+                <div className="space-y-2.5">
+                  <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-white font-mono">센티넬 인터셉터 (Sentinel Interceptor)</span>
+                      <span className="text-[10px] text-purple-300 font-bold font-mono">S-클래스 하이브리드</span>
+                    </div>
+                    <p className="text-[11px] text-gray-300">
+                      반중력 호버링, 적응형 윙 메커니즘, 센티넬 캐논 및 크림슨 코어 실드가 내장된 최첨단 외계 전투기.
+                    </p>
+                    <button
+                      onClick={() => {
+                        game.data.shipType = 'INTERCEPTOR';
+                        game.data.maxShield = 360;
+                        game.data.shield = 360;
+                        AudioSys.playDiscoveryFanfare();
+                        game.spawnFloatText("🛸 SENTINEL INTERCEPTOR CLAIMED // 반중력 호버 전투기 탑승!", undefined, undefined, '#a855f7');
+                      }}
+                      className="w-full py-2 bg-gradient-to-r from-purple-600 to-rose-600 hover:from-purple-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                    >
+                      🚀 센티넬 인터셉터 즉시 탑승 / 인양
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 2: Echo Locator */}
+              {subTab === 2 && (
+                <div className="space-y-2.5">
+                  <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col gap-2">
+                    <span className="text-xs font-bold text-purple-300 font-mono">에코 로케이터 공진 탐색</span>
+                    <p className="text-[11px] text-gray-300">
+                      불협화음 센티넬 잔해에서 수습한 로케이터를 기동하여 행성 표면의 다음 하모닉 캠프와 아틀란티드 무기고를 탐지합니다.
+                    </p>
+                    <button
+                      onClick={() => {
+                        AudioSys.playScanPulse();
+                        game.triggerScanPulse();
+                        game.spawnFloatText("📡 에코 로케이터 공진 // 불협화음 캠프 좌표 갱신!", undefined, undefined, '#c084fc');
+                      }}
+                      className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                    >
+                      📡 하모닉 캠프 신호 추적
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 54. SPACE STATION 4 SPECIALIST TECHNOLOGY MERCHANTS (Orbital 4.60 & Next v5.70.0) */}
+          {activeModal === 'station-tech' && (
+            <div className="space-y-3">
+              <div className="p-3 bg-cyan-950/50 rounded-xl border border-cyan-500/50 flex flex-col gap-1.5 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl animate-pulse">🔬</span>
+                    <span className="text-[11px] font-bold text-cyan-300 font-mono">ORBITAL 4.60 // STATION TECH BAZAAR</span>
+                  </div>
+                  <span className="text-[9px] px-2 py-0.5 rounded bg-cyan-600/30 text-cyan-300 border border-cyan-400/40 font-bold font-mono">
+                    S-CLASS MODULES
+                  </span>
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-white font-mono">
+                  우주정거장 4대 전문 기술 상인 모듈
+                </div>
+                <p className="text-[10px] text-gray-300">
+                  나노로봇을 지급하여 엑소슈트, 우주선, 멀티툴, 엑소크래프트의 S급 최고 등급 업그레이드 모듈을 구매 및 장착합니다.
+                </p>
+              </div>
+
+              {/* 4 Merchant Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {/* 1. Exosuit Tech */}
+                <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between gap-2">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-cyan-300">🦺 엑소슈트 기술 상인</span>
+                      <span className="text-[10px] text-amber-400 font-bold font-mono">580 ⬡</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">S급 제트팩 기동력 +35%, 생명 유지 효율 +50% 모듈</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if ((game.data.nanites || 0) >= 580) {
+                        game.data.nanites -= 580;
+                        AudioSys.playRecharge();
+                        game.spawnFloatText("✨ 엑소슈트 S급 모듈 장착 완료! (+35% 부스트)", undefined, undefined, '#00e5ff');
+                      } else {
+                        AudioSys.playWarning();
+                        game.spawnFloatText("⚠️ 나노로봇이 부족합니다 (필요: 580 ⬡)", undefined, undefined, '#ff3366');
+                      }
+                    }}
+                    className="w-full py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-[11px] cursor-pointer"
+                  >
+                    모듈 구매 &amp; 장착
+                  </button>
+                </div>
+
+                {/* 2. Starship Tech */}
+                <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between gap-2">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-blue-300">🚀 우주선 기술 상인</span>
+                      <span className="text-[10px] text-amber-400 font-bold font-mono">650 ⬡</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">S급 펄스 엔진 가속 +40%, 실드 방어력 +38% 모듈</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if ((game.data.nanites || 0) >= 650) {
+                        game.data.nanites -= 650;
+                        game.data.maxShield = (game.data.maxShield || 100) + 50;
+                        game.data.shield = game.data.maxShield;
+                        AudioSys.playRecharge();
+                        game.spawnFloatText("✨ 우주선 S급 모듈 장착 완료! (최대 쉴드 증가)", undefined, undefined, '#38bdf8');
+                      } else {
+                        AudioSys.playWarning();
+                        game.spawnFloatText("⚠️ 나노로봇이 부족합니다 (필요: 650 ⬡)", undefined, undefined, '#ff3366');
+                      }
+                    }}
+                    className="w-full py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[11px] cursor-pointer"
+                  >
+                    모듈 구매 &amp; 장착
+                  </button>
+                </div>
+
+                {/* 3. Multi-Tool Tech */}
+                <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between gap-2">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-orange-300">🔫 멀티툴 기술 상인</span>
+                      <span className="text-[10px] text-amber-400 font-bold font-mono">600 ⬡</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">S급 채굴 빔 속도 +45%, 볼트캐스터 대미지 +30% 모듈</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if ((game.data.nanites || 0) >= 600) {
+                        game.data.nanites -= 600;
+                        AudioSys.playRecharge();
+                        game.spawnFloatText("✨ 멀티툴 S급 화력 모듈 장착 완료! (+30% 대미지)", undefined, undefined, '#fb923c');
+                      } else {
+                        AudioSys.playWarning();
+                        game.spawnFloatText("⚠️ 나노로봇이 부족합니다 (필요: 600 ⬡)", undefined, undefined, '#ff3366');
+                      }
+                    }}
+                    className="w-full py-1.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg text-[11px] cursor-pointer"
+                  >
+                    모듈 구매 &amp; 장착
+                  </button>
+                </div>
+
+                {/* 4. Exocraft Tech */}
+                <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between gap-2">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-emerald-300">🚜 엑소크래프트 기술 상인</span>
+                      <span className="text-[10px] text-amber-400 font-bold font-mono">520 ⬡</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">S급 로머/노틸론 터보 부스트 +50%, 연료 소비 -40% 모듈</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if ((game.data.nanites || 0) >= 520) {
+                        game.data.nanites -= 520;
+                        AudioSys.playRecharge();
+                        game.spawnFloatText("✨ 엑소크래프트 S급 터보 부스터 장착 완료!", undefined, undefined, '#34d399');
+                      } else {
+                        AudioSys.playWarning();
+                        game.spawnFloatText("⚠️ 나노로봇이 부족합니다 (필요: 520 ⬡)", undefined, undefined, '#ff3366');
+                      }
+                    }}
+                    className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[11px] cursor-pointer"
+                  >
+                    모듈 구매 &amp; 장착
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 55. DEFAULT FALLBACK MODAL HANDLER */}
+          {!['inventory', 'quick-recharge', 'galaxy-map', 'solar-ship', 'laylaps', 'fishing', 'black-hole', 'portal', 'wonders', 'supercharge', 'appearance', 'weapon-arsenal', 'station', 'sandworm', 'base-computer', 'abandoned-building', 'archaeology', 'specialist-terminals', 'pirate-flagship', 'large-refiner', 'atlantid-tool', 'livestock-ranch', 'organic-fleet', 'egg-sequencer', 'biodome', 'orbital-freighter', 'expedition', 'scrapper', 'trade-outpost', 'atlas-path', 'outlaw-station', 'manufacturing', 'minotaur', 'teleport', 'nutrient', 'discoveries', 'build-menu', 'milestones', 'hazard-protection', 'multi-tool-salvage', 'cartographer', 'exosuit-upgrade', 'guild-envoy', 'galactic-core', 'starship-weapons', 'floating-islands', 'boundary-failure', 'abyssal-horror', 'living-ship', 'derelict-freighter', 'extreme-weather', 'volcano', 'aquarium', 'spacewalk', 'bioluminescent-forest', 'race-initiator', 'titan-beetle', 'short-range-teleporter', 'em-generator', 'aquatic-base', 'power-grid', 'gas-harvester', 'ship-paint', 'custom-difficulty', 'nautilon-sonar', 'harmonic-interface', 'station-tech'].includes(activeModal) && (
             <div className="space-y-4 text-center py-6">
               <span className="text-4xl block">✨</span>
               <span className="text-sm font-bold text-white block">

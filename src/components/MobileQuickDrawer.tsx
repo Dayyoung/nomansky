@@ -780,6 +780,26 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
       color: 'border-amber-400/50 bg-amber-950/40 text-amber-300',
       desc: '5대 공식 프리셋, 10대 세부 매개변수 실시간 조절 및 유토피아 스피더',
       onClick: () => onOpenModal('custom-difficulty')
+    },
+    {
+      id: 'harmonic-interface',
+      name: '하모닉 인터페이스 & 센티넬 인터셉터 인양',
+      category: 'gear',
+      icon: '🛸',
+      hotkey: '[Shift+F10]',
+      color: 'border-purple-400/50 bg-purple-950/40 text-purple-300',
+      desc: '불협화음 수학 암호 레지스터 해독, 추락 인터셉터 수리 & 에코 로케이터',
+      onClick: () => onOpenModal('harmonic-interface')
+    },
+    {
+      id: 'station-tech',
+      name: '우주정거장 4대 전문 기술 상인 모듈',
+      category: 'ship',
+      icon: '🔬',
+      hotkey: '[Alt+T]',
+      color: 'border-cyan-400/50 bg-cyan-950/40 text-cyan-300',
+      desc: '엑소슈트, 우주선, 멀티툴, 엑소크래프트 S급 첨단 업그레이드 모듈',
+      onClick: () => onOpenModal('station-tech')
     }
   ];
 
@@ -873,12 +893,12 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="text-xl shrink-0">🎮</span>
             <div className="truncate">
-              <span className="text-xs font-bold text-cyan-200 font-mono block truncate">No Man's Sky 2D v5.51.0 원본 아케이드 (Waypoint 4.0)</span>
+              <span className="text-xs font-bold text-cyan-200 font-mono block truncate">No Man's Sky 2D v5.84.0 원본 아케이드 (Beyond & Origins)</span>
               <span className="text-[9px] text-gray-400 font-mono">새 탭 전체화면으로 실행 (PC/태블릿 추천)</span>
             </div>
           </div>
           <a
-            href="./v5.51.0.html"
+            href="./v5.84.0.html"
             target="_blank"
             rel="noopener noreferrer"
             className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[10px] font-bold font-mono shrink-0 shadow flex items-center gap-1 no-underline active:scale-95"
