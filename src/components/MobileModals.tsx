@@ -4,6 +4,82 @@ import { game } from '../gameEngine';
 import { AudioSys } from '../audio';
 import { ToolMode, DifficultyPreset, DifficultySettings } from '../types';
 
+const MODAL_METADATA: Record<string, { icon: string; title: string }> = {
+  'custom-difficulty': { icon: '⚙️', title: '커스텀 난이도 & 10대 게임플레이 조절 콘솔 (Waypoint 4.0 [F9])' },
+  'nautilon-sonar': { icon: '🌊', title: '노틸론 잠수정 & 심해 고출력 소나 스캐너 (The Abyss & Aquarius)' },
+  'inventory': { icon: '🎒', title: '엑소슈트 인벤토리 (Exosuit Inventory [Tab])' },
+  'quick-recharge': { icon: '⚡', title: '퀵 긴급 충전 콘솔 (Quick Recharge)' },
+  'galaxy-map': { icon: '🌌', title: '3D 은하계 지도 & 성간 워프 (Galaxy Map [M])' },
+  'solar-ship': { icon: '⛵', title: '솔라선 & 베스퍼 세일 태양광 항해' },
+  'laylaps': { icon: '🤖', title: "센티넬 동료 '레일랩스' 신경망 제어" },
+  'outlaw-station': { icon: '☠️', title: '무법자 해적 정거장 & 현상금 사냥' },
+  'atlas-path': { icon: '🔴', title: '아틀라스 경로 & 신규 항성 탄생 제단' },
+  'manufacturing': { icon: '🏭', title: '행성 보안 제조시설 & 아틀라스패스' },
+  'organic-fleet': { icon: '🐙', title: '생체 호위함대 & 사이코닉 알 배양' },
+  'egg-sequencer': { icon: '🧬', title: '알 염기서열기 & 유전자 개조' },
+  'biodome': { icon: '🌱', title: '바이오돔 수경재배 & 외계 농경' },
+  'wonders': { icon: '✨', title: '은하계 경이 도감 & 홀로그램 영사기' },
+  'supercharge': { icon: '⚡', title: '기술 과급 슬롯(Supercharged) 오버클럭' },
+  'appearance': { icon: '👤', title: '외형 조작기 & 은하 6대 종족' },
+  'orbital-freighter': { icon: '🛰️', title: '화물선 궤도 물질화기 & 광역 스캔' },
+  'expedition': { icon: '🏆', title: '스페이스 아노말리 성간 원정대' },
+  'scrapper': { icon: '🛸', title: '우주정거장 우주선 인양 분해소' },
+  'trade-outpost': { icon: '🏛️', title: '행성 대형 교역소 & 7대 무역망' },
+  'fishing': { icon: '🎣', title: '아쿠아리우스 해양 낚싯대 & 수생 도감' },
+  'black-hole': { icon: '🕳️', title: '초거대 블랙홀 & 사건의 지평선 특이점' },
+  'portal': { icon: '🌀', title: '고대 포탈 16 글리프 다이얼' },
+  'minotaur': { icon: '🤖', title: '미노타우르스 중장갑 메카' },
+  'weapon-arsenal': { icon: '🔫', title: '다목적 도구 전투 화기 & 중화기 사령부 (Sentinel & Waypoint)' },
+  'nutrient': { icon: '🍲', title: '영양소 처리기 & 외계 요리실' },
+  'teleport': { icon: '🌀', title: '성계간 순간이동기 터미널' },
+  'discoveries': { icon: '🪐', title: '행성 발견 도감 & 동물군 분석' },
+  'station': { icon: '🏛️', title: '성계 우주정거장 코어 & 3대 길드 특사' },
+  'sandworm': { icon: '🪱', title: '거대 샌드웜 & 이머전스 둥지' },
+  'base-computer': { icon: '🏠', title: '기지 컴퓨터 영토 선포 & 거점 건축' },
+  'abandoned-building': { icon: '☣️', title: '버려진 연구시설 & 속삭이는 알' },
+  'archaeology': { icon: '🦴', title: '고고학 뼈 발굴 & 고대 유물 복원' },
+  'specialist-terminals': { icon: '🏛️', title: '기지 5대 전문가 & 콜로서스 채광차' },
+  'pirate-flagship': { icon: '🏴‍☠️', title: '해적 드레드노트 기함 지휘' },
+  'large-refiner': { icon: '⚗️', title: '대형 3슬롯 정제기 & 화학 연금술' },
+  'atlantid-tool': { icon: '🔮', title: '아틀란티드 멀티툴 & 룬 제단' },
+  'livestock-ranch': { icon: '🥛', title: '외계 생물 목장 & 가축 수확기' },
+  'milestones': { icon: '🏆', title: '은하계 여행자 10대 마일스톤' },
+  'hazard-protection': { icon: '🛡️', title: '엑소슈트 4대 극한 환경 보호막' },
+  'multi-tool-salvage': { icon: '🔧', title: '멀티툴 고철 분해 & 슬롯 확장' },
+  'cartographer': { icon: '🗺️', title: '정거장 지도제작자 & 5대 행성 차트' },
+  'exosuit-upgrade': { icon: '👕', title: '엑소슈트 용량 증설 & 드롭 포드' },
+  'guild-envoy': { icon: '🎖️', title: '우주정거장 3대 길드 사절단' },
+  'galactic-core': { icon: '🌌', title: '은하 중심 특이점 & 4대 은하 도약' },
+  'starship-weapons': { icon: '🚀', title: '스타쉽 5대 첨단 무장 시스템' },
+  'floating-islands': { icon: '🏝️', title: '부유하는 하늘 섬 & 폭포 피난처 (Worlds 1)' },
+  'boundary-failure': { icon: '🔮', title: '차원 경계 붕괴 & 텔라몬 왜곡 기록' },
+  'abyssal-horror': { icon: '🌊', title: '심해 유적 & 매혹적인 조개 (The Abyss)' },
+  'living-ship': { icon: '🌱', title: '생체 함선 스타버스 & 장기 배양' },
+  'derelict-freighter': { icon: '☠️', title: '버려진 화물선 탐사 & 잔해 인양' },
+  'extreme-weather': { icon: '⚡', title: '극한 기후 현상 및 대기 이상 관측소 (Worlds 1)' },
+  'volcano': { icon: '🌋', title: '칼데라 지열 발전소 & 바살트 정련소 (Origins)' },
+  'aquarium': { icon: '🦑', title: '심해 트로피 수족관 & 수중 표본' },
+  'spacewalk': { icon: '🌌', title: '화물선 외벽 캣워크 & 무중력 EVA 우주유영' },
+  'bioluminescent-forest': { icon: '🌌', title: '생체 발광 포자 숲 & 에테르 하늘가오리' },
+  'race-initiator': { icon: '🏁', title: '엑소크래프트 레이스 트랙 스타터' },
+  'titan-beetle': { icon: '🪲', title: '거대 비행 타이탄 비틀 활공 탈것' },
+  'short-range-teleporter': { icon: '🌀', title: '기지 단거리 텔레포터 & 양자 도관망' },
+  'em-generator': { icon: '⚡', title: 'S-Class 전자기 발전소 & 무한 전력망' },
+  'aquatic-base': { icon: '🌊', title: '심해 수밀 해양 기지 & 수중 문풀' },
+  'power-grid': { icon: '⚡', title: '기지 태양광 발전소 & 배터리 뱅크 허브' },
+  'gas-harvester': { icon: '💨', title: '대기 기체 하베스터 & 화학 합성 정제소' },
+  'ship-paint': { icon: '🎨', title: '우주선 도색, 외형 데칼 & 배기 흔적 튜닝' },
+  'build-menu': { icon: '🏗️', title: '기지 건설 및 구조물 배치 [Z]' },
+  'settlement': { icon: '🏛️', title: '행성 정착지 행정 관리 [L]' },
+  'industrial': { icon: '🏭', title: '자율 광물 채굴 파이프라인' },
+  'freighter': { icon: '🚢', title: '화물선 주력함 소환 [H]' },
+  'squadron': { icon: '⚔️', title: '전투 비행중대 출격 [Q]' },
+  'anomaly': { icon: '🔮', title: '스페이스 아노말리 성소 [B]' },
+  'ancient-ruins': { icon: '🏛️', title: '고대 외계 유적 발굴지 [-]' },
+  'colossal-archive': { icon: '🏯', title: '거대 행성 기록 보관소 [`]' },
+  'interceptor': { icon: '🛸', title: '센티넬 인터셉터 인양 [N / 8]' }
+};
+
 interface MobileModalsProps {
   activeModal: string | null;
   onClose: () => void;
@@ -21,56 +97,34 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
     onClose();
   };
 
+  const meta = MODAL_METADATA[activeModal] || {
+    icon: '🚀',
+    title: activeModal.replace(/-/g, ' ').toUpperCase()
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-hidden">
       <div className="relative w-full max-w-2xl max-h-[92vh] flex flex-col bg-slate-950 border border-cyan-400/60 rounded-2xl shadow-[0_0_35px_rgba(0,229,255,0.25)] overflow-hidden">
         {/* Sticky Mobile Modal Header */}
-        <div className="px-4 py-3 bg-slate-900 border-b border-white/10 flex items-center justify-between shrink-0">
+        <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-slate-900 border-b border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
-            <span className="text-xl">
-              {activeModal === 'custom-difficulty' ? '⚙️' : activeModal === 'nautilon-sonar' ? '🌊' : activeModal === 'inventory' ? '🎒' : activeModal === 'galaxy-map' ? '🌌' : activeModal === 'solar-ship' ? '⛵' : activeModal === 'laylaps' ? '🤖' : activeModal === 'fishing' ? '🎣' : activeModal === 'black-hole' ? '🕳️' : activeModal === 'portal' ? '🌀' : activeModal === 'atlas-path' ? '🔴' : activeModal === 'wonders' ? '✨' : activeModal === 'supercharge' ? '⚡' : '🚀'}
+            <span className="text-lg sm:text-xl shrink-0">
+              {meta.icon}
             </span>
             <div className="flex flex-col truncate">
               <span className="text-xs sm:text-sm font-bold text-white nms-header-font truncate">
-                {activeModal === 'custom-difficulty' && '커스텀 난이도 & 10대 게임플레이 조절 콘솔 (Waypoint 4.0 [F9])'}
-                {activeModal === 'nautilon-sonar' && '노틸론 잠수정 & 심해 고출력 소나 스캐너 (The Abyss & Aquarius)'}
-                {activeModal === 'inventory' && '엑소슈트 인벤토리 (Exosuit Inventory)'}
-                {activeModal === 'quick-recharge' && '퀵 긴급 충전 (Quick Recharge)'}
-                {activeModal === 'galaxy-map' && '3D 은하계 지도 & 성간 워프 (Galaxy Map)'}
-                {activeModal === 'solar-ship' && '솔라선 & 베스퍼 세일 태양광 항해'}
-                {activeModal === 'laylaps' && "센티넬 동료 '레일랩스' 신경망 제어"}
-                {activeModal === 'outlaw-station' && '무법자 해적 정거장 & 현상금 사냥'}
-                {activeModal === 'atlas-path' && '아틀라스 경로 & 신규 항성 탄생 제단'}
-                {activeModal === 'manufacturing' && '행성 보안 제조시설 & 아틀라스패스'}
-                {activeModal === 'organic-fleet' && '생체 호위함대 & 사이코닉 알 배양'}
-                {activeModal === 'egg-sequencer' && '알 염기서열기 & 유전자 개조'}
-                {activeModal === 'biodome' && '바이오돔 수경재배 & 외계 농경'}
-                {activeModal === 'wonders' && '은하계 경이 도감 & 홀로그램 영사기'}
-                {activeModal === 'supercharge' && '기술 과급 슬롯(Supercharged) 오버클럭'}
-                {activeModal === 'appearance' && '외형 조작기 & 은하 6대 종족'}
-                {activeModal === 'orbital-freighter' && '화물선 궤도 물질화기 & 광역 스캔'}
-                {activeModal === 'expedition' && '스페이스 아노말리 성간 원정대'}
-                {activeModal === 'scrapper' && '우주정거장 우주선 인양 분해소'}
-                {activeModal === 'trade-outpost' && '행성 대형 교역소 & 7대 무역망'}
-                {activeModal === 'fishing' && '아쿠아리우스 해양 낚싯대 & 수생 도감'}
-                {activeModal === 'black-hole' && '초거대 블랙홀 & 사건의 지평선 특이점'}
-                {activeModal === 'portal' && '고대 포탈 16 글리프 다이얼'}
-                {activeModal === 'minotaur' && '미노타우르스 중장갑 메카'}
-                {activeModal === 'weapon-arsenal' && '다목적 도구 전투 화기 & 중화기 사령부 (Sentinel & Waypoint)'}
-                {activeModal === 'nutrient' && '영양소 처리기 & 외계 요리실'}
-                {activeModal === 'teleport' && '성계간 순간이동기 터미널'}
-                {activeModal === 'discoveries' && '행성 발견 도감 & 동물군 분석'}
+                {meta.title}
               </span>
-              <span className="text-[9px] text-cyan-300 font-mono">터치 친화적 모바일 인터페이스 활성</span>
+              <span className="text-[8.5px] sm:text-[9px] text-cyan-300 font-mono">터치 친화적 모바일 인터페이스 활성</span>
             </div>
           </div>
 
           <button
             onClick={handleClose}
-            className="w-10 h-10 rounded-full bg-slate-800 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer active:scale-95 shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer active:scale-95 shrink-0"
             title="닫기"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 

@@ -457,9 +457,9 @@ export default function App() {
       )}
 
       {/* Touch Controls Layout (Landscape & Portrait Responsive) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-2 sm:p-4 pb-safe max-w-full">
+      <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-1.5 xs:p-2 sm:p-4 pb-safe max-w-full overflow-hidden">
         {/* Left Bottom: Vitals Status Cluster & Virtual Thumb Joystick */}
-        <div className="pointer-events-auto shrink-0 flex flex-col items-start gap-1 sm:gap-1.5 mb-0.5 max-w-[150px] xs:max-w-[170px] sm:max-w-[200px]">
+        <div className="pointer-events-auto shrink-0 flex flex-col items-start gap-1 sm:gap-1.5 mb-0.5 max-w-[130px] xs:max-w-[160px] sm:max-w-[200px]">
           {/* Shield Bar */}
           <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-cyan-400/30">
             <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-cyan-300 mb-0.5">

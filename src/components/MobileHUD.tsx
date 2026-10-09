@@ -102,7 +102,7 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-1.5 sm:gap-2 pointer-events-auto max-w-full overflow-hidden">
         {/* Left: Location & Biome + Compact Minimap (Top-Left) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 pointer-events-auto flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-1 sm:gap-1.5 pointer-events-auto flex-wrap sm:flex-nowrap max-w-full">
           {/* Small Minimap Radar (Click to enlarge) */}
           <PlanetaryMinimap
             game={game}
@@ -114,14 +114,14 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
             onResetZoom={onResetZoom}
           />
 
-          <div className="flex flex-col bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-lg border border-cyan-400/30 max-w-[140px] xs:max-w-[170px] sm:max-w-xs shadow-md">
+          <div className="flex flex-col bg-slate-950/85 backdrop-blur-md px-2 py-0.5 xs:px-2.5 xs:py-1 rounded-lg border border-cyan-400/30 max-w-[120px] xs:max-w-[155px] sm:max-w-xs shadow-md">
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#00e5ff] animate-ping shrink-0" />
-              <span className="text-[11px] sm:text-xs font-bold tracking-wider text-white nms-header-font truncate">
+              <span className="text-[10px] xs:text-[11px] sm:text-xs font-bold tracking-wider text-white nms-header-font truncate">
                 {displayLocation}
               </span>
             </div>
-            <span className="text-[8px] sm:text-[9px] text-cyan-300/80 font-mono tracking-wide truncate">
+            <span className="text-[7.5px] xs:text-[8px] sm:text-[9px] text-cyan-300/80 font-mono tracking-wide truncate">
               {displaySubLocation}
             </span>
           </div>
@@ -132,10 +132,10 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
               AudioSys.playNote(540, 'sine', 0.1);
               setShowLandingGuide(true);
             }}
-            className="h-8 sm:h-9 px-1.5 sm:px-2 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-cyan-400/50 rounded-lg flex items-center gap-1 text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0"
+            className="h-7 xs:h-8 sm:h-9 px-1.5 xs:px-2 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-cyan-400/50 rounded-lg flex items-center gap-1 text-[8.5px] xs:text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0"
             title="행성 착륙 방법 가이드"
           >
-            <HelpCircle className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <HelpCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-cyan-400 shrink-0" />
             <span className="hidden xs:inline sm:inline">착륙가이드</span>
           </button>
 
@@ -149,15 +149,15 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
                 game.engageAutoPilot();
               }
             }}
-            className={`h-8 sm:h-9 px-1.5 sm:px-2 rounded-lg flex items-center gap-1 text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0 border transition-all ${
+            className={`h-7 xs:h-8 sm:h-9 px-1.5 xs:px-2 rounded-lg flex items-center gap-1 text-[8.5px] xs:text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0 border transition-all ${
               isAutoPilot
                 ? 'bg-rose-950/90 hover:bg-rose-900 border-rose-400 text-rose-300 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.4)]'
                 : 'bg-cyan-950/80 hover:bg-cyan-900 border-cyan-400/60 text-cyan-200 hover:text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]'
             }`}
-            title={isAutoPilot ? '데모플레이 정지 (수동 조작)' : 'AI 24단계 전 기능 데모플레이 시작'}
+            title={isAutoPilot ? '데모플레이 정지 (수동 조작)' : 'AI 77개 전 기능 전체 데모플레이 시작'}
           >
-            <span className="text-xs">🎬</span>
-            <span className="font-mono text-[9px]">{isAutoPilot ? '데모중지' : '데모'}</span>
+            <span className="text-[11px] xs:text-xs">🎬</span>
+            <span className="font-mono text-[8.5px] xs:text-[9px]">{isAutoPilot ? '데모중지' : '데모'}</span>
           </button>
         </div>
 
@@ -262,10 +262,10 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
         )}
 
         {/* Right: Sentinel 5-Tier Diamond Indicators & Currency summary & Command Hub Drawer Button */}
-        <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center justify-end gap-1 xs:gap-1.5 sm:gap-2 max-w-full flex-wrap sm:flex-nowrap">
           {/* Sentinel 5-Tier Diamond Indicators */}
-          <div id="sentinel-alert-container" className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md px-1.5 sm:px-2 py-1 rounded-lg border border-red-500/30 shadow-md">
-            <span className="text-[8.5px] font-bold font-mono text-red-400 mr-0.5 hidden sm:inline">센티넬</span>
+          <div id="sentinel-alert-container" className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg border border-red-500/30 shadow-md">
+            <span className="text-[8px] sm:text-[8.5px] font-bold font-mono text-red-400 mr-0.5 hidden sm:inline">센티넬</span>
             {[1, 2, 3, 4, 5].map((tier) => (
               <div
                 key={tier}
@@ -276,14 +276,14 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
           </div>
 
           {/* Compact Currency Badges */}
-          <div className="hidden xs:flex sm:flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 text-[9px] font-mono shadow-md">
+          <div className="hidden xs:flex sm:flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-1.5 xs:px-2 py-0.5 sm:py-1 rounded-lg border border-white/10 text-[8px] xs:text-[9px] font-mono shadow-md">
             <span className="text-yellow-400 font-bold">
               {units >= 1000000 ? `${(units / 1000000).toFixed(1)}M` : units >= 1000 ? `${(units / 1000).toFixed(1)}k` : units} ₩
             </span>
             <span className="text-cyan-300 font-bold">
               {nanites >= 1000 ? `${(nanites / 1000).toFixed(1)}k` : nanites} ⬡
             </span>
-            {quicksilver > 0 && <span className="text-purple-400 font-bold">{quicksilver} ◈</span>}
+            {quicksilver > 0 && <span className="text-purple-400 font-bold hidden sm:inline">{quicksilver} ◈</span>}
           </div>
 
           {/* v5.50.0 Combat Arsenal Command Matrix Quick Button */}
@@ -293,11 +293,11 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
                 AudioSys.unlockOnFirstInteraction();
                 onOpenArsenal();
               }}
-              className="h-8 sm:h-9 px-1.5 sm:px-2 bg-gradient-to-r from-orange-600/90 to-amber-600/90 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg border border-orange-300/80 text-[9.5px] sm:text-xs flex items-center gap-1 shadow-[0_0_15px_rgba(249,115,22,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+              className="h-7 xs:h-8 sm:h-9 px-1 xs:px-1.5 sm:px-2 bg-gradient-to-r from-orange-600/90 to-amber-600/90 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg border border-orange-300/80 text-[8.5px] xs:text-[9.5px] sm:text-xs flex items-center gap-0.5 xs:gap-1 shadow-[0_0_15px_rgba(249,115,22,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
               title="다목적 도구 전투 화기 4-탭 사령부 매트릭스 [Alt+X / /]"
             >
               <span>🔫</span>
-              <span className="font-mono text-[9px] font-extrabold hidden xs:inline sm:inline">화기</span>
+              <span className="font-mono text-[8px] xs:text-[9px] font-extrabold hidden xs:inline sm:inline">화기</span>
             </button>
           )}
 
@@ -308,11 +308,11 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
                 AudioSys.unlockOnFirstInteraction();
                 onOpenDifficulty();
               }}
-              className="h-8 sm:h-9 px-1.5 sm:px-2 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 hover:to-yellow-500 text-white font-bold rounded-lg border border-amber-300/80 text-[9.5px] sm:text-xs flex items-center gap-1 shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+              className="h-7 xs:h-8 sm:h-9 px-1 xs:px-1.5 sm:px-2 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 hover:to-yellow-500 text-white font-bold rounded-lg border border-amber-300/80 text-[8.5px] xs:text-[9.5px] sm:text-xs flex items-center gap-0.5 xs:gap-1 shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
               title="커스텀 난이도 & 10대 게임플레이 조절 매트릭스 [F9]"
             >
               <span>⚙️</span>
-              <span className="font-mono text-[9px] font-extrabold hidden xs:inline sm:inline">
+              <span className="font-mono text-[8px] xs:text-[9px] font-extrabold hidden xs:inline sm:inline">
                 {game.data.difficultySettings?.preset || 'NORMAL'}
               </span>
             </button>
@@ -321,10 +321,10 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
           {/* Quick Menu Button (Opens Full Mobile Drawer) */}
           <button
             onClick={onOpenDrawer}
-            className="h-8 sm:h-9 px-2 sm:px-2.5 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-xs flex items-center gap-1 shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+            className="h-7 xs:h-8 sm:h-9 px-1.5 xs:px-2 sm:px-2.5 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-[9px] xs:text-[10px] flex items-center gap-1 shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
           >
-            <Menu className="w-3.5 h-3.5" />
-            <span className="font-mono text-[10px] tracking-wider font-extrabold">메뉴</span>
+            <Menu className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
+            <span className="font-mono tracking-wider font-extrabold">메뉴</span>
           </button>
         </div>
       </div>

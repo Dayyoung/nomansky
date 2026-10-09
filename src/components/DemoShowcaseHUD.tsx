@@ -1,6 +1,6 @@
 import React from 'react';
 import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Compass, Eye, ShieldAlert, Cpu } from 'lucide-react';
-import { game } from '../gameEngine';
+import { game, GameEngine } from '../gameEngine';
 import { DemoShowcaseState } from '../types';
 
 interface DemoShowcaseHUDProps {
@@ -105,22 +105,31 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
           />
         </div>
 
-        {/* Phase Indicator Dots */}
-        <div className="flex items-center justify-between gap-0.5 sm:gap-1 mt-1.5 px-0.5">
-          {Array.from({ length: totalPhases }).map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => game.setupDemoPhase(idx)}
-              title={`${idx + 1}단계로 바로 이동`}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                idx === phaseIndex
-                  ? 'bg-cyan-400 shadow-[0_0_8px_rgba(0,229,255,0.8)] scale-y-125'
-                  : idx < phaseIndex
-                  ? 'bg-cyan-700/60'
-                  : 'bg-white/15'
-              }`}
-            />
-          ))}
+        {/* Phase Indicator & Quick Jump */}
+        <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-white/10 text-[10px] font-mono">
+          <div className="flex items-center gap-1.5 overflow-hidden">
+            <span className="text-cyan-300 font-bold shrink-0">
+              {phaseIndex + 1}/{totalPhases}
+            </span>
+            <span className="text-gray-400 truncate hidden xs:inline">
+              {Math.round(progressPercent)}% 완료
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            <select
+              value={phaseIndex}
+              onChange={(e) => game.setupDemoPhase(Number(e.target.value))}
+              className="bg-slate-900 border border-cyan-400/40 rounded px-1.5 py-0.5 text-[9.5px] text-cyan-200 font-mono outline-none cursor-pointer max-w-[140px] xs:max-w-[180px] sm:max-w-[220px] truncate"
+              title="원하는 시연 기능 단계로 즉시 점프"
+            >
+              {GameEngine.DEMO_PHASES.map((p, idx) => (
+                <option key={idx} value={idx}>
+                  {idx + 1}. {p.title.replace(/^[^\w가-힣]+/, '').slice(0, 22)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     </aside>

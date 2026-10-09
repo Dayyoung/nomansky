@@ -816,174 +816,701 @@ export class GameEngine {
     description: string;
     subText: string;
     duration: number;
+    badge?: string;
+    category?: string;
   }> = [
     {
       phase: 'SPACE_PULSE',
-      title: '🚀 1/24. 초광속 펄스 드라이브 & 소행성 채굴',
+      title: '🚀 1/77. [기본비행] 초광속 펄스 드라이브 & 소행성 채굴',
       description: '우주선 펄스 추진기를 가동하여 광활한 유클리드 성계를 36 u/s 초광속으로 쾌속 순항하고 삼중수소를 수확합니다.',
       subText: '[Space / 펄스부스트] 초광속 가속 | [포톤 캐논] 소행성 파괴',
-      duration: 5000
+      duration: 4500,
+      badge: '성간비행',
+      category: '함선'
     },
     {
       phase: 'SPACE_COMBAT',
-      title: '⚔️ 2/24. 해적 우주선 조우 & 성간 도그파이트',
+      title: '⚔️ 2/77. [우주전투] 해적 우주선 조우 & 성간 도그파이트',
       description: '약탈자 해적 전투기 출현! 락온 조준 레이저와 유도 로켓을 퍼부어 해적선을 격침하고 현상금을 획득합니다.',
       subText: '[포톤 캐논] 연속 사격 | [방어막 🛡️] 편향장 가동 및 2,500₩ 현상금 획득',
-      duration: 5000
+      duration: 4500,
+      badge: '우주전투',
+      category: '전투'
     },
     {
       phase: 'STARSHIP_CYCLE',
-      title: '🛸 3/24. 4대 특수 함선 격납고 순환 [K]',
+      title: '🛸 3/77. [격납고] 4대 특수 함선 격납고 순환 [K]',
       description: '솔라선(베스퍼 세일), 센티넬 인터셉터, 생체함선 등 성간 함대 주력기를 실시간으로 교체합니다.',
       subText: '[K] 함선 순환 | 기종별 고유 비행 역학과 칵핏 게이지 전환',
-      duration: 5000
+      duration: 4000,
+      badge: '특수함선',
+      category: '함선'
+    },
+    {
+      phase: 'SOLAR_SAIL',
+      title: '⛵ 4/77. [Outlaws] 솔라선 & 베스퍼 세일 태양광 항해',
+      description: '태양광 돛을 전개하여 항성풍 에너지를 포집하고, 무한 실드 충전 및 고기동성을 확보합니다.',
+      subText: '베스퍼 세일 자동 전개 | 솔라 펄스 엔진 및 영구 쉴드 재생',
+      duration: 4200,
+      badge: 'Outlaws',
+      category: '함선'
     },
     {
       phase: 'SPACE_STATION',
-      title: '🏛️ 4/24. 성계 우주정거장 진입 & 은하 무역 단말기',
-      description: '우주정거장 입구 유도 광선을 타고 안전하게 도킹하여 은하 무역 시세를 확인하고 희귀 특산품을 거래합니다.',
-      subText: '[E] 우주정거장 도킹 | 은하 무역망 & 지도제작소',
-      duration: 4500
+      title: '🏛️ 5/77. [Orbital] 성계 우주정거장 코어 & 은하 무역 터미널',
+      description: '우주정거장 내부 도킹 레일을 타고 진입하여 성계 특산품 시세를 확인하고 희귀 자원을 교역합니다.',
+      subText: '[E] 우주정거장 도킹 | 은하 무역 단말기 & 코어 터미널',
+      duration: 4200,
+      badge: 'Orbital',
+      category: '은하계'
     },
     {
       phase: 'GALAXY_MAP',
-      title: '🌌 5/24. 성간 은하 지도 매트릭스 [M]',
-      description: '은하계 중심점(Galactic Center)과 성계 간의 성간 워프 하이퍼드라이브 경로를 차트화합니다.',
+      title: '🌌 6/77. [성간지도] 3D 은하계 지도 & 성간 워프 [M]',
+      description: '은하계 중심점(Galactic Center)과 성계 간의 성간 워프 하이퍼드라이브 경로를 3D로 차트화합니다.',
       subText: '[M] 은하 지도 | 워프 하이퍼코어로 다음 성계로 도약',
-      duration: 4500
+      duration: 4200,
+      badge: '은하지도',
+      category: '은하계'
+    },
+    {
+      phase: 'PIRATE_DREADNOUGHT',
+      title: '🏴‍☠️ 7/77. [Echoes] 무법자 해적 드레드노트 기함 격침전',
+      description: '우주 해적 드레드노트 초대형 전함의 쉴드 발생기와 반물질 코어를 정밀 타격하여 나포 및 격침합니다.',
+      subText: '헤비 터렛 참호 런 | 기함 나포 및 궤도 폭격 지휘권 획득',
+      duration: 4500,
+      badge: 'Echoes',
+      category: '전투'
+    },
+    {
+      phase: 'OUTLAW_STATION',
+      title: '☠️ 8/77. [Outlaws] 해적 무법자 정거장 & 밀수품 암시장',
+      description: '센티넬의 감시망을 벗어난 무법자 정거장에서 위조 신분증을 발급받고 금지된 불법 밀수품을 거래합니다.',
+      subText: '해적 현상금 사냥 | 위조 신분증 세탁 및 X-Class 불법 모듈',
+      duration: 4200,
+      badge: 'Outlaws',
+      category: '전투'
+    },
+    {
+      phase: 'SPACE_ANOMALY',
+      title: '🔮 9/77. [Beyond] 스페이스 아노말리 넥서스 성간 원정대',
+      description: '나다와 폴로의 초차원 성소 아노말리에서 넥서스 멀티플레이 원정 미션과 수은 보상을 수령합니다.',
+      subText: '넥서스 멀티 협동 | 수은 상점 및 5단계 성간 원정대',
+      duration: 4200,
+      badge: 'Beyond',
+      category: '은하계'
+    },
+    {
+      phase: 'BLACK_HOLE',
+      title: '🕳️ 10/77. [상대론] 초거대 블랙홀 & 사건의 지평선 특이점 도약',
+      description: '사건의 지평선을 뚫고 돌입하여 150만 광년 너머 미지의 은하계 사분면으로 상대론적 시공간 워프를 감행합니다.',
+      subText: '특이점 엔진 점화 | 웜홀 차원 왜곡 및 초원거리 도약',
+      duration: 4500,
+      badge: '특이점',
+      category: '은하계'
+    },
+    {
+      phase: 'DERELICT_FREIGHTER',
+      title: '☠️ 11/77. [Desolation] 버려진 난파 화물선 응급 밀폐문 수색',
+      description: '영하 48°C 심우주 냉동 격실을 돌파하여 승무원 일지를 해독하고 오염된 금속과 화물 격벽을 인양합니다.',
+      subText: '응급 감압실 개방 | 보안 터미널 해킹 및 화물선 확장 격벽',
+      duration: 4200,
+      badge: 'Desolation',
+      category: '은하계'
+    },
+    {
+      phase: 'EVA_SPACEWALK',
+      title: '🌌 12/77. [Endurance] 화물선 외벽 캣워크 & 무중력 EVA 우주유영',
+      description: '캐피탈 화물선 선체 외벽 보도교로 직접 걸어나가 무중력 상태에서 심우주 천문대와 성간 가스 집진기를 점검합니다.',
+      subText: '외벽 보도교 관측 | 심우주 무중력 EVA 진공 부유',
+      duration: 4200,
+      badge: 'Endurance',
+      category: '함선'
+    },
+    {
+      phase: 'SHIP_FABRICATION',
+      title: '🎨 13/77. [Orbital] 우주선 커스텀 부품 조립 & 선체 도색 튜닝',
+      description: '정거장 조립소에서 주익 날개, 조종석, 반응로 부품을 결합하고 맞춤형 메탈릭 컬러웨이와 데칼을 도색합니다.',
+      subText: '부품 분해 인양 | 6대 컬러웨이 도색 및 플라즈마 배기 흔적',
+      duration: 4200,
+      badge: 'Orbital',
+      category: '함선'
+    },
+    {
+      phase: 'STARSHIP_WEAPONS',
+      title: '🚀 14/77. [Sentinel] 함선 5대 첨단 무장 시스템 오버드라이브',
+      description: '인프라-나이프 가속기(초당 30발), 포지트론 이젝터, 사이클로트론 발리스타 등 전문 함포를 전환 발사합니다.',
+      subText: '포톤/인프라/포지트론/사이클로트론 | 락온 미사일 일제 사격',
+      duration: 4200,
+      badge: 'Sentinel',
+      category: '전투'
+    },
+    {
+      phase: 'GALACTIC_CORE',
+      title: '🌌 15/77. [Atlas Rises] 은하 중심 특이점 & 4대 차원 은하 도약',
+      description: '유클리드 은하 중심부에 도달하여 아틀라스 시뮬레이션을 각성하고 힐베르트/아이센탐 등 신규 은하계로 재탄생합니다.',
+      subText: '차원 붕괴 특이점 | 신규 은하계 탄생 및 엑소슈트 재부팅',
+      duration: 4500,
+      badge: 'Atlas Rises',
+      category: '은하계'
+    },
+    {
+      phase: 'ORGANIC_FLEET',
+      title: '🐙 16/77. [Endurance] 생체 호위함대 먹이 급여 & 사이코닉 알 배양',
+      description: '거대 우주 생명체 호위함에게 성간 먹이를 먹여 촉수와 생체 스펙을 진화시키고 사이코닉 알을 부화시킵니다.',
+      subText: '생체 호위함 변이 | 살아있는 함선 전용 사이코닉 신경망',
+      duration: 4200,
+      badge: 'Endurance',
+      category: '함선'
     },
     {
       phase: 'PLANET_APPROACH',
-      title: '🔥 6/24. 행성 대기권 돌파 & 충격파 마찰 진입',
+      title: '🔥 17/77. [대기권] 행성 대기 마찰 플라즈마 & 급강하 진입',
       description: '외계 행성 중력권에 진입하여 대기 마찰 열화염을 뚫고 지표면을 향해 급강하, 최적의 착륙지를 선정합니다.',
       subText: '초음속 대기 진입 플라즈마 | 고도계 강하 및 저공 비행',
-      duration: 5500
+      duration: 4500,
+      badge: '대기진입',
+      category: '행성'
+    },
+    {
+      phase: 'FLOATING_ISLANDS',
+      title: '🏝️ 18/77. [Worlds 1] 하늘에 떠 있는 부유섬 & 공중 폭포',
+      description: 'Worlds Part 1: 성층권 상공에 부유하는 거대 하늘 섬 지형을 탐사하고 무중력 폭포 피난처를 발견합니다.',
+      subText: '성층권 부유 대륙 | 안개 수액 채취 및 무중력 절벽 다이빙',
+      duration: 4500,
+      badge: 'Worlds 1',
+      category: '행성'
+    },
+    {
+      phase: 'EXTREME_WEATHER',
+      title: '⚡ 19/77. [Worlds 1] 초강력 토네이도 & 중력 이상 폭풍 관측',
+      description: 'Worlds Part 1: 행성 기후 역학이 폭주하여 발생하는 거대 중력 소용돌이와 유성우 폭격을 계측 분석합니다.',
+      subText: '대기 이상 폭풍 관측소 | 용융 운석 핵 정제 및 기상 적응',
+      duration: 4200,
+      badge: 'Worlds 1',
+      category: '행성'
+    },
+    {
+      phase: 'VOLCANO_PLANET',
+      title: '🌋 20/77. [Origins] 480°C 마그마 화산 분출 & 바살트 정련소',
+      description: 'Origins: 초고온 용암 행성의 마그마 분출구를 조사하고 지열 에너지를 포집하며 현무암(바살트)을 제련합니다.',
+      subText: '화산 칼데라 발전 | 마그마 코어 제련 및 극열 차폐',
+      duration: 4200,
+      badge: 'Origins',
+      category: '행성'
     },
     {
       phase: 'PLANET_TOUCHDOWN',
-      title: '🛬 7/24. 역추진 로켓 점화 & 지표면 안전 착륙 [E]',
+      title: '🛬 21/77. [착륙] 역추진 로켓 분사 & 지표면 안전 착륙 [E]',
       description: '지표면 근접 시 역추진 분사로 감속하여 부드럽게 착지하고, 조종석을 열고 미지의 외계 지표면에 하선합니다.',
       subText: '[E] 안전 착륙 | 지표면 엑소슈트 도보 모드로 원활하게 전환',
-      duration: 4500
+      duration: 4200,
+      badge: '착륙',
+      category: '탐사'
     },
     {
       phase: 'EXOSUIT_EXPLORE',
-      title: '🪐 8/24. 엑소슈트 지표면 탐사 & 제트팩 도약 [Space]',
+      title: '🪐 22/77. [엑소슈트] 지표면 탐사 보행 & 고성능 제트팩 도약',
       description: '외계 행성의 가혹한 중력과 환경 방호막 속에서 고성능 제트팩을 가동해 입체적으로 기동합니다.',
       subText: '[A/D/조이스틱] 보행 탐사 | [Space/제트팩] 고공 추진 도약',
-      duration: 5000
+      duration: 4500,
+      badge: '엑소슈트',
+      category: '탐사'
     },
     {
       phase: 'RESOURCE_MINING',
-      title: '⛏️ 9/24. 다목적 도구 채굴 레이저 & 필수 원소 채광',
-      description: '지표면의 식물, 나트륨 광맥, 페라이트 먼지 광상을 채굴 레이저로 분해하여 생존 및 충전 자원을 수집합니다.',
+      title: '⛏️ 23/77. [채굴] 다목적 도구 채굴 레이저 & 필수 원소 채광',
+      description: '지표면의 탄소, 산소, 나트륨 광맥, 페라이트 먼지 광상을 채굴 레이저로 분해하여 생존 및 충전 자원을 수집합니다.',
       subText: '[채굴광선] 연속 레이저 | 탄소, 산소, 나트륨 광맥 수확',
-      duration: 5000
+      duration: 4500,
+      badge: '채굴',
+      category: '탐사'
     },
     {
       phase: 'ANALYSIS_VISOR',
-      title: '🔍 10/24. 고배율 분석 바이저 & 지형 스캐너 [F / C]',
+      title: '🔍 24/77. [스캐너] 고배율 분석 바이저 & 3D 지형 스캔 펄스 [F/C]',
       description: '바이저 렌즈를 활성화하여 숨겨진 나노 자원 광맥과 미지의 외계 동식물을 원거리 스캔 분석합니다.',
       subText: '[F] 분석 바이저 오버레이 | [C] 지형 스캔 펄스 방출',
-      duration: 4500
+      duration: 4200,
+      badge: '바이저',
+      category: '탐사'
     },
     {
       phase: 'TOOL_MODES',
-      title: '⚡ 11/24. 다목적 도구 4대 유틸리티 모드 순환 [G]',
+      title: '⚡ 25/77. [다목적도구] 4대 도구 모드 순환 (채굴/소총/지형/스태프) [G]',
       description: '채굴 광선, 볼트캐스터 소총, 지형 조작기(동굴 굴착), 오토파지 볼타익 스태프를 상황에 맞게 전환합니다.',
       subText: '[G] 도구 순환 | 타겟별 자동 조준 유도 레이저 발사',
-      duration: 4500
+      duration: 4200,
+      badge: '도구모드',
+      category: '장비'
     },
     {
       phase: 'SENTINEL_PATROL',
-      title: '🤖 12/24. 센티넬 순찰 드론 조우 & 경계 태세 AI',
+      title: '🤖 26/77. [감시드론] 센티넬 순찰 드론 조우 & 경계 경보 AI',
       description: '행성 감시 드론이 스캔 콘(Scanning Cone)을 투사하며 순찰 중 채굴 행위를 감지하고 경계 경보를 울립니다.',
       subText: '스캔 서치라이트 콘 투사 | 센티넬 위협 1단계 발령',
-      duration: 5000
+      duration: 4500,
+      badge: '센티넬',
+      category: '전투'
+    },
+    {
+      phase: 'LAYLAPS_DRONE',
+      title: '👁️ 27/77. [Sentinel] 아군 센티넬 동료 레일랩스 신경망 제어',
+      description: '센티넬 껍질을 해킹하여 동료로 개조한 레일랩스 드론이 주변 적을 자동 마비시키고 화력을 지원합니다.',
+      subText: '우호적 센티넬 비행 | 광역 EMP 방출 및 센티넬 신호 교란',
+      duration: 4200,
+      badge: 'Sentinel',
+      category: '전투'
     },
     {
       phase: 'COMBAT_WEAPONS',
-      title: '🔫 13/24. Sentinel 3.8: 5대 전문 전투 화기 실사격',
+      title: '🔫 28/77. [Sentinel] 5대 전문 전투 화기 실사격 (볼트/산탄/스피터)',
       description: '볼트캐스터, 산탄 블래스터, 펄스 스피터, 중성자 캐논 등 전문 전투 주무기의 가공할 화력을 시연합니다.',
       subText: '[주무기 🔄] 순환 | 과급 슬롯(Supercharged ⚡) 50% 공격력 증폭',
-      duration: 5500
+      duration: 4500,
+      badge: 'Sentinel',
+      category: '전투'
     },
     {
       phase: 'SECONDARY_ORDNANCE',
-      title: '💥 14/24. 중화기 보조 유탄 투하 & 전술 은폐장 [Q]',
+      title: '💥 29/77. [중화기] 보조 유탄 투하 & 마비 박격포 & 은폐장 [Q]',
       description: '플라즈마 런처 폭발탄 투하, 마비 박격포로 드론 군집을 제압하고 클로킹 디바이스로 은폐합니다.',
       subText: '[Q] 보조 무기 발사 | [Shift+Q / G] 플라즈마·지질학·마비박격포 전환',
-      duration: 4500
+      duration: 4200,
+      badge: '보조화기',
+      category: '전투'
     },
     {
       phase: 'WEAPON_ARSENAL_MODAL',
-      title: '📋 15/24. 다목적 도구 전투 화기 사령부 [Alt+X / /]',
+      title: '📋 30/77. [사령부] 다목적 도구 전투 화기 4-탭 통합 사령부',
       description: 'Sentinel & Waypoint 4.0: 5대 주무기, 보조 유탄 발사관, 과급 슬롯 오버클럭을 통합 통제합니다.',
       subText: '4-탭 사령부 매트릭스 | 야전 탄약 캡슐 투하 및 센티넬 모듈 정제',
-      duration: 4500
+      duration: 4200,
+      badge: 'Sentinel',
+      category: '장비'
+    },
+    {
+      phase: 'SUPERCHARGED_SLOTS',
+      title: '⚡ 31/77. [Waypoint] 기술 과급 슬롯(Supercharged) +50% 오버클럭',
+      description: 'Waypoint 4.0: 엑소슈트와 함선의 보라색 과급 슬롯에 핵심 모듈을 장착하여 스펙을 50% 한계 돌파합니다.',
+      subText: '슈퍼차지드 슬롯 매핑 | 화력/방어막/속도 프로필 극대화',
+      duration: 4200,
+      badge: 'Waypoint',
+      category: '장비'
+    },
+    {
+      phase: 'EXOSUIT_UPGRADE',
+      title: '👕 32/77. [Waypoint] 엑소슈트 드롭포드 슬롯 증설 & 테크 확장',
+      description: '행성 지표면의 추락한 드롭 포드를 수리하여 인벤토리 인벤과 기술 모듈 슬롯을 120칸까지 확장합니다.',
+      subText: '드롭포드 좌표 해독 | 나노머신 슬롯 구매 및 화물칸 증설',
+      duration: 4200,
+      badge: 'Waypoint',
+      category: '장비'
+    },
+    {
+      phase: 'HAZARD_PROTECTION',
+      title: '🛡️ 33/77. [방호모듈] 4대 극한 환경 보호막 (혹한/극열/독성/방사능)',
+      description: '혹한/극열/독성/방사능 4대 극한 행성의 특수 차폐막을 활성화하고 이온 배터리로 즉각 재충전합니다.',
+      subText: 'S급 환경 방호막 | 이온 배터리 급속 충전 및 방사능 완충',
+      duration: 4200,
+      badge: '생존장비',
+      category: '장비'
+    },
+    {
+      phase: 'TOOL_SALVAGE',
+      title: '🔧 34/77. [정거장] 다목적 도구 고철 분해 & 슬롯 인양',
+      description: '우주정거장 멀티툴 인양대에서 불필요한 무기를 분해하여 수천 나노머신과 슬롯 확장 모듈을 회수합니다.',
+      subText: '멀티툴 고철 분해 | S-Class 승급 및 슬롯 확장 모듈 적용',
+      duration: 4200,
+      badge: 'Orbital',
+      category: '장비'
     },
     {
       phase: 'INVENTORY_MODAL',
-      title: '🎒 16/24. 엑소슈트 & 함선 인벤토리 관리 및 제작 [Tab]',
-      description: '채굴한 페라이트, 산소, 나트륨 등 핵심 원소 화물과 엑소슈트 방호 기술 모듈을 정비합니다.',
+      title: '🎒 35/77. [인벤토리] 엑소슈트 & 함선 인벤토리 격자 관리 [Tab]',
+      description: '채굴한 페라이트, 산소, 나트륨 등 핵심 원소 화물과 엑소슈트 방호 기술 모듈을 정비하고 즉석 제작합니다.',
       subText: '[Tab] 인벤토리 | 자원 조합 및 환경 방호 차폐막 충전',
-      duration: 4000
+      duration: 4200,
+      badge: '인벤토리',
+      category: '장비'
+    },
+    {
+      phase: 'QUICK_RECHARGE',
+      title: '⚡ 36/77. [퀵충전] 긴급 생명유지장치 & 방호막 즉시 충전 콘솔',
+      description: '치열한 전투 중 인벤토리를 열지 않고 원터치로 나트륨과 산소를 투입하여 보호막을 풀 충전합니다.',
+      subText: '원클릭 긴급 충전 | 생명유지 산소 팩 & 방어막 나트륨 배터리',
+      duration: 4000,
+      badge: '생존',
+      category: '장비'
     },
     {
       phase: 'BASE_BUILDING',
-      title: '🏗️ 17/24. 기지 컴퓨터 영토 선포 & 휴대용 정제기 [Z]',
-      description: '행성 지표면에 기지 컴퓨터를 등록하여 영토를 개척하고, 휴대용 정제기로 순수 페라이트를 정제합니다.',
-      subText: '[Z] 기지 건설 메뉴 | 자원 정제 및 산업 가스 추출',
-      duration: 4500
+      title: '🏗️ 37/77. [Next] 기지 컴퓨터 영토 선포 & 건축 블루프린트 [Z]',
+      description: '행성 지표면에 기지 컴퓨터를 등록하여 영토를 개척하고, 목재/합금/유리 건축 부품을 자유롭게 축조합니다.',
+      subText: '[Z] 기지 건설 메뉴 | 자원 정제 및 거점 건축 허브',
+      duration: 4200,
+      badge: 'Next',
+      category: '기지'
+    },
+    {
+      phase: 'LARGE_REFINER',
+      title: '⚗️ 38/77. [Next] 대형 3슬롯 정제기 & 화학 연금술 3원소 합성',
+      description: '3개의 투입구에 자원을 동시 투입하여 순수 페라이트, 무한 염소, 양자 촉매를 고효율 연금술로 증식합니다.',
+      subText: '3구 동시 정제 | 염소+산소 무한 증식 및 고가치 합금 가공',
+      duration: 4200,
+      badge: 'Next',
+      category: '기지'
+    },
+    {
+      phase: 'BASE_POWER_GRID',
+      title: '⚡ 39/77. [Beyond] 태양광 발전소 & 배터리 뱅크 에너지 그리드',
+      description: '태양광 전지판과 대용량 배터리를 전선 케이블로 연결하여 기지 전체에 안정적인 전력을 24시간 공급합니다.',
+      subText: '+350 kPk 광전기 발전 | 커패시터 과급 및 10,000 kPk 축전망',
+      duration: 4200,
+      badge: 'Beyond',
+      category: '기지'
+    },
+    {
+      phase: 'EM_GENERATOR',
+      title: '⚡ 40/77. [Beyond] S급 지자기장 핫스팟 전자기 발전기 무한 전력',
+      description: '행성 심층 전자기 핫스팟을 스캔하여 직결 발전기를 설치, 날씨와 밤낮에 무관하게 무한 전력을 공급합니다.',
+      subText: 'S-Class 지자기장 핵 직결 | +1,200 kPk 상시 발전망',
+      duration: 4200,
+      badge: 'Beyond',
+      category: '기지'
+    },
+    {
+      phase: 'SHORT_RANGE_TELEPORT',
+      title: '🌀 41/77. [Beyond] 기지 단거리 양자 텔레포터 & 전력 도관망',
+      description: '광대한 기지 시설 양 끝을 잇는 단거리 텔레포터를 설치하여 빛의 속도로 구역 간을 순간이동합니다.',
+      subText: '양자 도관 케이블 | 480u 거리 무지연 순간이동 파이프라인',
+      duration: 4200,
+      badge: 'Beyond',
+      category: '기지'
+    },
+    {
+      phase: 'GAS_HARVESTER',
+      title: '💨 42/77. [Beyond] 대기 기체 하베스터 (라돈/질소/설퍼린 추출)',
+      description: '행성 대기 밀집 가스를 자동 포집하여 초전도체와 융합 가속기 등 초고가 첨단 제품 원료를 생산합니다.',
+      subText: '대기 가스 추출기 | 라돈·질소·설퍼린 포집 및 화학 합성',
+      duration: 4200,
+      badge: 'Beyond',
+      category: '기지'
+    },
+    {
+      phase: 'SPECIALIST_TERMINALS',
+      title: '🏛️ 43/77. [Foundations] 기지 5대 외계 전문가 & 8륜 콜로서스 채광차',
+      description: '감독관, 무기전문가, 과학자, 농부, 엑소크래프트 기술자를 고용하여 콜로서스 초대형 채광차를 조립합니다.',
+      subText: '5대 전문가 터미널 | 8륜 중장갑 콜로서스 채광 엑소크래프트',
+      duration: 4200,
+      badge: '기지터미널',
+      category: '기지'
+    },
+    {
+      phase: 'BIODOME_FARMING',
+      title: '🌱 44/77. [Foundations] 수경재배 바이오돔 & 8대 외계 작물 원클릭 수확',
+      description: '바이오돔 유리 돔 내부에 서리 결정, 태양 덩굴, 감마 잡초를 재배하고 중앙 콘솔에서 원클릭으로 일괄 수확합니다.',
+      subText: '8대 외계 작물 재배 | 바이오돔 일괄 수확 및 회로 기판 가공',
+      duration: 4200,
+      badge: '외계농경',
+      category: '기지'
+    },
+    {
+      phase: 'LIVESTOCK_RANCH',
+      title: '🥛 45/77. [Beyond] 외계 생물 목장 자동 배식기 & 착유 수확기',
+      description: '자동 배식기와 수확기를 설치하여 행성 야생 동물을 울타리로 유인하고 신선한 우유와 외계 알을 채취합니다.',
+      subText: '자율 배식기 & 착유기 | 동물 사육 및 고급 유제품 생산',
+      duration: 4200,
+      badge: '생물목장',
+      category: '기지'
+    },
+    {
+      phase: 'NUTRIENT_PROCESSOR',
+      title: '🍲 46/77. [Beyond] 영양소 처리기 & 외계 식재료 요리 연구실',
+      description: '밀, 효모, 우유, 꿀을 배합하여 외계 성간 디저트와 만찬 요리를 조리하고 강력한 탐사 버프를 얻습니다.',
+      subText: '성간 레시피 배합 | 셰프 크로노스 미식가 평가 및 버프 요리',
+      duration: 4200,
+      badge: '영양소요리',
+      category: '기지'
     },
     {
       phase: 'ANCIENT_MONOLITH',
-      title: '🗿 18/24. 고대 외계 모놀리스 수수께끼 & 지식의 돌',
-      description: '고대 외계 문명의 비석에 손을 얹어 시련 수수께끼를 풀고, 지식의 돌에서 고대 언어 단어를 습득합니다.',
-      subText: '[E] 모놀리스 감응 | 코르박스/바이킨 고대어 해독',
-      duration: 4500
+      title: '🗿 47/77. [외계문명] 고대 모놀리스 지혜의 시련 & 지식의 돌 언어 습득',
+      description: '고대 외계 문명의 비석에 손을 얹어 시련 수수께끼를 풀고, 지식의 돌에서 코르박스/바이킨 고대어를 습득합니다.',
+      subText: '[E] 모놀리스 감응 | 고대 외계어 해독 및 포탈 좌표 획득',
+      duration: 4200,
+      badge: '고대유적',
+      category: '신비'
     },
     {
       phase: 'ANCIENT_PORTAL',
-      title: '🌀 19/24. 고대 포탈 16대 은하 글리프 다이얼 가동',
-      description: '16개의 신비로운 별자리 글리프 좌표를 순서대로 입력하여 은하계 전체를 잇는 웜홀을 개방합니다.',
+      title: '🌀 48/77. [Atlas Rises] 고대 포탈 16대 은하 글리프 다이얼 가동',
+      description: '16개의 신비로운 별자리 글리프 좌표를 순서대로 입력하여 은하계 전체를 잇는 스타게이트 웜홀을 개방합니다.',
       subText: '16개 글리프 시퀀스 충전 | 시공간 차원 도약 게이트웨이',
-      duration: 4500
+      duration: 4200,
+      badge: 'Atlas Rises',
+      category: '신비'
+    },
+    {
+      phase: 'TRADE_OUTPOST',
+      title: '🏛️ 49/77. [Next] 행성 대형 교역소 & 7대 은하 경제 무역망',
+      description: '상선들이 착륙하는 대형 교역소에서 고유 특산품을 도매가로 매입하고 고수익 황금 무역로로 차익을 남깁니다.',
+      subText: '7대 무역 경제 유형 | 성간 상선 바터 및 수백만 유닛 무역',
+      duration: 4200,
+      badge: '무역망',
+      category: '은하계'
+    },
+    {
+      phase: 'CARTOGRAPHER_MAPS',
+      title: '🗺️ 50/77. [Beyond] 정거장 지도제작자 & 5대 행성 차트 조난 스캔',
+      description: '항법 데이터를 지도로 교환하여 조난 우주선, 비밀 보안 시설, 고대 유적의 정밀 좌표 비콘을 확보합니다.',
+      subText: '5대 행성 차트 | 추락선 인양 좌표 & 미확인 외계 신호 추적',
+      duration: 4200,
+      badge: '지도제작',
+      category: '은하계'
+    },
+    {
+      phase: 'GUILD_ENVOY',
+      title: '🎖️ 51/77. [Orbital] 상인/용병/탐험가 3대 길드 특사 무료 보급품',
+      description: '우주정거장 길드 대표로부터 평판 랭크에 따라 화물선 격벽, 멀티툴 확장 슬롯, 우주선 모듈을 무상 수령합니다.',
+      subText: '3대 길드 평판 | 마스터 랭크 전용 S급 보급품 및 무료 슬롯',
+      duration: 4200,
+      badge: 'Orbital',
+      category: '은하계'
+    },
+    {
+      phase: 'MANUFACTURING_FACILITY',
+      title: '🏭 52/77. [보안기지] 행성 보안 제조시설 철문 돌파 & 아틀라스패스',
+      description: '볼트캐스터로 강화 철문을 파괴하고 잠입하여 단말기 비상 프로토콜을 해독, 아틀라스패스 제작도를 획득합니다.',
+      subText: '센티넬 경보 돌파 | 오버라이드 퍼즐 및 1,500만 ₩ 설계도',
+      duration: 4200,
+      badge: '보안시설',
+      category: '탐사'
+    },
+    {
+      phase: 'ATLAS_PATH',
+      title: '🔴 53/77. [Atlas Rises] 아틀라스 경로 10대 시드 합성 & 신규 항성 탄생',
+      description: '신비의 아틀라스 인터페이스에서 포에븀부터 갬마텀까지 10대 시드를 합성하여 마침내 새로운 별을 탄생시킵니다.',
+      subText: '10대 아틀라스 시드 합성 | 스타시드 제작 및 블랙홀 투시',
+      duration: 4200,
+      badge: 'Atlas Rises',
+      category: '신비'
+    },
+    {
+      phase: 'ARCHAEOLOGY_DIG',
+      title: '🦴 54/77. [Visions] 고대 화석 지층 발굴 & 추락 인공위성 고철 인양',
+      description: '지형 조작기로 고대 지층을 굴착하여 200만 년 전 고생물 뼈 화석과 추락한 항법 위성을 발굴합니다.',
+      subText: '고고학 발굴 | 희귀 화석 뼈대 복원 및 박물관 기증',
+      duration: 4200,
+      badge: 'Visions',
+      category: '탐사'
+    },
+    {
+      phase: 'ABANDONED_FACILITY',
+      title: '☣️ 55/77. [Next] 버려진 건물 & 속삭이는 알 / 생물학적 공포 소탕',
+      description: '외계 점액질로 뒤덮인 연구소를 수색하고, 속삭이는 알에서 튀어나오는 생물학적 공포를 격퇴하며 유충 코어를 획득합니다.',
+      subText: '유충 코어 채취 | 생물학적 공포 급습 및 나노머신 대량 정제',
+      duration: 4200,
+      badge: 'Next',
+      category: '전투'
+    },
+    {
+      phase: 'GIANT_SANDWORM',
+      title: '🪱 56/77. [Emergence] 거대 타이탄 샌드웜 출현 & 타이탄 슬라임 채취',
+      description: '지반을 진동시키며 지표면을 뚫고 솟구쳐 오르는 초대형 샌드웜 타이탄을 관측하고 점액질 잔해를 수집합니다.',
+      subText: '샌드웜 피리 소환 | 타이탄 점액질 채취 및 샌드웜 배아 교감',
+      duration: 4200,
+      badge: 'Emergence',
+      category: '행성'
+    },
+    {
+      phase: 'BOUNDARY_FAILURE',
+      title: '🔮 57/77. [Next] 거대 차원 경계 붕괴 고리 & 텔라몬 왜곡 기록',
+      description: '글리치 행성의 거대한 기계 고리 구조물 단말기에서 시뮬레이션 인공지능 텔라몬의 심층 기록을 해독합니다.',
+      subText: '차원 경계 고리 | 글리치 이상체 수집 및 현실 붕괴 로그',
+      duration: 4200,
+      badge: 'Next',
+      category: '신비'
+    },
+    {
+      phase: 'BIOLUMINESCENT_FOREST',
+      title: '🌌 58/77. [Origins] 발광 포자 숲 & 에테르 하늘가오리 야간 비행',
+      description: 'Origins: 야간에 스스로 빛을 발하는 형광 포자 식물 군락과 하늘을 유영하는 발광 가오리 생명체를 만납니다.',
+      subText: '생체 발광 포자목 | 에테르 하늘가오리 교감 및 야간 포자 폭풍',
+      duration: 4200,
+      badge: 'Origins',
+      category: '행성'
     },
     {
       phase: 'NAUTILON_SUBMARINE',
-      title: '🌊 20/24. 노틸론 S급 잠수정 & 심해 탐사 [0 / Alt+0]',
-      description: '심해 바다로 뛰어들어 고출력 수중 소나를 가동하고 침몰선과 심연의 공포를 탐색합니다.',
+      title: '🌊 59/77. [The Abyss] 노틸론 S급 잠수정 & 심해 고출력 소나 스캔',
+      description: 'The Abyss: 심해 바다로 다이빙하여 노틸론 잠수정에 탑승, 고출력 수중 소나로 침몰선과 해저 유적을 스캔합니다.',
       subText: '[0] 노틸론 탑승 | [소나 📡] 침몰 화물선 및 해저 유적 탐색',
-      duration: 5000
+      duration: 4500,
+      badge: 'The Abyss',
+      category: '해양'
+    },
+    {
+      phase: 'ABYSSAL_HORROR',
+      title: '🌊 60/77. [The Abyss] 185u 심해 매혹적인 조개 & 살아있는 진주 채취',
+      description: '빛을 내뿜는 유혹의 조개 입을 열어 고가치 하달 진주를 채취하고 심해 공포체의 최면 시선을 회피합니다.',
+      subText: '심해 185u 해구 | 매혹적인 조개 개방 및 살아있는 진주',
+      duration: 4200,
+      badge: 'The Abyss',
+      category: '해양'
+    },
+    {
+      phase: 'AQUATIC_BASE',
+      title: '🌊 61/77. [The Abyss] 심해 450m 수밀 돔 해양 기지 & 수중 문풀',
+      description: '해저 수압을 견디는 방수 챔버와 잠수정 도킹 문풀을 건설하여 완벽한 해저 관측 기지를 구축합니다.',
+      subText: '수밀 원형 돔 | 산소 순환 펌프 및 해저 문풀 도킹',
+      duration: 4200,
+      badge: 'The Abyss',
+      category: '해양'
+    },
+    {
+      phase: 'DEEP_AQUARIUM',
+      title: '🦑 62/77. [The Abyss] 심해 1,250m 잠수종 & 최면의 눈 트로피 수족관',
+      description: '심해 최심부에서 포획한 최면의 눈과 희귀 심해 어종을 기지 대형 수족관에 방사하여 전시합니다.',
+      subText: '심해 잠수종 관측 | 트로피 수족관 및 희귀 심해 생물 방사',
+      duration: 4200,
+      badge: 'The Abyss',
+      category: '해양'
     },
     {
       phase: 'AQUARIUS_FISHING',
-      title: '🎣 21/24. 아쿠아리우스 해양 낚싯대 & 수생 도감',
-      description: '자동 부유 낚시 플랫폼을 전개하고 특수 미끼를 투척하여 외계 심해 어종을 낚아 올립니다.',
+      title: '🎣 63/77. [Aquarius] 해양 낚싯대 전개 & 전설 외계 심해 어종 낚시',
+      description: 'Aquarius: 부유 낚시 플랫폼을 펼치고 미끼를 투척하여 릴 텐션을 조율, 전설급 심해 어종을 낚아 올립니다.',
       subText: '[낚시 🎣] 텐션 게이지 조율 | 전설 심해 수생종 낚시',
-      duration: 4500
+      duration: 4500,
+      badge: 'Aquarius',
+      category: '해양'
     },
     {
       phase: 'COMPANION_MOUNT',
-      title: '🐾 22/24. 외계 생명체 크리처 펠릿 조련 & 탑승 [U]',
-      description: '초식/거대 외계 생명체에게 크리처 펠릿을 먹여 길들이고, 직접 등에 올라타 대지를 질주합니다.',
+      title: '🐾 64/77. [Companions] 외계 크리처 펠릿 조련 & 안장 장착 질주',
+      description: 'Companions: 거대 외계 생명체에게 크리처 펠릿을 먹여 테이밍하고, 안장을 얹어 대지를 고속 질주합니다.',
       subText: '[U] 동반자 교감 | 크리처 펠릿 급여 및 탑승 라이딩',
-      duration: 4500
+      duration: 4500,
+      badge: 'Companions',
+      category: '동반자'
+    },
+    {
+      phase: 'TITAN_BEETLE_RIDE',
+      title: '🪲 65/77. [Prisms] 거대 비행 타이탄 비틀 탑승 & 성층권 활공',
+      description: 'Prisms: 날개를 펼쳐 비행하는 거대 비틀의 등에 올라타 성층권 상공 28.5 u/s 고속 활공 비행을 펼칩니다.',
+      subText: '거대 비행 곤충 탑승 | 성층권 활공 비행 및 에테르 채취',
+      duration: 4200,
+      badge: 'Prisms',
+      category: '동반자'
     },
     {
       phase: 'EGG_SEQUENCER',
-      title: '🧬 23/24. 아노말리 알 염기서열기 & 유전자 개조',
+      title: '🧬 66/77. [Companions] 아노말리 알 염기서열기 4대 유전자 조작',
       description: '스페이스 아노말리에서 배아의 유전자 코드를 조작하여 거대화, 희귀 돌연변이, 충성도 성향을 주입합니다.',
       subText: '무게/크기 증폭 | 성향 개조 및 돌연변이 촉매 투여',
-      duration: 4500
+      duration: 4200,
+      badge: 'Companions',
+      category: '동반자'
+    },
+    {
+      phase: 'MINOTAUR_MECH',
+      title: '🤖 67/77. [ExoMech] 미노타우르스 중장갑 메카 & AI 자동 자율 파일럿',
+      description: '궤도에서 투하된 이족보행 중장갑 미노타우르스 메카에 탑승하여 중포 사격 및 자율 호위 AI를 가동합니다.',
+      subText: '이족보행 중장갑 메카 | 센티넬 하드프레임 AI 자율 전투',
+      duration: 4200,
+      badge: 'ExoMech',
+      category: '차량'
+    },
+    {
+      phase: 'EXOCRAFT_RACING',
+      title: '🏁 68/77. [Path Finder] 엑소크래프트 행성 레이싱 서킷 & 타임어택',
+      description: '체크포인트 아치와 부스터 램프를 배치하여 행성 레이싱 서킷을 구축하고 최고 기록 타임어택에 도전합니다.',
+      subText: '레이스 트랙 스타터 | 체크포인트 게이트 & 니트로 부스터',
+      duration: 4200,
+      badge: 'Path Finder',
+      category: '차량'
+    },
+    {
+      phase: 'ATLANTID_TOOL',
+      title: '🔮 69/77. [Echoes] 아틀란티드 멀티툴 & 코르박스 룬 제단 공양',
+      description: 'Echoes: 단절된 코르박스 모놀리스 제단에 나노머신을 바치고 룬 렌즈가 내장된 아틀란티드 멀티툴을 각성합니다.',
+      subText: '공허의 마더보드 | 일체형 룬 렌즈 및 광역 공명 채광',
+      duration: 4200,
+      badge: 'Echoes',
+      category: '장비'
+    },
+    {
+      phase: 'LIVING_SHIP_BOND',
+      title: '🌱 70/77. [Living Ship] 보이드 에그 각성 & 4대 생체 장기 신경 결속',
+      description: 'Living Ship: 깨어나는 보이드 에그와 신경망을 결속하고 맥동하는 심장과 그라프팅 안구를 배양합니다.',
+      subText: '신경 결속 하이퍼드라이브 | 유기체 장기 배양 및 생체 비행',
+      duration: 4200,
+      badge: 'Living Ship',
+      category: '함선'
+    },
+    {
+      phase: 'WONDERS_HOLOGRAM',
+      title: '✨ 71/77. [Waypoint] 은하계 경이 도감 & 기지 홀로그램 영사기',
+      description: 'Waypoint: 발견한 최고 극한 행성, 가장 거대한 동물 등 은하계 경이 기록을 기지 홀로그램으로 투사합니다.',
+      subText: '은하계 경이 도감 | 홀로그램 영사기 투사 및 기록 열람',
+      duration: 4200,
+      badge: 'Waypoint',
+      category: '은하계'
+    },
+    {
+      phase: 'APPEARANCE_CUSTOMIZER',
+      title: '👤 72/77. [Next] 외형 조작기 6대 은하 종족 & 커스텀 망토',
+      description: '아노말리, 게크, 코르박스, 바이킨, 여행자, 오토파지 6대 종족 외형과 물리 시뮬레이션 망토를 튜닝합니다.',
+      subText: '6대 은하 종족 커스텀 | 망토 물리 시뮬레이션 & 컬러 팔레트',
+      duration: 4200,
+      badge: 'Next',
+      category: '커스텀'
+    },
+    {
+      phase: 'DISCOVERIES_COMPENDIUM',
+      title: '🪐 73/77. [Waypoint] 행성 발견 도감 & 동물군 100% 완수 나노 보너스',
+      description: '스캔한 동식물과 광물 데이터를 은하계 데이터베이스에 영구 업로드하고 수천 나노머신 보너스를 획득합니다.',
+      subText: '발견 도감 업로드 | 동물군 100% 분석 및 나노로봇 대량 수령',
+      duration: 4200,
+      badge: '도감완수',
+      category: '은하계'
+    },
+    {
+      phase: 'INTERSTELLAR_TELEPORT',
+      title: '🌀 74/77. [순간이동] 성계간 양자 순간이동기 네트워크 터미널',
+      description: '성계 우주정거장, 거점 기지, 캐피탈 화물선 간을 지연 없이 즉각 오갈 수 있는 순간이동망을 가동합니다.',
+      subText: '성계간 텔레포트 망 | 정거장/기지/화물선 무제한 공간이동',
+      duration: 4200,
+      badge: '순간이동',
+      category: '은하계'
+    },
+    {
+      phase: 'CUSTOM_DIFFICULTY',
+      title: '⚙️ 75/77. [Waypoint 4.0] 커스텀 난이도 & 10대 게임플레이 조절 콘솔',
+      description: 'Waypoint 4.0: 생존 적대성, 연료 소비, 사망 패널티, 전투 난이도 등 10대 매개변수를 실시간으로 조율합니다.',
+      subText: '10대 슬라이더 매트릭스 [F9] | 5대 프리셋 및 유토피아 스피더',
+      duration: 4500,
+      badge: 'Waypoint 4.0',
+      category: '설정'
+    },
+    {
+      phase: 'ORBITAL_MATERIALISER',
+      title: '🛰️ 76/77. [Endurance] 화물선 궤도 물질화기 & 항성계 전역 스캔',
+      description: '궤도 상공의 캐피탈 화물선에 신호를 보내 지표면에 즉시 엑소크래프트를 투하하고 성계 전체를 스캔합니다.',
+      subText: '궤도 물질 전송 | 항성계 심층 행성 광역 스캔 및 보급',
+      duration: 4200,
+      badge: 'Endurance',
+      category: '함선'
     },
     {
       phase: 'LAUNCH_ORBIT',
-      title: '🚀 24/24. 우주선 귀환 탑승 & 궤도 수직 발사 [T / E]',
+      title: '🚀 77/77. [우주선귀환] 지표면 우주선 탑승 & 궤도 수직 발진 항해',
       description: '지표면 탐사를 마치고 우주선에 탑승하여 성간 궤도로 쾌속 발진, 다음 새로운 미지의 행성으로 항해합니다.',
       subText: '[E/탑승] 우주선 탑승 | [T/발사] 궤도로 로켓 점화 발사',
-      duration: 5500
+      duration: 5000,
+      badge: '궤도발진',
+      category: '함선'
     }
   ];
 
@@ -1026,14 +1553,14 @@ export class GameEngine {
     if (forceStartPhase !== undefined) {
       startIdx = forceStartPhase;
     } else if (this.currState === 'PLANET') {
-      startIdx = 7; // Start from EXOSUIT_EXPLORE on planet
+      startIdx = 21; // Start from EXOSUIT_EXPLORE on planet
     } else {
       startIdx = 0; // Start from SPACE_PULSE in space
     }
 
     this.setupDemoPhase(startIdx);
     AudioSys.playDiscoveryFanfare();
-    this.spawnFloatText("🎬 AI 데모 쇼케이스 가동! 24단계 전 기능 순차 시연 시작", undefined, undefined, '#00e5ff');
+    this.spawnFloatText("🎬 AI 데모 쇼케이스 가동! 77개 전 기능 전체 순차 시연 시작", undefined, undefined, '#00e5ff');
     this.notify();
   }
 
@@ -1053,45 +1580,119 @@ export class GameEngine {
     this.data.demoShowcase.title = cfg.title;
     this.data.demoShowcase.description = cfg.description;
     this.data.demoShowcase.subText = cfg.subText;
+    this.data.demoShowcase.badge = cfg.badge;
+    this.data.demoShowcase.category = cfg.category;
     this.data.demoShowcase.phaseDuration = cfg.duration;
     this.data.demoShowcase.phaseElapsed = 0;
-    this.data.demoShowcase.activeModal = null;
 
-    // Phase setup hooks
+    // Default modal mapping
+    const modalMap: Partial<Record<DemoShowcasePhase, string>> = {
+      SOLAR_SAIL: 'solar-ship',
+      SPACE_STATION: 'station',
+      GALAXY_MAP: 'galaxy-map',
+      PIRATE_DREADNOUGHT: 'pirate-flagship',
+      OUTLAW_STATION: 'outlaw-station',
+      SPACE_ANOMALY: 'expedition',
+      BLACK_HOLE: 'black-hole',
+      DERELICT_FREIGHTER: 'derelict-freighter',
+      EVA_SPACEWALK: 'spacewalk',
+      SHIP_FABRICATION: 'ship-paint',
+      STARSHIP_WEAPONS: 'starship-weapons',
+      GALACTIC_CORE: 'galactic-core',
+      ORGANIC_FLEET: 'organic-fleet',
+      FLOATING_ISLANDS: 'floating-islands',
+      EXTREME_WEATHER: 'extreme-weather',
+      VOLCANO_PLANET: 'volcano',
+      LAYLAPS_DRONE: 'laylaps',
+      WEAPON_ARSENAL_MODAL: 'weapon-arsenal',
+      SUPERCHARGED_SLOTS: 'supercharge',
+      EXOSUIT_UPGRADE: 'exosuit-upgrade',
+      HAZARD_PROTECTION: 'hazard-protection',
+      TOOL_SALVAGE: 'multi-tool-salvage',
+      INVENTORY_MODAL: 'inventory',
+      QUICK_RECHARGE: 'quick-recharge',
+      BASE_BUILDING: 'base-computer',
+      LARGE_REFINER: 'large-refiner',
+      BASE_POWER_GRID: 'power-grid',
+      EM_GENERATOR: 'em-generator',
+      SHORT_RANGE_TELEPORT: 'short-range-teleporter',
+      GAS_HARVESTER: 'gas-harvester',
+      SPECIALIST_TERMINALS: 'specialist-terminals',
+      BIODOME_FARMING: 'biodome',
+      LIVESTOCK_RANCH: 'livestock-ranch',
+      NUTRIENT_PROCESSOR: 'nutrient',
+      ANCIENT_MONOLITH: 'archaeology',
+      ANCIENT_PORTAL: 'portal',
+      TRADE_OUTPOST: 'trade-outpost',
+      CARTOGRAPHER_MAPS: 'cartographer',
+      GUILD_ENVOY: 'guild-envoy',
+      MANUFACTURING_FACILITY: 'manufacturing',
+      ATLAS_PATH: 'atlas-path',
+      ARCHAEOLOGY_DIG: 'archaeology',
+      ABANDONED_FACILITY: 'abandoned-building',
+      GIANT_SANDWORM: 'sandworm',
+      BOUNDARY_FAILURE: 'boundary-failure',
+      BIOLUMINESCENT_FOREST: 'bioluminescent-forest',
+      NAUTILON_SUBMARINE: 'nautilon-sonar',
+      ABYSSAL_HORROR: 'abyssal-horror',
+      AQUATIC_BASE: 'aquatic-base',
+      DEEP_AQUARIUM: 'aquarium',
+      AQUARIUS_FISHING: 'fishing',
+      TITAN_BEETLE_RIDE: 'titan-beetle',
+      EGG_SEQUENCER: 'egg-sequencer',
+      MINOTAUR_MECH: 'minotaur',
+      EXOCRAFT_RACING: 'race-initiator',
+      ATLANTID_TOOL: 'atlantid-tool',
+      LIVING_SHIP_BOND: 'living-ship',
+      WONDERS_HOLOGRAM: 'wonders',
+      APPEARANCE_CUSTOMIZER: 'appearance',
+      DISCOVERIES_COMPENDIUM: 'discoveries',
+      INTERSTELLAR_TELEPORT: 'teleport',
+      CUSTOM_DIFFICULTY: 'custom-difficulty',
+      ORBITAL_MATERIALISER: 'orbital-freighter'
+    };
+
+    this.data.demoShowcase.activeModal = modalMap[cfg.phase] || null;
+
+    // Specific phase setup hooks
+    const isSpacePhase = [
+      'SPACE_PULSE', 'SPACE_COMBAT', 'STARSHIP_CYCLE', 'SOLAR_SAIL',
+      'SPACE_STATION', 'GALAXY_MAP', 'PIRATE_DREADNOUGHT', 'OUTLAW_STATION',
+      'SPACE_ANOMALY', 'BLACK_HOLE', 'DERELICT_FREIGHTER', 'EVA_SPACEWALK',
+      'SHIP_FABRICATION', 'STARSHIP_WEAPONS', 'GALACTIC_CORE', 'ORGANIC_FLEET',
+      'PLANET_APPROACH'
+    ].includes(cfg.phase);
+
+    if (isSpacePhase && this.currState !== 'SPACE') {
+      this.launchToOrbit();
+    } else if (!isSpacePhase && cfg.phase !== 'LAUNCH_ORBIT' && this.currState === 'SPACE' && this.entities.planets.length > 0) {
+      this.landCurrentShip(this.entities.planets[0]);
+    }
+
     switch (cfg.phase) {
       case 'SPACE_PULSE':
-        if (this.currState !== 'SPACE') this.launchToOrbit();
         this.data.isPulseActive = true;
         this.selectRandomAutoPilotPlanet();
+        AudioSys.playPulseDrive();
         break;
       case 'SPACE_COMBAT':
-        if (this.currState !== 'SPACE') this.launchToOrbit();
         this.data.isPulseActive = false;
         this.data.pirateCountdown = 120;
         AudioSys.playNote(260, 'sawtooth', 0.25);
         this.spawnFloatText("⚠️ 경보: 해적 약탈기 급습! 도그파이트 요격 개시", undefined, undefined, '#ff3366');
         break;
       case 'STARSHIP_CYCLE':
-        if (this.currState !== 'SPACE') this.launchToOrbit();
         this.data.isPulseActive = false;
+        AudioSys.playNote(480, 'sine', 0.15);
         break;
-      case 'SPACE_STATION':
-        if (this.currState !== 'SPACE') this.launchToOrbit();
-        this.data.isPulseActive = false;
-        this.data.demoShowcase.activeModal = 'trade-outpost';
-        AudioSys.playNote(520, 'sine', 0.15);
-        break;
-      case 'GALAXY_MAP':
-        this.data.demoShowcase.activeModal = 'galaxy-map';
-        AudioSys.playNote(520, 'sine', 0.2);
+      case 'SOLAR_SAIL':
+        this.data.shipType = 'SOLAR';
+        AudioSys.playNote(540, 'sine', 0.2);
+        this.spawnFloatText("⛵ 솔라선 베스퍼 세일 태양광 돛 전개!", undefined, undefined, '#fbbf24');
         break;
       case 'PLANET_APPROACH':
-        if (this.currState !== 'SPACE') {
-          setTimeout(() => this.advanceDemoPhase(), 100);
-        } else {
-          this.data.isPulseActive = true;
-          if (!this.autoPilotTargetPlanet) this.selectRandomAutoPilotPlanet();
-        }
+        this.data.isPulseActive = true;
+        if (!this.autoPilotTargetPlanet) this.selectRandomAutoPilotPlanet();
         break;
       case 'PLANET_TOUCHDOWN':
         this.data.demoShowcase.activeModal = null;
@@ -1100,26 +1701,16 @@ export class GameEngine {
           this.landCurrentShip(target);
         }
         AudioSys.playDiscoveryFanfare();
-        this.spawnFloatText("🛬 지표면 안착 완료 // 엑소슈트 도보 모드 가동", undefined, undefined, '#10b981');
         break;
       case 'EXOSUIT_EXPLORE':
-        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
-          this.landCurrentShip(this.entities.planets[0]);
-        }
         this.data.isVisorActive = false;
         this.player.isMining = false;
         break;
       case 'RESOURCE_MINING':
-        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
-          this.landCurrentShip(this.entities.planets[0]);
-        }
         this.data.toolMode = 'MINING BEAM';
         this.data.isVisorActive = false;
         break;
       case 'ANALYSIS_VISOR':
-        if (this.currState !== 'PLANET' && this.entities.planets.length > 0) {
-          this.landCurrentShip(this.entities.planets[0]);
-        }
         this.data.isVisorActive = true;
         this.setCameraZoom(1.3);
         this.triggerScanPulse();
@@ -1142,26 +1733,6 @@ export class GameEngine {
         this.data.toolMode = 'BOLTCASTER';
         this.equipSecondaryWeapon('plasmaLauncher');
         break;
-      case 'WEAPON_ARSENAL_MODAL':
-        this.data.demoShowcase.activeModal = 'weapon-arsenal';
-        AudioSys.playNote(600, 'sine', 0.15);
-        break;
-      case 'INVENTORY_MODAL':
-        this.data.demoShowcase.activeModal = 'inventory';
-        AudioSys.playNote(480, 'triangle', 0.15);
-        break;
-      case 'BASE_BUILDING':
-        this.data.demoShowcase.activeModal = 'base-computer';
-        AudioSys.playNote(400, 'sine', 0.15);
-        break;
-      case 'ANCIENT_MONOLITH':
-        this.data.demoShowcase.activeModal = 'archaeology';
-        AudioSys.playNote(320, 'sine', 0.2);
-        break;
-      case 'ANCIENT_PORTAL':
-        this.data.demoShowcase.activeModal = 'portal';
-        AudioSys.playNote(440, 'triangle', 0.2);
-        break;
       case 'NAUTILON_SUBMARINE':
         this.data.nautilon.boarded = true;
         AudioSys.playNote(220, 'sawtooth', 0.3);
@@ -1169,22 +1740,19 @@ export class GameEngine {
         break;
       case 'AQUARIUS_FISHING':
         if (this.data.nautilon.boarded) this.dismountNautilon();
-        this.data.demoShowcase.activeModal = 'fishing';
         AudioSys.playNote(540, 'sine', 0.15);
         break;
       case 'COMPANION_MOUNT':
         if (this.data.nautilon.boarded) this.dismountNautilon();
-        this.data.demoShowcase.activeModal = null;
         AudioSys.playNote(620, 'sine', 0.2);
         this.spawnFloatText("🐾 외계 생명체 테이밍 완료 // 탑승 라이딩 개시", undefined, undefined, '#10b981');
-        break;
-      case 'EGG_SEQUENCER':
-        this.data.demoShowcase.activeModal = 'egg-sequencer';
-        AudioSys.playNote(700, 'sine', 0.2);
         break;
       case 'LAUNCH_ORBIT':
         this.data.demoShowcase.activeModal = null;
         if (this.data.nautilon.boarded) this.dismountNautilon();
+        break;
+      default:
+        AudioSys.playNote(440, 'sine', 0.1);
         break;
     }
 
@@ -1210,17 +1778,16 @@ export class GameEngine {
       return;
     }
 
+    this.demoActionSubTimer++;
+
     // Specific phase update logic
     switch (cfg.phase) {
       case 'SPACE_PULSE': {
-        if (this.currState !== 'SPACE') {
-          this.launchToOrbit();
-        }
+        if (this.currState !== 'SPACE') this.launchToOrbit();
         this.player.angle += 0.012;
         this.data.isPulseActive = true;
         this.player.vx = Math.cos(this.player.angle) * 30.0;
         this.player.vy = Math.sin(this.player.angle) * 30.0;
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 45 === 0) {
           this.fireSpaceWeapons();
           if (this.demoActionSubTimer % 90 === 0) {
@@ -1231,14 +1798,11 @@ export class GameEngine {
       }
 
       case 'SPACE_COMBAT': {
-        if (this.currState !== 'SPACE') {
-          this.launchToOrbit();
-        }
+        if (this.currState !== 'SPACE') this.launchToOrbit();
         this.data.isPulseActive = false;
         this.player.angle += 0.024;
         this.player.vx = Math.cos(this.player.angle) * 12.0;
         this.player.vy = Math.sin(this.player.angle) * 12.0;
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 22 === 0) {
           this.fireSpaceWeapons();
         }
@@ -1253,13 +1817,10 @@ export class GameEngine {
       }
 
       case 'STARSHIP_CYCLE': {
-        if (this.currState !== 'SPACE') {
-          this.launchToOrbit();
-        }
+        if (this.currState !== 'SPACE') this.launchToOrbit();
         this.data.isPulseActive = false;
         this.player.vx = Math.cos(this.player.angle) * 8.5;
         this.player.vy = Math.sin(this.player.angle) * 8.5;
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 65 === 0) {
           this.cycleStarship();
         }
@@ -1269,19 +1830,14 @@ export class GameEngine {
         break;
       }
 
-      case 'SPACE_STATION': {
-        this.data.demoShowcase.activeModal = 'trade-outpost';
-        this.data.isPulseActive = false;
-        this.player.vx *= 0.92;
-        this.player.vy *= 0.92;
-        break;
-      }
-
-      case 'GALAXY_MAP': {
-        this.data.demoShowcase.activeModal = 'galaxy-map';
-        this.data.isPulseActive = false;
-        this.player.vx *= 0.94;
-        this.player.vy *= 0.94;
+      case 'SOLAR_SAIL': {
+        this.data.shipType = 'SOLAR';
+        this.player.angle += 0.015;
+        this.player.vx = Math.cos(this.player.angle) * 15.0;
+        this.player.vy = Math.sin(this.player.angle) * 15.0;
+        if (this.demoActionSubTimer % 50 === 0) {
+          this.fireSpaceWeapons();
+        }
         break;
       }
 
@@ -1345,7 +1901,6 @@ export class GameEngine {
         this.player.facing = Math.cos(this.autoPilotWanderAngle) > 0 ? 1 : -1;
         this.player.anim += 0.2;
 
-        this.demoActionSubTimer++;
         const jetpackCycle = this.demoActionSubTimer % 90;
         if (jetpackCycle > 25 && jetpackCycle < 60) {
           this.player.isJetpacking = true;
@@ -1364,7 +1919,6 @@ export class GameEngine {
         this.data.demoShowcase.activeModal = null;
         this.data.toolMode = 'MINING BEAM';
         this.player.isMining = true;
-        this.demoActionSubTimer++;
         if (this.data.activePlanet) {
           this.handlePlanetFire(this.data.activePlanet);
         }
@@ -1382,8 +1936,6 @@ export class GameEngine {
         this.player.py += Math.sin(this.autoPilotWanderAngle) * 1.2;
         this.autoPilotWanderAngle += 0.015;
         this.player.anim += 0.1;
-
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 75 === 0) {
           this.triggerScanPulse();
         }
@@ -1394,7 +1946,6 @@ export class GameEngine {
         this.data.demoShowcase.activeModal = null;
         this.data.isVisorActive = false;
         this.setCameraZoom(1.0);
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 65 === 0) {
           this.cycleToolMode();
         }
@@ -1412,7 +1963,6 @@ export class GameEngine {
         this.player.px += Math.cos(this.autoPilotWanderAngle) * 2.2;
         this.player.py += Math.sin(this.autoPilotWanderAngle) * 2.2;
         this.autoPilotWanderAngle += 0.02;
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 60 === 0) {
           AudioSys.playNote(340, 'sawtooth', 0.15);
         }
@@ -1422,7 +1972,6 @@ export class GameEngine {
       case 'COMBAT_WEAPONS': {
         this.data.demoShowcase.activeModal = null;
         this.data.toolMode = 'BOLTCASTER';
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 60 === 0) {
           this.cycleCombatWeapon();
         }
@@ -1436,7 +1985,6 @@ export class GameEngine {
       case 'SECONDARY_ORDNANCE': {
         this.data.demoShowcase.activeModal = null;
         this.data.toolMode = 'BOLTCASTER';
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 75 === 0) {
           this.cycleSecondaryWeapon();
           this.fireSecondaryWeapon();
@@ -1445,7 +1993,6 @@ export class GameEngine {
       }
 
       case 'WEAPON_ARSENAL_MODAL': {
-        this.data.demoShowcase.activeModal = 'weapon-arsenal';
         this.player.isMining = false;
         const tabs = ['primary', 'secondary', 'upgrades', 'overclock'];
         const tabIdx = Math.floor((elapsed / 1100) % tabs.length);
@@ -1457,30 +2004,11 @@ export class GameEngine {
       }
 
       case 'INVENTORY_MODAL': {
-        this.data.demoShowcase.activeModal = 'inventory';
         this.player.isMining = false;
         if (elapsed > 2000 && this.demoLastActionTick === 0) {
           this.demoLastActionTick = 1;
           this.rechargeHazard();
         }
-        break;
-      }
-
-      case 'BASE_BUILDING': {
-        this.data.demoShowcase.activeModal = 'base-computer';
-        this.player.isMining = false;
-        break;
-      }
-
-      case 'ANCIENT_MONOLITH': {
-        this.data.demoShowcase.activeModal = 'archaeology';
-        this.player.isMining = false;
-        break;
-      }
-
-      case 'ANCIENT_PORTAL': {
-        this.data.demoShowcase.activeModal = 'portal';
-        this.player.isMining = false;
         break;
       }
 
@@ -1490,16 +2018,9 @@ export class GameEngine {
         this.player.px += Math.cos(this.autoPilotWanderAngle) * 3.0;
         this.player.py += Math.sin(this.autoPilotWanderAngle) * 3.0;
         this.autoPilotWanderAngle += 0.022;
-        this.demoActionSubTimer++;
         if (this.demoActionSubTimer % 85 === 0) {
           this.triggerNautilonSonar();
         }
-        break;
-      }
-
-      case 'AQUARIUS_FISHING': {
-        this.data.demoShowcase.activeModal = 'fishing';
-        this.player.isMining = false;
         break;
       }
 
@@ -1513,12 +2034,6 @@ export class GameEngine {
         this.autoPilotWanderAngle += 0.028;
         this.player.facing = Math.cos(this.autoPilotWanderAngle) > 0 ? 1 : -1;
         this.player.anim += 0.35;
-        break;
-      }
-
-      case 'EGG_SEQUENCER': {
-        this.data.demoShowcase.activeModal = 'egg-sequencer';
-        this.player.isMining = false;
         break;
       }
 
@@ -1546,6 +2061,21 @@ export class GameEngine {
           this.data.isPulseActive = true;
           this.player.vx = Math.cos(this.player.angle) * 32.0;
           this.player.vy = Math.sin(this.player.angle) * 32.0;
+        }
+        break;
+      }
+
+      default: {
+        // General modal or background simulation
+        if (this.currState === 'PLANET') {
+          this.player.px += Math.cos(this.autoPilotWanderAngle) * 1.5;
+          this.player.py += Math.sin(this.autoPilotWanderAngle) * 1.5;
+          this.autoPilotWanderAngle += 0.01;
+          this.player.anim += 0.08;
+        } else {
+          this.player.angle += 0.008;
+          this.player.vx = Math.cos(this.player.angle) * 10.0;
+          this.player.vy = Math.sin(this.player.angle) * 10.0;
         }
         break;
       }

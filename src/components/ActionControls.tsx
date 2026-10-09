@@ -79,7 +79,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
       {/* Multi-Tool Secondary Weapon HUD (v5.50.0 Sentinel & Waypoint) */}
       <div
         id="secondary-weapon-hud"
-        className="mb-0.5 bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 flex items-center justify-between gap-2 w-full max-w-[210px] min-w-0 shadow-lg pointer-events-auto cursor-pointer hover:border-cyan-400 transition-all"
+        className="mb-0.5 bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 flex items-center justify-between gap-1.5 xs:gap-2 w-full max-w-[185px] xs:max-w-[210px] min-w-0 shadow-lg pointer-events-auto cursor-pointer hover:border-cyan-400 transition-all"
         onClick={() => {
           AudioSys.unlockOnFirstInteraction();
           onCycleSecondary();
@@ -87,24 +87,24 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
         title="클릭하여 보조 무기 순환 [Shift+Q / G] | 무기고 [Alt+X / /]"
       >
         <div className="flex items-center gap-1.5 overflow-hidden">
-          <span className="text-base sm:text-lg animate-pulse shrink-0">{activeSecIcon}</span>
+          <span className="text-sm xs:text-base sm:text-lg animate-pulse shrink-0">{activeSecIcon}</span>
           <div className="text-left truncate">
-            <div className="text-[7px] sm:text-[7.5px] text-gray-400 tracking-wider font-mono">SECONDARY [Q]</div>
-            <div className="font-bold text-amber-300 text-[11px] sm:text-xs truncate font-mono">{activeSecName}</div>
+            <div className="text-[6.5px] xs:text-[7px] sm:text-[7.5px] text-gray-400 tracking-wider font-mono">SECONDARY [Q]</div>
+            <div className="font-bold text-amber-300 text-[10px] xs:text-[11px] sm:text-xs truncate font-mono">{activeSecName}</div>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0 font-mono">
-          <span className="text-[10px] sm:text-[11px] font-bold text-cyan-300">{activeSecAmmo}발</span>
+          <span className="text-[9px] xs:text-[10px] sm:text-[11px] font-bold text-cyan-300">{activeSecAmmo}발</span>
           <button
             onClick={(e) => {
               e.stopPropagation();
               AudioSys.unlockOnFirstInteraction();
               onFireSecondary();
             }}
-            className="px-1.5 sm:px-2 py-0.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded text-[8.5px] sm:text-[9px] font-bold shadow-md cursor-pointer active:scale-95 transition-transform"
+            className="px-1.5 py-0.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded text-[8px] xs:text-[8.5px] sm:text-[9px] font-bold shadow cursor-pointer active:scale-95 transition-transform"
             title="보조 무기 발사 [Q]"
           >
-            발사[Q]
+            발사
           </button>
           {onOpenArsenal && (
             <button
@@ -113,7 +113,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
                 AudioSys.unlockOnFirstInteraction();
                 onOpenArsenal();
               }}
-              className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-400/40 rounded text-[8.5px] sm:text-[9px] font-bold cursor-pointer"
+              className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-400/40 rounded text-[8px] xs:text-[8.5px] sm:text-[9px] font-bold cursor-pointer hidden xs:inline-block"
               title="다목적 도구 화기 사령부 [/]"
             >
               무기고
@@ -123,10 +123,10 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
       </div>
 
       {/* Improved Multi-tool Weapons & Heat Meter HUD (v2) */}
-      <div id="multitool-hud" className="mb-0.5 pointer-events-none select-none w-full max-w-[210px] min-w-0">
-        <div className="flex items-center justify-between gap-2 text-[9px] sm:text-[10px] font-mono font-bold text-cyan-300">
+      <div id="multitool-hud" className="mb-0.5 pointer-events-none select-none w-full max-w-[185px] xs:max-w-[210px] min-w-0">
+        <div className="flex items-center justify-between gap-1.5 text-[8.5px] xs:text-[9px] sm:text-[10px] font-mono font-bold text-cyan-300">
           <span className="flex items-center gap-1 truncate">
-            <Zap className="w-3 h-3 text-cyan-400 shrink-0" />
+            <Zap className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-cyan-400 shrink-0" />
             <span className="truncate">
               {isSpace
                 ? (shipType === 'SOLAR' ? '베스퍼 세일 캐논' : '포톤 캐논')
@@ -136,7 +136,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
             </span>
           </span>
           <span className={`shrink-0 ${isOverheated ? 'text-red-400 font-extrabold animate-pulse' : overheat > 60 ? 'text-amber-400 font-bold' : 'text-gray-300'}`}>
-            {isOverheated ? '과열 경고!' : `${Math.round(overheat)}%`}
+            {isOverheated ? '과열!' : `${Math.round(overheat)}%`}
           </span>
         </div>
         <div className={`heat-meter-bar ${isOverheated ? 'heat-overheated' : ''}`}>
@@ -155,11 +155,11 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
             AudioSys.unlockOnFirstInteraction();
             onOpenQuickRecharge();
           }}
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900/95 border border-yellow-400/60 flex flex-col items-center justify-center text-yellow-400 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer"
+          className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900/95 border border-yellow-400/60 flex flex-col items-center justify-center text-yellow-400 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer"
           title="퀵 충전 (Sodium/Oxygen)"
         >
-          <BatteryCharging className="w-3.5 h-3.5 text-yellow-400" />
-          <span className="text-[7.5px] font-bold font-mono">충전</span>
+          <BatteryCharging className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" />
+          <span className="text-[6.5px] xs:text-[7px] sm:text-[7.5px] font-bold font-mono">충전</span>
         </button>
 
         {/* Visor Toggle */}
@@ -169,15 +169,15 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
               AudioSys.unlockOnFirstInteraction();
               onToggleVisor();
             }}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full border flex flex-col items-center justify-center active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer ${
+            className={`w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded-full border flex flex-col items-center justify-center active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer ${
               isVisorActive
                 ? 'bg-cyan-500 border-cyan-300 text-black font-bold shadow-[0_0_12px_#00e5ff]'
                 : 'bg-slate-900/95 border-cyan-400/50 text-cyan-300'
             }`}
             title="분석 바이저 [F]"
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span className="text-[7.5px] font-bold font-mono">바이저</span>
+            <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span className="text-[6.5px] xs:text-[7px] sm:text-[7.5px] font-bold font-mono">바이저</span>
           </button>
         )}
 
@@ -187,7 +187,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
             AudioSys.unlockOnFirstInteraction();
             onScan();
           }}
-          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full border flex flex-col items-center justify-center active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer ${
+          className={`w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded-full border flex flex-col items-center justify-center active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer ${
             cargoScanTimer > 0
               ? 'bg-red-600 border-red-400 text-white animate-pulse shadow-[0_0_15px_#ef4444]'
               : 'bg-slate-900/95 border-cyan-400/50 text-cyan-300'
@@ -196,13 +196,13 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
         >
           {cargoScanTimer > 0 ? (
             <>
-              <ShieldAlert className="w-3.5 h-3.5 text-white" />
-              <span className="text-[7.5px] font-bold font-mono">교란</span>
+              <ShieldAlert className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+              <span className="text-[6.5px] xs:text-[7px] sm:text-[7.5px] font-bold font-mono">교란</span>
             </>
           ) : (
             <>
-              <Radio className="w-3.5 h-3.5 text-cyan-300" />
-              <span className="text-[7.5px] font-bold font-mono">스캔</span>
+              <Radio className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
+              <span className="text-[6.5px] xs:text-[7px] sm:text-[7.5px] font-bold font-mono">스캔</span>
             </>
           )}
         </button>
@@ -215,7 +215,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
                 AudioSys.unlockOnFirstInteraction();
                 onCycleTool();
               }}
-              className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-full border flex items-center gap-1 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer transition-colors ${
+              className={`h-7 xs:h-8 sm:h-9 px-1.5 xs:px-2 sm:px-2.5 rounded-full border flex items-center gap-1 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer transition-colors ${
                 toolMode === 'BOLTCASTER'
                   ? 'bg-red-950/90 border-red-400 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
                   : toolMode === 'TERRAIN MANIPULATOR'
@@ -226,13 +226,13 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
               }`}
               title="무기/도구 전환 [G] - 모드별 타겟 자동 추적"
             >
-              <Zap className={`w-3 h-3 shrink-0 ${
+              <Zap className={`w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 ${
                 toolMode === 'BOLTCASTER' ? 'text-red-400' :
                 toolMode === 'TERRAIN MANIPULATOR' ? 'text-sky-400' :
                 toolMode === 'VOLTAIC STAFF' ? 'text-purple-400' : 'text-emerald-400'
               }`} />
               <div className="flex flex-col text-left">
-                <span className="text-[9px] sm:text-[10px] font-bold font-mono whitespace-nowrap leading-none">
+                <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-bold font-mono whitespace-nowrap leading-none">
                   {toolMode === 'MINING BEAM' ? '채굴광선' : toolMode === 'BOLTCASTER' ? (activeCombatWeapon ? activeCombatWeapon.name.split(' ')[0] : '볼트캐스터') : toolMode === 'TERRAIN MANIPULATOR' ? '지형조작' : '스태프'}
                 </span>
               </div>
@@ -243,7 +243,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
                   AudioSys.unlockOnFirstInteraction();
                   onCycleCombatWeapon();
                 }}
-                className="h-8 sm:h-9 px-1.5 sm:px-2 rounded-full bg-orange-950/90 border border-orange-400/70 text-orange-300 flex items-center justify-center text-[8px] sm:text-[9px] font-bold font-mono active:scale-95 shadow cursor-pointer shrink-0"
+                className="h-7 xs:h-8 sm:h-9 px-1.5 sm:px-2 rounded-full bg-orange-950/90 border border-orange-400/70 text-orange-300 flex items-center justify-center text-[7.5px] xs:text-[8px] sm:text-[9px] font-bold font-mono active:scale-95 shadow cursor-pointer shrink-0"
                 title="5대 전문 주무기 순환 (볼트캐스터/산탄/스피터/자벨린/뉴트론)"
               >
                 화기 🔄
@@ -256,19 +256,19 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
               AudioSys.unlockOnFirstInteraction();
               game.cycleStarship();
             }}
-            className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full bg-slate-900/95 border border-amber-400/70 flex items-center gap-1 text-amber-300 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer"
+            className="h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3 rounded-full bg-slate-900/95 border border-amber-400/70 flex items-center gap-1 text-amber-300 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer"
             title="함선 전환 [K]"
           >
-            <Rocket className="w-3 h-3 text-amber-400 shrink-0" />
-            <span className="text-[9px] sm:text-[10px] font-bold font-mono whitespace-nowrap">
+            <Rocket className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400 shrink-0" />
+            <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-bold font-mono whitespace-nowrap">
               {shipType === 'SOLAR' ? '솔라선' : shipType === 'INTERCEPTOR' ? '인터셉터' : shipType === 'LIVING' ? '생체선' : '전투기'}
             </span>
           </button>
         )}
       </div>
 
-      {/* Main Action Thumb Cluster (Ergonomic, spacious, zero clipping) */}
-      <div className="flex items-end justify-end gap-1.5 sm:gap-2.5">
+      {/* Main Action Thumb Cluster (Ergonomic, responsive, zero clipping) */}
+      <div className="flex items-end justify-end gap-1 xs:gap-1.5 sm:gap-2.5">
         {/* Dynamic Interact / E Button */}
         {hasInteract && (
           <div className="relative shrink-0">
@@ -293,7 +293,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
                 onInteractStart();
               }}
               onMouseUp={onInteractEnd}
-              className={`relative w-11 h-11 xs:w-12 xs:h-12 sm:w-14 sm:h-14 rounded-full bg-slate-950/95 border-2 flex flex-col items-center justify-center active:scale-95 backdrop-blur-md cursor-pointer animate-pulse ${
+              className={`relative w-10 h-10 xs:w-11 xs:h-11 sm:w-14 sm:h-14 rounded-full bg-slate-950/95 border-2 flex flex-col items-center justify-center active:scale-95 backdrop-blur-md cursor-pointer animate-pulse ${
                 interactLabel?.includes('착륙')
                   ? 'border-emerald-400 text-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.7)]'
                   : 'border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(0,229,255,0.4)]'
@@ -321,8 +321,8 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
                   style={{ transition: 'stroke-dashoffset 0.05s linear' }}
                 />
               </svg>
-              <span className={`text-xs sm:text-sm font-extrabold font-mono ${interactLabel?.includes('착륙') ? 'text-emerald-300' : 'text-cyan-300'}`}>[E]</span>
-              <span className="text-[6.5px] sm:text-[7.5px] font-bold text-gray-200 tracking-tighter">
+              <span className={`text-[11px] xs:text-xs sm:text-sm font-extrabold font-mono ${interactLabel?.includes('착륙') ? 'text-emerald-300' : 'text-cyan-300'}`}>[E]</span>
+              <span className="text-[6px] xs:text-[6.5px] sm:text-[7.5px] font-bold text-gray-200 tracking-tighter">
                 {!isSpace ? '탑승' : (interactLabel?.includes('도킹') ? '도킹' : '착륙')}
               </span>
             </button>
@@ -336,7 +336,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
               AudioSys.unlockOnFirstInteraction();
               onReload();
             }}
-            className={`w-11 h-11 xs:w-12 xs:h-12 sm:w-14 sm:h-14 rounded-full border-2 flex flex-col items-center justify-center active:scale-95 shadow-xl backdrop-blur-md cursor-pointer shrink-0 transition-all ${
+            className={`w-10 h-10 xs:w-11 xs:h-11 sm:w-14 sm:h-14 rounded-full border-2 flex flex-col items-center justify-center active:scale-95 shadow-xl backdrop-blur-md cursor-pointer shrink-0 transition-all ${
               ammo === 0
                 ? 'bg-red-950/95 border-red-400 text-red-300 animate-bounce shadow-[0_0_20px_rgba(239,68,68,0.7)]'
                 : ammo <= 8
@@ -345,8 +345,8 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
             }`}
             title="소총 탄약 재장전 [R]"
           >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 mb-0.5 ${ammo === 0 ? 'animate-spin' : ''}`} />
-            <span className="text-[7.5px] sm:text-[8.5px] font-extrabold font-mono tracking-tighter">
+            <RefreshCw className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-amber-300 mb-0.5 ${ammo === 0 ? 'animate-spin' : ''}`} />
+            <span className="text-[6.5px] xs:text-[7.5px] sm:text-[8.5px] font-extrabold font-mono tracking-tighter">
               {ammo === 0 ? '재장전!' : '장전'}
             </span>
           </button>
@@ -368,11 +368,11 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
             onJetpackStart();
           }}
           onMouseUp={onJetpackEnd}
-          className="w-11 h-11 xs:w-12 xs:h-12 sm:w-14 sm:h-14 rounded-full bg-slate-900/95 border-2 border-emerald-400/90 text-emerald-300 flex flex-col items-center justify-center shadow-lg active:scale-95 active:bg-emerald-500/20 backdrop-blur-md shrink-0 cursor-pointer"
+          className="w-10 h-10 xs:w-11 xs:h-11 sm:w-14 sm:h-14 rounded-full bg-slate-900/95 border-2 border-emerald-400/90 text-emerald-300 flex flex-col items-center justify-center shadow-lg active:scale-95 active:bg-emerald-500/20 backdrop-blur-md shrink-0 cursor-pointer"
           title={isSpace ? '펄스 드라이브 가속 [SPACE]' : '제트팩 도약 [SPACE]'}
         >
-          <Rocket className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 mb-0.5" />
-          <span className="text-[7.5px] sm:text-[8.5px] font-bold font-mono tracking-wider">
+          <Rocket className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-emerald-400 mb-0.5" />
+          <span className="text-[6.5px] xs:text-[7.5px] sm:text-[8.5px] font-bold font-mono tracking-wider">
             {isSpace ? '펄스' : '제트팩'}
           </span>
         </button>
@@ -382,7 +382,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
           {/* Floating Ammo Badge for Boltcaster Mode (Anchored at top, ZERO text clipping) */}
           {!isSpace && toolMode === 'BOLTCASTER' && (
             <div
-              className={`absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-1.5 py-0.5 rounded-full border text-[8px] sm:text-[9px] font-mono font-bold shadow-lg flex items-center gap-1 whitespace-nowrap pointer-events-none transition-all ${
+              className={`absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-1.5 py-0.5 rounded-full border text-[7.5px] xs:text-[8px] sm:text-[9px] font-mono font-bold shadow-lg flex items-center gap-1 whitespace-nowrap pointer-events-none transition-all ${
                 ammo === 0
                   ? 'bg-red-950 border-red-400 text-red-300 animate-pulse'
                   : ammo <= 8
@@ -390,11 +390,11 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
                   : 'bg-slate-950/95 border-amber-400/80 text-amber-300'
               }`}
             >
-              <span className="text-[7.5px] opacity-75">탄약</span>
-              <span className={`text-[9px] ${ammo === 0 ? 'text-red-400 font-extrabold' : 'text-white'}`}>
+              <span className="text-[7px] opacity-75">탄약</span>
+              <span className={`text-[8.5px] ${ammo === 0 ? 'text-red-400 font-extrabold' : 'text-white'}`}>
                 {ammo}
               </span>
-              <span className="text-gray-400 text-[7.5px]">/{maxAmmo}</span>
+              <span className="text-gray-400 text-[7px]">/{maxAmmo}</span>
             </div>
           )}
 
@@ -421,7 +421,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
               onFireStart();
             }}
             onMouseUp={onFireEnd}
-            className={`w-13 h-13 xs:w-14 xs:h-14 sm:w-17 sm:h-17 rounded-full border-2 flex flex-col items-center justify-center shadow-2xl active:scale-95 backdrop-blur-md cursor-pointer transition-colors ${
+            className={`w-12 h-12 xs:w-13 xs:h-13 sm:w-17 sm:h-17 rounded-full border-2 flex flex-col items-center justify-center shadow-2xl active:scale-95 backdrop-blur-md cursor-pointer transition-colors ${
               isOverheated
                 ? 'bg-red-950/90 border-red-500 text-red-400 shadow-[0_0_20px_#ef4444]'
                 : isSpace
@@ -451,12 +451,12 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
             )}
 
             {toolMode === 'BOLTCASTER' && ammo === 0 ? (
-              <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 mb-0.5 animate-spin" />
+              <RefreshCw className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-amber-300 mb-0.5 animate-spin" />
             ) : (
-              <Crosshair className="w-4 h-4 sm:w-5 sm:h-5 text-white mb-0.5" />
+              <Crosshair className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-white mb-0.5" />
             )}
 
-            <span className="text-[8px] sm:text-[9.5px] font-extrabold font-mono tracking-wide text-center px-1 leading-tight">
+            <span className="text-[7.5px] xs:text-[8px] sm:text-[9.5px] font-extrabold font-mono tracking-wide text-center px-0.5 leading-tight">
               {isOverheated
                 ? '과열'
                 : isSpace
