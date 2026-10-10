@@ -483,10 +483,24 @@ export type DemoShowcasePhase =
   | 'INTERSTELLAR_TELEPORT'
   | 'CUSTOM_DIFFICULTY'
   | 'ORBITAL_MATERIALISER'
+  | 'HARMONIC_INTERFACE'
+  | 'STATION_TECH_MERCHANTS'
+  | 'STARSHIP_SCRAPPER'
+  | 'FREIGHTER_FLEET'
+  | 'SQUADRON_COMMAND'
+  | 'SETTLEMENT_ADMIN'
+  | 'BUILD_MENU_SYSTEM'
+  | 'INDUSTRIAL_PIPELINE'
+  | 'COLOSSAL_ARCHIVE'
+  | 'ANCIENT_RUINS_SITE'
+  | 'JOURNEY_MILESTONES'
   | 'LAUNCH_ORBIT';
+
+export type DemoAutoplayMode = 'REAL_PLAYER' | 'FEATURE_TOUR';
 
 export interface DemoShowcaseState {
   isActive: boolean;
+  mode: DemoAutoplayMode;
   phase: DemoShowcasePhase;
   phaseIndex: number;
   totalPhases: number;
@@ -499,6 +513,14 @@ export interface DemoShowcaseState {
   modalTab?: string;
   phaseDuration: number;
   phaseElapsed: number;
+  currentActivity?: 'GATHERING' | 'HUNTING' | 'SENTINEL_COMBAT' | 'SURVIVAL' | 'EXPLORATION' | 'FISHING' | 'SPACE_FLIGHT';
+  activityLabel?: string;
+  currentTargetName?: string;
+  currentTargetDist?: number;
+  actionDetails?: string;
+  gatheredCount?: number;
+  huntedCount?: number;
+  sentinelsKilled?: number;
 }
 
 export type DifficultyPreset = 'NORMAL' | 'RELAXED' | 'SURVIVAL' | 'PERMADEATH' | 'CREATIVE' | 'CUSTOM';

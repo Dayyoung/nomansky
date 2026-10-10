@@ -330,28 +330,28 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
       </div>
 
       {/* Warnings & Banners Center */}
-      <div className="flex flex-col items-center gap-2 my-auto pointer-events-none">
+      <div className="flex flex-col items-center gap-1.5 my-auto pointer-events-none">
         {/* Storm Warning */}
-        {stormCountdown > 0 && (
-          <div className="bg-red-950/90 border-2 border-amber-400 px-4 py-2 rounded-lg text-center shadow-[0_0_25px_rgba(245,158,11,0.5)] animate-pulse">
-            <span className="text-[10px] font-bold text-amber-300 tracking-widest block">⚠️ 행성 극한 폭풍 경보</span>
-            <span className="text-xs font-bold text-white font-mono">폭풍 접근 중: {(stormCountdown / 60).toFixed(1)}s</span>
+        {gameState === 'PLANET' && stormCountdown > 0 && (
+          <div className="bg-amber-950/90 border border-amber-400/80 px-3.5 py-1 rounded-full text-center shadow-[0_0_20px_rgba(245,158,11,0.5)] backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
+            <span className="text-[10px] font-bold text-amber-300 font-mono tracking-wider">⚠️ 행성 극한 폭풍</span>
+            <span className="text-xs font-black text-white font-mono bg-amber-600/50 px-2 py-0.5 rounded-full">{(stormCountdown / 60).toFixed(1)}s</span>
           </div>
         )}
 
         {/* Sentinel Cargo Scan Warning */}
         {cargoScanTimer > 0 && (
-          <div className="bg-red-950/90 border-2 border-red-500 px-4 py-2 rounded-lg text-center shadow-[0_0_25px_rgba(239,68,68,0.6)] animate-pulse">
-            <span className="text-[10px] font-bold text-red-300 tracking-widest block">⚠️ 센티넬 화물 불법 밀수 스캔 중!</span>
-            <span className="text-xs font-bold text-white font-mono">[C 교란] 버튼을 눌러 스캔을 방해하세요!</span>
+          <div className="bg-red-950/90 border border-red-500/80 px-3.5 py-1 rounded-full text-center shadow-[0_0_20px_rgba(239,68,68,0.6)] backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
+            <span className="text-[10px] font-bold text-red-300 tracking-wider">⚠️ 센티넬 화물 밀수 스캔</span>
+            <span className="text-xs font-bold text-white font-mono">[C 교란]</span>
           </div>
         )}
 
-        {/* Pirate Threat Warning */}
-        {pirateCountdown > 0 && (
-          <div className="bg-red-950/90 border-2 border-red-500 px-4 py-2 rounded-lg text-center shadow-[0_0_25px_rgba(239,68,68,0.6)] animate-pulse">
-            <span className="text-[10px] font-bold text-red-400 tracking-widest block">⚠️ 해적 우주선 위협 벡터 감지</span>
-            <span className="text-xs font-bold text-white font-mono">적기 워프 출현: {(pirateCountdown / 60).toFixed(1)}s</span>
+        {/* Pirate Threat Warning - only in space during active countdown */}
+        {gameState === 'SPACE' && pirateCountdown > 0 && (
+          <div className="bg-red-950/90 border border-red-500/80 px-3.5 py-1 rounded-full text-center shadow-[0_0_20px_rgba(239,68,68,0.6)] backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
+            <span className="text-[10px] font-bold text-red-300 font-mono tracking-wider">⚠️ 적기 워프 벡터 감지</span>
+            <span className="text-xs font-black text-white font-mono bg-red-600/50 px-2 py-0.5 rounded-full">{(pirateCountdown / 60).toFixed(1)}s</span>
           </div>
         )}
 

@@ -94,6 +94,11 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
 
   if (!activeModal) return null;
 
+  const isDemoActive = game.isAutoPilot && game.data.demoShowcase.isActive;
+  const demo = game.data.demoShowcase;
+  const demoDuration = demo.phaseDuration || 4000;
+  const demoProgress = Math.min(100, Math.max(0, (demo.phaseElapsed / demoDuration) * 100));
+
   const handleClose = () => {
     AudioSys.playNote(220, 'sine', 0.08);
     onClose();
@@ -105,8 +110,46 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-hidden">
-      <div className="relative w-full max-w-2xl max-h-[92vh] flex flex-col bg-slate-950 border border-cyan-400/60 rounded-2xl shadow-[0_0_35px_rgba(0,229,255,0.25)] overflow-hidden">
+    <div
+      className={`fixed inset-0 z-50 flex ${
+        isDemoActive
+          ? 'items-start justify-center pt-24 xs:pt-28 sm:pt-32 p-2 sm:p-4 pb-4'
+          : 'items-center justify-center p-2 sm:p-4'
+      } bg-black/85 backdrop-blur-md overflow-hidden`}
+    >
+      <div
+        className={`relative w-full max-w-2xl ${
+          isDemoActive
+            ? 'max-h-[calc(100vh-6.5rem)] xs:max-h-[calc(100vh-7.5rem)] sm:max-h-[calc(100vh-8.5rem)]'
+            : 'max-h-[92vh]'
+        } flex flex-col bg-slate-950 border border-cyan-400/60 rounded-2xl shadow-[0_0_35px_rgba(0,229,255,0.25)] overflow-hidden`}
+      >
+        {/* Dedicated Live Demo Showcase In-Modal Top Header */}
+        {isDemoActive && (
+          <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-cyan-950 border-b border-cyan-400/50 px-3 py-1.5 flex items-center justify-between text-[10px] sm:text-xs font-mono text-cyan-200 shrink-0">
+            <div className="flex items-center gap-1.5 overflow-hidden">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
+              <span className="font-bold text-white tracking-wide truncate">
+                🎬 AI 자동 시연 진행 중 ({demo.phaseIndex + 1}/{demo.totalPhases})
+              </span>
+              <span className="text-amber-300 font-bold shrink-0">
+                [{Math.round(demoProgress)}%]
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 text-[9px] sm:text-[10px] text-gray-400 font-mono">
+              <span className="text-cyan-300">
+                {Math.max(0, (demoDuration - demo.phaseElapsed) / 1000).toFixed(1)}s 후 다음 단계
+              </span>
+              <div className="w-14 sm:w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden border border-cyan-400/30">
+                <div
+                  className="h-full bg-gradient-to-r from-cyan-400 to-amber-300 transition-all duration-100"
+                  style={{ width: `${demoProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Sticky Mobile Modal Header */}
         <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-slate-900 border-b border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
