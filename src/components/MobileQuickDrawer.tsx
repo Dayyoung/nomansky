@@ -893,12 +893,12 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="text-xl shrink-0">🎮</span>
             <div className="truncate">
-              <span className="text-xs font-bold text-cyan-200 font-mono block truncate">No Man's Sky 2D v5.84.0 원본 아케이드 (Beyond & Origins)</span>
+              <span className="text-xs font-bold text-cyan-200 font-mono block truncate">No Man's Sky 2D v6.50.0 원본 아케이드 (Endurance & Origins)</span>
               <span className="text-[9px] text-gray-400 font-mono">새 탭 전체화면으로 실행 (PC/태블릿 추천)</span>
             </div>
           </div>
           <a
-            href="./v5.84.0.html"
+            href="./v6.50.0.html"
             target="_blank"
             rel="noopener noreferrer"
             className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[10px] font-bold font-mono shrink-0 shadow flex items-center gap-1 no-underline active:scale-95"
