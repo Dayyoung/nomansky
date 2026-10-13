@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Shield, Flame, Heart, Compass, MapPin, Navigation, HelpCircle, X } from 'lucide-react';
+import { Menu, Shield, Flame, Heart, Compass, MapPin, Navigation, HelpCircle, X, Sparkles } from 'lucide-react';
 import { FloatingText, game } from '../gameEngine';
 import { PlanetEntity } from '../types';
 import { AudioSys } from '../audio';
@@ -37,6 +37,8 @@ interface MobileHUDProps {
   onResetZoom?: () => void;
   onOpenArsenal?: () => void;
   onOpenDifficulty?: () => void;
+  is3DActive?: boolean;
+  onToggleDimension?: () => void;
 }
 
 export const MobileHUD: React.FC<MobileHUDProps> = ({
@@ -70,7 +72,9 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
   onZoomOut = () => game.zoomOut(),
   onResetZoom = () => game.resetZoom(),
   onOpenArsenal,
-  onOpenDifficulty
+  onOpenDifficulty,
+  is3DActive = true,
+  onToggleDimension
 }) => {
   const [showLandingGuide, setShowLandingGuide] = useState(false);
 
@@ -98,235 +102,305 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
     : subLocation;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-30 flex flex-col justify-between p-2 sm:p-3 select-none">
-      {/* Top Header Row */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-1.5 sm:gap-2 pointer-events-auto max-w-full overflow-hidden">
-        {/* Left: Location & Biome + Compact Minimap (Top-Left) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 pointer-events-auto flex-wrap sm:flex-nowrap max-w-full">
-          {/* Small Minimap Radar (Click to enlarge) */}
-          <PlanetaryMinimap
-            game={game}
-            gameState={gameState}
-            activePlanet={activePlanet}
-            cameraZoom={cameraZoom}
-            onZoomIn={onZoomIn}
-            onZoomOut={onZoomOut}
-            onResetZoom={onResetZoom}
-          />
+    <div className="fixed inset-0 pointer-events-none z-30 flex flex-col justify-between p-1.5 xs:p-2 sm:p-3 select-none">
+      {/* Top Header Section */}
+      <div className="w-full flex flex-col items-center pointer-events-auto">
+        {/* Row 1: Primary Streamlined Navigation Bar */}
+        <div className="w-full flex items-center justify-between gap-1 xs:gap-1.5 sm:gap-2">
+          {/* Left: Location & Biome + Compact Minimap Radar */}
+          <div className="flex items-center gap-1 xs:gap-1.5 shrink-0 min-w-0 max-w-[48%] xs:max-w-[50%] sm:max-w-md">
+            {/* Small Minimap Radar (Click to enlarge) */}
+            <PlanetaryMinimap
+              game={game}
+              gameState={gameState}
+              activePlanet={activePlanet}
+              cameraZoom={cameraZoom}
+              onZoomIn={onZoomIn}
+              onZoomOut={onZoomOut}
+              onResetZoom={onResetZoom}
+            />
 
-          <div className="flex flex-col bg-slate-950/85 backdrop-blur-md px-2 py-0.5 xs:px-2.5 xs:py-1 rounded-lg border border-cyan-400/30 max-w-[120px] xs:max-w-[155px] sm:max-w-xs shadow-md">
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#00e5ff] animate-ping shrink-0" />
-              <span className="text-[10px] xs:text-[11px] sm:text-xs font-bold tracking-wider text-white nms-header-font truncate">
-                {displayLocation}
+            <div className="flex flex-col bg-slate-950/90 backdrop-blur-md px-1.5 xs:px-2 py-0.5 rounded-lg border border-cyan-400/30 min-w-0 shadow-md">
+              <div className="flex items-center gap-1 min-w-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#00e5ff] animate-ping shrink-0" />
+                <span className="text-[9px] xs:text-[10px] sm:text-xs font-bold tracking-wider text-white nms-header-font truncate">
+                  {displayLocation}
+                </span>
+              </div>
+              <span className="text-[7px] xs:text-[7.5px] sm:text-[8.5px] text-cyan-300/80 font-mono tracking-wide truncate">
+                {displaySubLocation}
               </span>
             </div>
-            <span className="text-[7.5px] xs:text-[8px] sm:text-[9px] text-cyan-300/80 font-mono tracking-wide truncate">
-              {displaySubLocation}
-            </span>
+
+            {/* Landing Guide Help Button (Desktop sm+ / icon on mobile) */}
+            <button
+              onClick={() => {
+                AudioSys.playNote(540, 'sine', 0.1);
+                setShowLandingGuide(true);
+              }}
+              className="hidden sm:flex h-7 xs:h-7.5 sm:h-8 px-1.5 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-cyan-400/50 rounded-lg items-center gap-1 text-[8.5px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0"
+              title="행성 착륙 방법 가이드"
+            >
+              <HelpCircle className="w-3 h-3 text-cyan-400 shrink-0" />
+              <span>착륙가이드</span>
+            </button>
           </div>
 
-          {/* Landing Guide Help Button */}
-          <button
-            onClick={() => {
-              AudioSys.playNote(540, 'sine', 0.1);
-              setShowLandingGuide(true);
-            }}
-            className="h-7 xs:h-8 sm:h-9 px-1.5 xs:px-2 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-cyan-400/50 rounded-lg flex items-center gap-1 text-[8.5px] xs:text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0"
-            title="행성 착륙 방법 가이드"
-          >
-            <HelpCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-cyan-400 shrink-0" />
-            <span className="hidden xs:inline sm:inline">착륙가이드</span>
-          </button>
-
-          {/* AI Demo Showcase Toggle Button */}
-          <button
-            onClick={() => {
-              AudioSys.unlockOnFirstInteraction();
-              if (isAutoPilot) {
-                game.disengageAutoPilot();
-              } else {
-                game.engageAutoPilot();
-              }
-            }}
-            className={`h-7 xs:h-8 sm:h-9 px-1.5 xs:px-2 rounded-lg flex items-center gap-1 text-[8.5px] xs:text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0 border transition-all ${
-              isAutoPilot
-                ? 'bg-rose-950/90 hover:bg-rose-900 border-rose-400 text-rose-300 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.4)]'
-                : 'bg-cyan-950/80 hover:bg-cyan-900 border-cyan-400/60 text-cyan-200 hover:text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]'
-            }`}
-            title={isAutoPilot ? '데모플레이 정지 (수동 조작)' : 'AI 77개 전 기능 전체 데모플레이 시작'}
-          >
-            <span className="text-[11px] xs:text-xs">🎬</span>
-            <span className="font-mono text-[8.5px] xs:text-[9px]">{isAutoPilot ? '데모중지' : '데모'}</span>
-          </button>
-        </div>
-
-        {/* Center: In-Space Planet Navigation & Auto-Align Bar */}
-        {gameState === 'SPACE' && nearestPlanet && (
-          <div className={`flex items-center justify-center gap-1.5 sm:gap-2 backdrop-blur-md px-3 py-1.5 rounded-full border shadow-lg transition-all animate-in fade-in duration-200 ${
-            isInsidePlanet
-              ? 'bg-emerald-950/95 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.5)]'
-              : 'bg-slate-950/90 border-cyan-400/60 shadow-[0_0_20px_rgba(0,229,255,0.3)]'
-          }`}>
-            <div className="flex items-center gap-1.5 text-xs font-mono">
-              <span className="text-base">{isInsidePlanet ? '🛬' : '🪐'}</span>
-              <span className="font-bold text-white truncate max-w-[110px] sm:max-w-[150px]">
-                {insidePlanet ? insidePlanet.name : nearestPlanet.name}
-              </span>
-              <span className={`text-[10px] font-bold font-mono ${isInsidePlanet ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                {isInsidePlanet ? '대기권 비행 중' : `${nearestDist.toLocaleString()}u`}
-              </span>
-              <span className="text-[9px] text-cyan-300/80 hidden md:inline">
-                [{insidePlanet ? insidePlanet.type : nearestPlanet.type}]
-              </span>
-            </div>
-
-            {/* In-Planet Direct Landing Button ("그 상태에서 착륙버튼 표시") */}
-            {isInsidePlanet ? (
-              <button
-                onClick={() => {
-                  AudioSys.unlockOnFirstInteraction();
-                  game.landCurrentShip(insidePlanet);
-                }}
-                className="px-3 py-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 text-black font-black rounded-full text-xs font-mono flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.9)] animate-bounce whitespace-nowrap"
-                title="현재 위치에 비행기 착륙 [E]"
-              >
-                <span>🛬 지금 착륙</span>
-                <span className="text-[9px] bg-black/20 px-1 rounded text-black font-mono">[E]</span>
-              </button>
-            ) : (
-              <>
-                {/* Quick Auto-Align Direction Button */}
-                <button
-                  onClick={() => {
-                    AudioSys.unlockOnFirstInteraction();
-                    game.alignToNearestPlanet();
-                  }}
-                  className="px-2.5 py-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-bold rounded-full text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-[0_0_10px_rgba(0,229,255,0.4)] whitespace-nowrap"
-                >
-                  <Navigation className="w-3 h-3 text-cyan-200 animate-spin" style={{ animationDuration: '6s' }} />
-                  <span>방향 정렬</span>
-                </button>
-
-                {/* Direct Land Button */}
-                {isLandingReady && (
+          {/* Center: In-Space / In-Planet Quick Actions (Desktop md: and above) */}
+          <div className="hidden md:flex items-center justify-center shrink-0">
+            {gameState === 'SPACE' && nearestPlanet && (
+              <div className={`flex items-center justify-center gap-1.5 sm:gap-2 backdrop-blur-md px-3 py-1 rounded-full border shadow-lg transition-all animate-in fade-in duration-200 ${
+                isInsidePlanet
+                  ? 'bg-emerald-950/95 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+                  : 'bg-slate-950/90 border-cyan-400/60 shadow-[0_0_15px_rgba(0,229,255,0.3)]'
+              }`}>
+                <div className="flex items-center gap-1.5 text-xs font-mono">
+                  <span className="text-sm">{isInsidePlanet ? '🛬' : '🪐'}</span>
+                  <span className="font-bold text-white truncate max-w-[120px]">
+                    {insidePlanet ? insidePlanet.name : nearestPlanet.name}
+                  </span>
+                  <span className={`text-[10px] font-bold font-mono ${isInsidePlanet ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                    {isInsidePlanet ? '대기권 비행 중' : `${nearestDist.toLocaleString()}u`}
+                  </span>
+                </div>
+                {isInsidePlanet ? (
                   <button
                     onClick={() => {
                       AudioSys.unlockOnFirstInteraction();
-                      game.enterAtmosphere(nearestPlanet);
+                      game.landCurrentShip(insidePlanet);
                     }}
-                    className="px-2.5 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-bold rounded-full text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.5)] animate-pulse whitespace-nowrap"
+                    className="px-2.5 py-0.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 text-black font-black rounded-full text-[11px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.8)] whitespace-nowrap"
                   >
-                    <span>🛬 대기권 착륙</span>
+                    <span>🛬 지금 착륙</span>
+                    <span className="text-[8.5px] bg-black/20 px-1 rounded text-black font-mono">[E]</span>
                   </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        AudioSys.unlockOnFirstInteraction();
+                        game.alignToNearestPlanet();
+                      }}
+                      className="px-2 py-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-bold rounded-full text-[9.5px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm whitespace-nowrap"
+                    >
+                      <Navigation className="w-2.5 h-2.5 text-cyan-200 animate-spin" style={{ animationDuration: '6s' }} />
+                      <span>방향 정렬</span>
+                    </button>
+                    {isLandingReady && (
+                      <button
+                        onClick={() => {
+                          AudioSys.unlockOnFirstInteraction();
+                          game.enterAtmosphere(nearestPlanet);
+                        }}
+                        className="px-2 py-0.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-bold rounded-full text-[9.5px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm whitespace-nowrap"
+                      >
+                        <span>🛬 대기권 착륙</span>
+                      </button>
+                    )}
+                  </>
                 )}
-              </>
+              </div>
+            )}
+
+            {gameState === 'PLANET' && (
+              <div className="flex items-center justify-center gap-2 bg-slate-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-400/60 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-in fade-in duration-200">
+                <div className="flex items-center gap-1 text-xs font-mono">
+                  <span className="text-sm">👤</span>
+                  <span className="font-bold text-emerald-300">엑소슈트</span>
+                </div>
+                <button
+                  onClick={() => {
+                    AudioSys.unlockOnFirstInteraction();
+                    game.launchToOrbit();
+                  }}
+                  className="px-2.5 py-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-bold rounded-full text-[9.5px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm whitespace-nowrap"
+                  title="우주선에 탑승하여 궤도로 발사"
+                >
+                  <span>🚀 우주선 탑승 / 발사</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Sentinel Indicators, Currency, 3D Switch, Demo Toggle, Drawer Menu */}
+          <div className="flex items-center justify-end gap-1 xs:gap-1.5 shrink-0">
+            {/* Sentinel 5-Tier Diamond Indicators */}
+            <div id="sentinel-alert-container" className="flex items-center gap-0.5 xs:gap-1 bg-slate-950/85 backdrop-blur-md px-1 xs:px-1.5 py-0.5 rounded-lg border border-red-500/30 shadow-md">
+              <span className="text-[7.5px] sm:text-[8px] font-bold font-mono text-red-400 mr-0.5 hidden sm:inline">센티넬</span>
+              {[1, 2, 3, 4, 5].map((tier) => (
+                <div
+                  key={tier}
+                  className={`sentinel-diamond ${sentinelAlert >= tier ? 'active' : ''}`}
+                  title={`센티넬 위협 레벨 ${tier}`}
+                />
+              ))}
+            </div>
+
+            {/* Currency Badges (Hidden on mobile phone, visible on sm:+) */}
+            <div className="hidden sm:flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-1.5 py-0.5 rounded-lg border border-white/10 text-[8px] sm:text-[8.5px] font-mono shadow-md">
+              <span className="text-yellow-400 font-bold">
+                {units >= 1000000 ? `${(units / 1000000).toFixed(1)}M` : units >= 1000 ? `${(units / 1000).toFixed(1)}k` : units} ₩
+              </span>
+              <span className="text-cyan-300 font-bold">
+                {nanites >= 1000 ? `${(nanites / 1000).toFixed(1)}k` : nanites} ⬡
+              </span>
+              {quicksilver > 0 && <span className="text-purple-400 font-bold hidden md:inline">{quicksilver} ◈</span>}
+            </div>
+
+            {/* Combat Arsenal (Desktop lg+) */}
+            {onOpenArsenal && (
+              <button
+                onClick={() => {
+                  AudioSys.unlockOnFirstInteraction();
+                  onOpenArsenal();
+                }}
+                className="hidden lg:flex h-7 xs:h-7.5 sm:h-8 px-1.5 bg-gradient-to-r from-orange-600/90 to-amber-600/90 hover:from-orange-500 text-white font-bold rounded-lg border border-orange-300/80 text-[8.5px] items-center gap-0.5 shadow-md active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+                title="다목적 도구 전투 화기 4-탭 사령부 매트릭스 [Alt+X / /]"
+              >
+                <span>🔫</span>
+                <span className="font-mono text-[8px] font-extrabold">화기</span>
+              </button>
+            )}
+
+            {/* Custom Difficulty (Desktop xl+) */}
+            {onOpenDifficulty && (
+              <button
+                onClick={() => {
+                  AudioSys.unlockOnFirstInteraction();
+                  onOpenDifficulty();
+                }}
+                className="hidden xl:flex h-7 xs:h-7.5 sm:h-8 px-1.5 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 text-white font-bold rounded-lg border border-amber-300/80 text-[8.5px] items-center gap-0.5 shadow-md active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+                title="커스텀 난이도 & 10대 게임플레이 조절 매트릭스 [F9]"
+              >
+                <span>⚙️</span>
+                <span className="font-mono text-[8px] font-extrabold">
+                  {game.data.difficultySettings?.preset || 'NORMAL'}
+                </span>
+              </button>
+            )}
+
+            {/* 3D / 2D Dimension Switcher Button */}
+            {onToggleDimension && (
+              <button
+                onClick={() => {
+                  AudioSys.playNote(720, 'sine', 0.1);
+                  onToggleDimension();
+                }}
+                className={`h-7 xs:h-7.5 sm:h-8 px-1.5 xs:px-2 rounded-lg flex items-center gap-0.5 xs:gap-1 text-[8px] xs:text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0 border transition-all ${
+                  is3DActive
+                    ? 'bg-gradient-to-r from-blue-900/90 to-cyan-900/90 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(56,189,248,0.4)]'
+                    : 'bg-slate-900/90 border-slate-700 text-slate-300 hover:text-white'
+                }`}
+                title="3D Three.js 차원 / 2D 클래식 뷰포트 전환"
+              >
+                <Sparkles className={`w-2.5 h-2.5 xs:w-3 xs:h-3 ${is3DActive ? 'text-cyan-300 animate-pulse' : 'text-slate-400'}`} />
+                <span className="font-mono font-extrabold">{is3DActive ? '3D' : '2D'}</span>
+              </button>
+            )}
+
+            {/* AI Demo Showcase Toggle Button */}
+            <button
+              onClick={() => {
+                AudioSys.unlockOnFirstInteraction();
+                if (isAutoPilot) {
+                  game.disengageAutoPilot();
+                } else {
+                  game.engageAutoPilot();
+                }
+              }}
+              className={`h-7 xs:h-7.5 sm:h-8 px-1.5 xs:px-2 rounded-lg flex items-center gap-0.5 xs:gap-1 text-[8px] xs:text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0 border transition-all ${
+                isAutoPilot
+                  ? 'bg-rose-950/90 hover:bg-rose-900 border-rose-400 text-rose-300 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.4)]'
+                  : 'bg-cyan-950/80 hover:bg-cyan-900 border-cyan-400/60 text-cyan-200 hover:text-white shadow-[0_0_8px_rgba(0,229,255,0.3)]'
+              }`}
+              title={isAutoPilot ? '데모플레이 정지 (수동 조작)' : 'AI 77개 전 기능 전체 데모플레이 시작'}
+            >
+              <span className="text-[9.5px] xs:text-[10.5px]">🎬</span>
+              <span className="font-mono font-extrabold">{isAutoPilot ? '정지' : '데모'}</span>
+            </button>
+
+            {/* Quick Menu Button (Opens Full Mobile Drawer) */}
+            <button
+              onClick={onOpenDrawer}
+              className="h-7 xs:h-7.5 sm:h-8 px-1.5 xs:px-2 sm:px-2.5 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-[8.5px] xs:text-[9.5px] flex items-center gap-1 shadow-[0_0_12px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+              title="전체 기능 사령부 서랍 열기"
+            >
+              <Menu className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
+              <span className="font-mono tracking-wider font-extrabold">메뉴</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Contextual Navigation Sub-Pill on Mobile (Hidden when Autopilot Demo is running to prevent overlap) */}
+        {!isAutoPilot && (
+          <div className="md:hidden flex justify-center mt-1 pointer-events-auto max-w-full">
+            {gameState === 'SPACE' && nearestPlanet && (
+              <div className={`flex items-center gap-1 xs:gap-1.5 backdrop-blur-md px-2 xs:px-2.5 py-0.5 rounded-full border shadow-md text-[9px] xs:text-[10px] font-mono transition-all ${
+                isInsidePlanet
+                  ? 'bg-emerald-950/95 border-emerald-400 text-emerald-200'
+                  : 'bg-slate-950/90 border-cyan-400/60 text-white'
+              }`}>
+                <span>{isInsidePlanet ? '🛬' : '🪐'}</span>
+                <span className="font-bold truncate max-w-[90px] xs:max-w-[120px]">
+                  {insidePlanet ? insidePlanet.name : nearestPlanet.name}
+                </span>
+                <span className={`text-[8.5px] xs:text-[9px] font-bold ${isInsidePlanet ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                  {isInsidePlanet ? '대기권' : `${nearestDist.toLocaleString()}u`}
+                </span>
+                {isInsidePlanet ? (
+                  <button
+                    onClick={() => {
+                      AudioSys.unlockOnFirstInteraction();
+                      game.landCurrentShip(insidePlanet);
+                    }}
+                    className="ml-0.5 px-2 py-0.5 bg-emerald-500 text-black font-black rounded-full text-[8.5px] xs:text-[9px] active:scale-95 whitespace-nowrap cursor-pointer shadow"
+                  >
+                    🛬 착륙
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        AudioSys.unlockOnFirstInteraction();
+                        game.alignToNearestPlanet();
+                      }}
+                      className="px-1.5 py-0.5 bg-cyan-700 text-white rounded-full text-[8px] xs:text-[8.5px] active:scale-95 whitespace-nowrap cursor-pointer"
+                    >
+                      정렬
+                    </button>
+                    {isLandingReady && (
+                      <button
+                        onClick={() => {
+                          AudioSys.unlockOnFirstInteraction();
+                          game.enterAtmosphere(nearestPlanet);
+                        }}
+                        className="px-1.5 py-0.5 bg-emerald-600 text-white font-bold rounded-full text-[8px] xs:text-[8.5px] active:scale-95 whitespace-nowrap cursor-pointer"
+                      >
+                        착륙
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {gameState === 'PLANET' && (
+              <div className="flex items-center gap-1.5 bg-slate-950/90 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-emerald-400/50 shadow-md text-[9px] xs:text-[10px] font-mono">
+                <span>👤</span>
+                <span className="font-bold text-emerald-300">엑소슈트</span>
+                <button
+                  onClick={() => {
+                    AudioSys.unlockOnFirstInteraction();
+                    game.launchToOrbit();
+                  }}
+                  className="px-2 py-0.5 bg-cyan-600 text-white font-bold rounded-full text-[8.5px] xs:text-[9px] active:scale-95 cursor-pointer whitespace-nowrap shadow"
+                >
+                  🚀 우주선 탑승
+                </button>
+              </div>
             )}
           </div>
         )}
-
-        {/* Center: In-Planet Exosuit Human Mode Indicator & Takeoff Button */}
-        {gameState === 'PLANET' && (
-          <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-950/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-emerald-400/60 shadow-[0_0_20px_rgba(16,185,129,0.3)] animate-in fade-in duration-200">
-            <div className="flex items-center gap-1.5 text-xs font-mono">
-              <span className="text-base">👤</span>
-              <span className="font-bold text-emerald-300">
-                엑소슈트
-              </span>
-              {/* Active Weapon Tracking Indicator */}
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 bg-black/60 border-white/20">
-                <span className={
-                  game.data.toolMode === 'MINING BEAM' ? 'text-emerald-400' :
-                  game.data.toolMode === 'BOLTCASTER' ? 'text-red-400' :
-                  game.data.toolMode === 'TERRAIN MANIPULATOR' ? 'text-sky-400' : 'text-purple-400'
-                }>
-                  🎯 {game.data.toolMode === 'MINING BEAM' ? '광맥 추적' :
-                      game.data.toolMode === 'BOLTCASTER' ? '센티넬 조준' :
-                      game.data.toolMode === 'TERRAIN MANIPULATOR' ? '동굴/지형' : '외계동물'}
-                </span>
-              </span>
-            </div>
-
-            {/* Quick Takeoff to Space Flight Button */}
-            <button
-              onClick={() => {
-                AudioSys.unlockOnFirstInteraction();
-                game.launchToOrbit();
-              }}
-              className="px-3 py-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white font-bold rounded-full text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-[0_0_10px_rgba(0,229,255,0.4)] whitespace-nowrap"
-              title="우주선에 탑승하여 궤도로 발사 (비행기 모드 전환)"
-            >
-              <span>🚀 우주선 탑승 / 발사</span>
-            </button>
-          </div>
-        )}
-
-        {/* Right: Sentinel 5-Tier Diamond Indicators & Currency summary & Command Hub Drawer Button */}
-        <div className="flex items-center justify-end gap-1 xs:gap-1.5 sm:gap-2 max-w-full flex-wrap sm:flex-nowrap">
-          {/* Sentinel 5-Tier Diamond Indicators */}
-          <div id="sentinel-alert-container" className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg border border-red-500/30 shadow-md">
-            <span className="text-[8px] sm:text-[8.5px] font-bold font-mono text-red-400 mr-0.5 hidden sm:inline">센티넬</span>
-            {[1, 2, 3, 4, 5].map((tier) => (
-              <div
-                key={tier}
-                className={`sentinel-diamond ${sentinelAlert >= tier ? 'active' : ''}`}
-                title={`센티넬 위협 레벨 ${tier}`}
-              />
-            ))}
-          </div>
-
-          {/* Compact Currency Badges */}
-          <div className="hidden xs:flex sm:flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-1.5 xs:px-2 py-0.5 sm:py-1 rounded-lg border border-white/10 text-[8px] xs:text-[9px] font-mono shadow-md">
-            <span className="text-yellow-400 font-bold">
-              {units >= 1000000 ? `${(units / 1000000).toFixed(1)}M` : units >= 1000 ? `${(units / 1000).toFixed(1)}k` : units} ₩
-            </span>
-            <span className="text-cyan-300 font-bold">
-              {nanites >= 1000 ? `${(nanites / 1000).toFixed(1)}k` : nanites} ⬡
-            </span>
-            {quicksilver > 0 && <span className="text-purple-400 font-bold hidden sm:inline">{quicksilver} ◈</span>}
-          </div>
-
-          {/* v5.50.0 Combat Arsenal Command Matrix Quick Button */}
-          {onOpenArsenal && (
-            <button
-              onClick={() => {
-                AudioSys.unlockOnFirstInteraction();
-                onOpenArsenal();
-              }}
-              className="h-7 xs:h-8 sm:h-9 px-1 xs:px-1.5 sm:px-2 bg-gradient-to-r from-orange-600/90 to-amber-600/90 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg border border-orange-300/80 text-[8.5px] xs:text-[9.5px] sm:text-xs flex items-center gap-0.5 xs:gap-1 shadow-[0_0_15px_rgba(249,115,22,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
-              title="다목적 도구 전투 화기 4-탭 사령부 매트릭스 [Alt+X / /]"
-            >
-              <span>🔫</span>
-              <span className="font-mono text-[8px] xs:text-[9px] font-extrabold hidden xs:inline sm:inline">화기</span>
-            </button>
-          )}
-
-          {/* v5.51.0 Waypoint 4.0 Custom Difficulty Quick Button */}
-          {onOpenDifficulty && (
-            <button
-              onClick={() => {
-                AudioSys.unlockOnFirstInteraction();
-                onOpenDifficulty();
-              }}
-              className="h-7 xs:h-8 sm:h-9 px-1 xs:px-1.5 sm:px-2 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 hover:to-yellow-500 text-white font-bold rounded-lg border border-amber-300/80 text-[8.5px] xs:text-[9.5px] sm:text-xs flex items-center gap-0.5 xs:gap-1 shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
-              title="커스텀 난이도 & 10대 게임플레이 조절 매트릭스 [F9]"
-            >
-              <span>⚙️</span>
-              <span className="font-mono text-[8px] xs:text-[9px] font-extrabold hidden xs:inline sm:inline">
-                {game.data.difficultySettings?.preset || 'NORMAL'}
-              </span>
-            </button>
-          )}
-
-          {/* Quick Menu Button (Opens Full Mobile Drawer) */}
-          <button
-            onClick={onOpenDrawer}
-            className="h-7 xs:h-8 sm:h-9 px-1.5 xs:px-2 sm:px-2.5 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-[9px] xs:text-[10px] flex items-center gap-1 shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
-          >
-            <Menu className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
-            <span className="font-mono tracking-wider font-extrabold">메뉴</span>
-          </button>
-        </div>
       </div>
 
       {/* Warnings & Banners Center */}

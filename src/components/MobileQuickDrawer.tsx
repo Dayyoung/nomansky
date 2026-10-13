@@ -40,6 +40,17 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
   if (!isOpen) return null;
 
   const actions: QuickActionItem[] = [
+    // 🌌 3D Universe Engine
+    {
+      id: '3d-dimension',
+      name: "3D No Man's Sky 차원 엔진",
+      category: 'ship',
+      icon: '🌌',
+      hotkey: '[3D]',
+      color: 'border-cyan-400 bg-gradient-to-r from-cyan-950/80 to-blue-950/80 text-cyan-200',
+      desc: 'Three.js 3D 실시간 은하계 & 행성 표면 탐사 뷰포트 전환',
+      onClick: () => onOpenModal('3d-dimension')
+    },
     // 🛸 함선 & 비행
     {
       id: 'ship-switch',

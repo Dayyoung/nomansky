@@ -1,6 +1,6 @@
 {
   "name": "No Man's Sky 2D - Mobile Edition",
-  "description": "노맨즈스카이 2D 모바일 에디션 v5.50.0 (Sentinel 3.8 & Waypoint 4.0): 다목적 도구 전투 화기 & 중화기 사령부 매트릭스, 5대 전문 주무기, 보조 유탄/지질학 캐논, 과급 오버클럭, 가상 조이스틱 터치 컨트롤 및 모바일 최적화 HUD 지원",
+  "description": "노맨즈스카이 Three.js 3D 실시간 우주 탐사 엔진 & 차원 매트릭스: 3D 성간 비행, 행성 표면 3D 지형 탐사, 다목적 도구 채굴 레이저, 우주정거장 도킹, 소행성대 파괴 및 원본 100% 동일 콘텐츠 시스템 지원",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

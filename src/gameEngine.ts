@@ -29,6 +29,7 @@ import {
   DifficultyPreset,
   DifficultySettings
 } from './types';
+import { MilestoneBannerData } from './types/banner';
 
 export const DIFFICULTY_PRESETS: Record<Exclude<DifficultyPreset, 'CUSTOM'>, DifficultySettings> = {
   NORMAL: {
@@ -190,6 +191,7 @@ export class GameEngine {
     interactProgress: 0,
     activeInteractAction: null as (() => void) | null,
     floatingTexts: [] as FloatingText[],
+    activeMilestoneBanner: null as MilestoneBannerData | null,
     nautilon: {
       unlocked: true,
       boarded: false,
@@ -753,6 +755,31 @@ export class GameEngine {
     this.notify();
   }
 
+  private milestoneBannerTimer: any = null;
+
+  public triggerMilestoneBanner(banner: Omit<MilestoneBannerData, 'id'>) {
+    if (this.milestoneBannerTimer) {
+      clearTimeout(this.milestoneBannerTimer);
+      this.milestoneBannerTimer = null;
+    }
+    const fullBanner: MilestoneBannerData = {
+      id: Date.now(),
+      durationMs: banner.durationMs || 4200,
+      ...banner
+    };
+    this.data.activeMilestoneBanner = fullBanner;
+    AudioSys.playDiscoveryFanfare();
+    this.notify();
+
+    this.milestoneBannerTimer = setTimeout(() => {
+      if (this.data.activeMilestoneBanner?.id === fullBanner.id) {
+        this.data.activeMilestoneBanner = null;
+        this.notify();
+      }
+      this.milestoneBannerTimer = null;
+    }, fullBanner.durationMs);
+  }
+
   public launchToOrbit() {
     if (this.currState !== 'PLANET' || !this.data.activePlanet) return;
     const p = this.data.activePlanet;
@@ -807,6 +834,13 @@ export class GameEngine {
     };
 
     AudioSys.playDiscoveryFanfare();
+    this.triggerMilestoneBanner({
+      category: '행성 탐사 // PLANETARY DISCOVERY',
+      title: targetPlanet.name,
+      subTitle: `환경: ${targetPlanet.type} // 위험 등급: ${targetPlanet.hazardType}`,
+      rank: 'FIRST CONTACT',
+      color: targetPlanet.color || '#10b981'
+    });
     this.spawnFloatText(`🛬 ${targetPlanet.name} 안전 착륙 완료!`, undefined, undefined, '#10b981');
     this.spawnFloatText(`👤 엑소슈트 사람(보행) 모드로 전환되었습니다`, undefined, this.height / 2 - 30, '#00e5ff');
     this.spawnFloatText(`방호 환경 작동: ${targetPlanet.hazardType}`, undefined, this.height / 2 - 5, '#ffb703');
@@ -1819,8 +1853,19 @@ export class GameEngine {
 
     if (isSpacePhase && this.currState !== 'SPACE') {
       this.launchToOrbit();
-    } else if (!isSpacePhase && cfg.phase !== 'LAUNCH_ORBIT' && this.currState === 'SPACE' && this.entities.planets.length > 0) {
-      this.landCurrentShip(this.entities.planets[0]);
+      this.currState = 'SPACE';
+      // Ensure ship position is safely out of planet landing radius to avoid immediate re-landing
+      if (this.data.activePlanet) {
+        this.player.x = this.data.activePlanet.x + this.data.activePlanet.r * 2.5;
+        this.player.y = this.data.activePlanet.y + this.data.activePlanet.r * 2.5;
+      }
+    } else if (!isSpacePhase && cfg.phase !== 'LAUNCH_ORBIT' && this.entities.planets.length > 0) {
+      const targetPlanet = this.data.activePlanet || this.entities.planets[0];
+      if (this.currState === 'SPACE') {
+        this.landCurrentShip(targetPlanet);
+      }
+      this.data.activePlanet = targetPlanet;
+      this.currState = 'PLANET';
     }
 
     if (cfg.phase !== 'SPACE_COMBAT') {
@@ -2002,8 +2047,36 @@ export class GameEngine {
           this.spawnFloatText("💥 해적 인터셉터 요격 격침! (+2,500 ₩ 현상금, +50 ⬡)", undefined, undefined, '#fbbf24');
         }
 
-        // 행성 지표면 착륙
-        if (dist <= target.r * 0.85) {
+        // Specific space phase check - do NOT land during space exclusive phases
+        const curDemoCfg = GameEngine.DEMO_PHASES[this.demoPhaseIndex];
+        const isSpacePhase = [
+          'SPACE_PULSE', 'SPACE_COMBAT', 'STARSHIP_CYCLE', 'SOLAR_SAIL',
+          'SPACE_STATION', 'GALAXY_MAP', 'PIRATE_DREADNOUGHT', 'OUTLAW_STATION',
+          'SPACE_ANOMALY', 'BLACK_HOLE', 'DERELICT_FREIGHTER', 'EVA_SPACEWALK',
+          'SHIP_FABRICATION', 'STARSHIP_WEAPONS', 'GALACTIC_CORE', 'ORGANIC_FLEET',
+          'PLANET_APPROACH', 'FREIGHTER_FLEET', 'SQUADRON_COMMAND', 'STATION_TECH_MERCHANTS', 'STARSHIP_SCRAPPER'
+        ].includes(curDemoCfg?.phase || '');
+
+        if (curDemoCfg?.phase === 'DERELICT_FREIGHTER') {
+          this.data.demoShowcase.currentActivity = 'SPACE_FLIGHT';
+          this.data.demoShowcase.activityLabel = '☠️ 버려진 화물선 수색: MS-7 헤스페로스 잔해 인양';
+          if (this.demoActionSubTimer % 90 === 30) {
+            this.data.taintedMetal = (this.data.taintedMetal || 0) + 40;
+            this.data.units += 100000;
+            AudioSys.playDiscoveryFanfare();
+            this.spawnFloatText("📦 응급 감압 격실 돌파 // 오염된 금속 +40, 화물 격벽 인양", undefined, undefined, '#fbbf24');
+          }
+        } else if (curDemoCfg?.phase === 'EVA_SPACEWALK') {
+          this.data.demoShowcase.currentActivity = 'SPACE_FLIGHT';
+          this.data.demoShowcase.activityLabel = '🌌 무중력 EVA 우주유영: 화물선 외벽 캣워크 점검';
+          if (this.demoActionSubTimer % 90 === 45) {
+            AudioSys.playPulseDrive();
+            this.spawnFloatText("🌌 심우주 무중력 EVA 유영 // 선체 외벽 가스 집진기 점검 완료", undefined, undefined, '#38bdf8');
+          }
+        }
+
+        // 행성 지표면 착륙 (오직 지표면 탐사 및 착륙 단계에서만 수행)
+        if (!isSpacePhase && dist <= target.r * 0.85) {
           this.data.isPulseActive = false;
           this.landCurrentShip(target);
           AudioSys.playDiscoveryFanfare();
@@ -2846,6 +2919,13 @@ export class GameEngine {
         this.currState = 'SPACE';
         this.warpProgress = 0;
         AudioSys.playDiscoveryFanfare();
+        this.triggerMilestoneBanner({
+          category: '초공간 워프 // HYPERSPACE JUMP',
+          title: '새로운 항성계 도달',
+          subTitle: '유클리드 제3 섹터 // 미지의 좌표 동기화 완료',
+          rank: 'WARP MASTER',
+          color: '#38bdf8'
+        });
         this.spawnFloatText("워프 도약 완료 // 신규 성계 도달", undefined, undefined, '#00e5ff');
       }
       return;
@@ -2918,11 +2998,14 @@ export class GameEngine {
       this.engageAutoPilot();
     }
 
+    // Always update demo showcase continuously if active
+    if (this.isAutoPilot) {
+      this.updateDemoShowcase();
+    }
+
     // SPACE STATE
     if (this.currState === 'SPACE') {
-      if (this.isAutoPilot) {
-        this.updateDemoShowcase();
-      } else {
+      if (!this.isAutoPilot) {
         // MANUAL PLAYER FLIGHT CONTROLS
         const isThrusting = (this.touchControls.isJetpacking || this.keyboard.space || inputLen > 0.1);
         if (inputLen > 0.08) {
@@ -3033,12 +3116,11 @@ export class GameEngine {
     }
 
     // PLANET STATE
-    if (this.currState === 'PLANET' && this.data.activePlanet) {
-      const p = this.data.activePlanet;
+    if (this.currState === 'PLANET') {
+      const p = this.data.activePlanet || this.entities.planets[0];
+      if (!this.data.activePlanet && p) this.data.activePlanet = p;
 
-      if (this.isAutoPilot) {
-        this.updateDemoShowcase();
-      } else {
+      if (!this.isAutoPilot) {
         // Walking movement
         const walkSpeed = this.keyboard.shift ? 4.2 : 2.8;
         if (inputLen > 0.08) {

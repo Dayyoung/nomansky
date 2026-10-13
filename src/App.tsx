@@ -8,10 +8,15 @@ import { MobileHUD } from './components/MobileHUD';
 import { MobileQuickDrawer } from './components/MobileQuickDrawer';
 import { MobileModals } from './components/MobileModals';
 import { DemoShowcaseHUD } from './components/DemoShowcaseHUD';
+import { ThreeCanvas } from './components/ThreeCanvas';
+import { AnalysisVisorHUD } from './components/AnalysisVisorHUD';
+import { CinematicMilestoneBanner } from './components/CinematicMilestoneBanner';
 import { ToolMode, ShipType, DemoShowcaseState } from './types';
+import { MilestoneBannerData } from './types/banner';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [is3DActive, setIs3DActive] = useState<boolean>(true);
 
   // Reactive state synced with game engine
   const [gameState, setGameState] = useState<'SPACE' | 'PLANET' | 'WARP'>('SPACE');
@@ -55,6 +60,7 @@ export default function App() {
   const [isQuickDrawerOpen, setIsQuickDrawerOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [demoShowcase, setDemoShowcase] = useState<DemoShowcaseState>(game.data.demoShowcase);
+  const [activeMilestoneBanner, setActiveMilestoneBanner] = useState<MilestoneBannerData | null>(game.data.activeMilestoneBanner);
 
   // Sync with engine
   const syncWithEngine = useCallback(() => {
@@ -92,6 +98,7 @@ export default function App() {
     setCombatWeapons({ ...game.data.combatWeapons });
     setSecondaryWeapons({ ...game.data.secondaryWeapons });
     setDemoShowcase({ ...game.data.demoShowcase });
+    setActiveMilestoneBanner(game.data.activeMilestoneBanner ? { ...game.data.activeMilestoneBanner } : null);
 
     // AI Demo Showcase Modal auto sync
     if (game.isAutoPilot && game.data.demoShowcase.isActive) {
@@ -136,6 +143,10 @@ export default function App() {
       if (code === 'Space') game.keyboard.space = 1;
       if (code === 'ShiftLeft' || code === 'ShiftRight') game.keyboard.shift = 1;
       if (code === 'KeyE') game.keyboard.e = 1;
+      if (code === 'KeyF') {
+        game.data.isVisorActive = !game.data.isVisorActive;
+        setIsVisorActive(game.data.isVisorActive);
+      }
 
       if (code === 'Tab') {
         e.preventDefault();
@@ -393,10 +404,18 @@ export default function App() {
       <div className="scanlines" />
       <div className="vignette" />
 
-      {/* Main 2D WebGL/Canvas Viewport */}
+      {/* 3D Three.js Universe Engine Viewport */}
+      <ThreeCanvas
+        is3DActive={is3DActive}
+        onToggleDimension={() => setIs3DActive(!is3DActive)}
+      />
+
+      {/* Main 2D WebGL/Canvas Viewport (Tactical / Classic Mode) */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full block cursor-crosshair touch-none"
+        className={`absolute inset-0 w-full h-full block cursor-crosshair touch-none transition-opacity duration-300 ${
+          is3DActive ? 'opacity-0 pointer-events-none -z-10' : 'opacity-100 pointer-events-auto z-0'
+        }`}
         onMouseDown={() => {
           AudioSys.unlockOnFirstInteraction();
           game.mouse.isDown = true;
@@ -445,6 +464,8 @@ export default function App() {
         onResetZoom={() => game.resetZoom()}
         onOpenArsenal={() => setActiveModal('weapon-arsenal')}
         onOpenDifficulty={() => setActiveModal('custom-difficulty')}
+        is3DActive={is3DActive}
+        onToggleDimension={() => setIs3DActive(!is3DActive)}
         onOpenDrawer={() => {
           AudioSys.playNote(480, 'sine', 0.1);
           setIsQuickDrawerOpen(true);
@@ -455,6 +476,9 @@ export default function App() {
       {isAutoPilot && (
         <div className="fixed inset-0 pointer-events-none border-2 sm:border-4 border-cyan-400/50 shadow-[inset_0_0_60px_rgba(0,229,255,0.25)] z-30 animate-pulse" />
       )}
+
+      {/* Iconic No Man's Sky Cinematic Widescreen Milestone Banner */}
+      <CinematicMilestoneBanner banner={activeMilestoneBanner} />
 
       {/* Touch Controls Layout (Landscape & Portrait Responsive) */}
       <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-1.5 xs:p-2 sm:p-4 pb-safe max-w-full overflow-hidden">
@@ -656,6 +680,9 @@ export default function App() {
         onOpenModal={(modalId) => {
           if (modalId === 'ship-switch') {
             game.cycleStarship();
+          } else if (modalId === '3d-dimension') {
+            setIs3DActive((prev) => !prev);
+            setIsQuickDrawerOpen(false);
           } else {
             setActiveModal(modalId);
           }
@@ -667,9 +694,18 @@ export default function App() {
         activeModal={activeModal}
         onClose={() => {
           setActiveModal(null);
-          if (isAutoPilot) game.disengageAutoPilot();
         }}
       />
+
+      {/* 3D Analysis Visor Holographic HUD (F/C key) */}
+      {isVisorActive && (
+        <AnalysisVisorHUD
+          onClose={() => {
+            game.data.isVisorActive = false;
+            setIsVisorActive(false);
+          }}
+        />
+      )}
 
       {/* Cinematic AI Demo Showcase HUD Banner */}
       <DemoShowcaseHUD

@@ -99,12 +99,12 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
         />
       </div>
 
-      {/* 2. 간소화된 슬림 플로팅 데모 HUD (z-[100] - 화면 가림 최소화 & 가벼운 캡슐 형태) */}
+      {/* 2. 간소화된 슬림 플로팅 데모 HUD (상단 내비게이션 바와 겹치지 않게 top-10/top-14 도킹) */}
       <aside
         aria-label="AI 데모플레이 쇼케이스 HUD"
-        className="fixed top-2 sm:top-2.5 left-1/2 -translate-x-1/2 z-[100] w-[96%] max-w-xl pointer-events-auto transition-all duration-200"
+        className="fixed top-10 xs:top-11 sm:top-13 md:top-14 left-1/2 -translate-x-1/2 z-[35] w-[95%] max-w-xl pointer-events-auto transition-all duration-200"
       >
-        <div className="relative rounded-full sm:rounded-2xl bg-slate-950/85 border border-cyan-400/50 shadow-[0_4px_25px_rgba(0,0,0,0.6)] backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-white">
+        <div className="relative rounded-full sm:rounded-2xl bg-slate-950/90 border border-cyan-400/50 shadow-[0_4px_25px_rgba(0,0,0,0.6)] backdrop-blur-md px-2 xs:px-2.5 sm:px-3 py-0.5 xs:py-1 sm:py-1.5 text-white">
           {/* Main Slim Row: 모든 핵심 상태를 한 줄로 간소화 표시 */}
           <div className="flex items-center justify-between gap-1.5 sm:gap-2">
             {/* Left: 모드 뱃지 & 실시간 활동 상태 */}
