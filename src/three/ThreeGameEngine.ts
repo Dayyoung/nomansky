@@ -1142,28 +1142,83 @@ export class ThreeGameEngine {
       this.travelerGroup.position.copy(this.travelerPos);
       this.travelerGroup.rotation.set(0, this.travelerYaw, 0);
 
-      // Leg stride swing animation (Masterpiece Exosuit)
-      const legL = this.travelerGroup.getObjectByName('leg_l');
-      const legR = this.travelerGroup.getObjectByName('leg_r');
-      const armL = this.travelerGroup.getObjectByName('arm_l');
-      if (legL && legR) {
-        if (this.travelerWalkCycle > 0) {
-          legL.rotation.x = Math.sin(this.travelerWalkCycle) * 0.55;
-          legR.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.55;
-          if (armL) armL.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.45;
-        } else {
-          legL.rotation.x = 0;
-          legR.rotation.x = 0;
-          if (armL) armL.rotation.x = 0;
+      // 1. Pelvis, Torso & Head idle breathing and walking dynamics
+      const torsoNode = this.travelerGroup.getObjectByName('torso');
+      const headNode = this.travelerGroup.getObjectByName('head');
+      const pelvisNode = this.travelerGroup.getObjectByName('pelvis');
+      const isWalking = this.travelerWalkCycle > 0;
+
+      if (!this.isGrounded) {
+        // --- IN-AIR / JETPACK TRAILING LEGS POSE (Iconic No Man's Sky flight posture) ---
+        const legL = this.travelerGroup.getObjectByName('leg_l');
+        const legR = this.travelerGroup.getObjectByName('leg_r');
+        const armL = this.travelerGroup.getObjectByName('arm_l');
+        if (legL) legL.rotation.x = THREE.MathUtils.lerp(legL.rotation.x, -0.45, delta * 12.0);
+        if (legR) legR.rotation.x = THREE.MathUtils.lerp(legR.rotation.x, -0.32, delta * 12.0);
+        if (armL) armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, 0.25, delta * 12.0);
+
+        // Tilt jetpack thrusters downward to propel upward
+        const thrusterL = this.travelerGroup.getObjectByName('thruster_l');
+        const thrusterR = this.travelerGroup.getObjectByName('thruster_r');
+        if (thrusterL) thrusterL.rotation.x = 0.35;
+        if (thrusterR) thrusterR.rotation.x = 0.35;
+      } else if (isWalking) {
+        // --- AUTHENTIC WALKING & SPRINTING STRIDE ---
+        const legL = this.travelerGroup.getObjectByName('leg_l');
+        const legR = this.travelerGroup.getObjectByName('leg_r');
+        const armL = this.travelerGroup.getObjectByName('arm_l');
+        const strideSpeed = this.travelerWalkCycle;
+
+        if (legL) legL.rotation.x = Math.sin(strideSpeed) * 0.62;
+        if (legR) legR.rotation.x = -Math.sin(strideSpeed) * 0.62;
+        if (armL) armL.rotation.x = -Math.sin(strideSpeed) * 0.52;
+
+        if (pelvisNode) pelvisNode.rotation.z = Math.sin(strideSpeed) * 0.035;
+        if (torsoNode) {
+          torsoNode.position.y = Math.abs(Math.sin(strideSpeed * 2)) * 0.04;
+          torsoNode.rotation.y = Math.sin(strideSpeed) * 0.04;
+        }
+
+        // Return thrusters to neutral vertical
+        const thrusterL = this.travelerGroup.getObjectByName('thruster_l');
+        const thrusterR = this.travelerGroup.getObjectByName('thruster_r');
+        if (thrusterL) thrusterL.rotation.x = 0;
+        if (thrusterR) thrusterR.rotation.x = 0;
+      } else {
+        // --- SUBTLE IDLE BREATHING SWAY (Living Exosuit) ---
+        const legL = this.travelerGroup.getObjectByName('leg_l');
+        const legR = this.travelerGroup.getObjectByName('leg_r');
+        const armL = this.travelerGroup.getObjectByName('arm_l');
+        if (legL) legL.rotation.x = THREE.MathUtils.lerp(legL.rotation.x, 0, delta * 10.0);
+        if (legR) legR.rotation.x = THREE.MathUtils.lerp(legR.rotation.x, 0, delta * 10.0);
+        if (armL) armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, 0, delta * 10.0);
+
+        if (pelvisNode) pelvisNode.rotation.z = 0;
+        if (torsoNode) {
+          torsoNode.position.y = Math.sin(this.totalElapsedTime * 2.2) * 0.015;
+          torsoNode.rotation.y = 0;
+        }
+        if (headNode) {
+          headNode.rotation.y = Math.sin(this.totalElapsedTime * 0.8) * 0.05;
         }
       }
 
-      // Authentic limb & bounce animation for Kenney 3D GLB Model
+      // 2. Right Arm Weapon Recoil during mining/shooting
+      const armR = this.travelerGroup.getObjectByName('arm_r');
+      if (armR) {
+        if (isMining) {
+          armR.rotation.x = -Math.PI / 4.2 + (Math.sin(this.totalElapsedTime * 45) * 0.025);
+        } else {
+          armR.rotation.x = -Math.PI / 4.2;
+        }
+      }
+
+      // 3. Kenney GLB Model kinematic compatibility
       const glbLegL = this.travelerGroup.getObjectByName('glb_leg_l');
       const glbLegR = this.travelerGroup.getObjectByName('glb_leg_r');
       const glbArmL = this.travelerGroup.getObjectByName('glb_arm_l');
       if (glbLegL && glbLegR) {
-        if (this.travelerWalkCycle > 0) {
+        if (isWalking) {
           glbLegL.rotation.x = Math.sin(this.travelerWalkCycle) * 0.55;
           glbLegR.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.55;
           if (glbArmL) glbArmL.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.45;
@@ -1176,7 +1231,7 @@ export class ThreeGameEngine {
 
       const glbRoot = this.travelerGroup.getObjectByName('traveler_glb_root');
       if (glbRoot) {
-        if (this.travelerWalkCycle > 0) {
+        if (isWalking) {
           glbRoot.position.y = Math.abs(Math.sin(this.travelerWalkCycle * 2)) * 0.08;
           glbRoot.rotation.z = Math.sin(this.travelerWalkCycle) * 0.04;
         } else {
@@ -1185,11 +1240,18 @@ export class ThreeGameEngine {
         }
       }
 
-      // Jetpack Thruster Flame Visibility
+      // 4. Jetpack Dynamic Plasma Flames (Pulsing thrust particles)
       const flameL = this.travelerGroup.getObjectByName('jet_flame_l');
       const flameR = this.travelerGroup.getObjectByName('jet_flame_r');
-      if (flameL) flameL.visible = isJetpackActive;
-      if (flameR) flameR.visible = isJetpackActive;
+      if (flameL && flameR) {
+        flameL.visible = isJetpackActive;
+        flameR.visible = isJetpackActive;
+        if (isJetpackActive) {
+          const flamePulse = 0.88 + Math.sin(this.totalElapsedTime * 38) * 0.22;
+          flameL.scale.set(1.0, flamePulse, 1.0);
+          flameR.scale.set(1.0, flamePulse, 1.0);
+        }
+      }
     }
 
     // Parked Starship on surface near player

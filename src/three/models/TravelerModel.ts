@@ -3,45 +3,126 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export class TravelerBuilder {
   private static gltfLoader = new GLTFLoader();
+  private static hexBumpTexture: THREE.CanvasTexture | null = null;
+  private static carbonBumpTexture: THREE.CanvasTexture | null = null;
+
+  /**
+   * Generates a high-tech procedural hex weave bump map for exosuit armor plates
+   */
+  private static getHexBumpTexture(): THREE.CanvasTexture {
+    if (!this.hexBumpTexture) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(0, 0, 128, 128);
+        ctx.strokeStyle = '#a8a8a8';
+        ctx.lineWidth = 1.5;
+        const s = 16;
+        for (let y = 0; y < 128; y += s) {
+          for (let x = 0; x < 128; x += s) {
+            ctx.strokeRect(x + 1.5, y + 1.5, s - 3, s - 3);
+          }
+        }
+      }
+      this.hexBumpTexture = new THREE.CanvasTexture(canvas);
+      this.hexBumpTexture.wrapS = THREE.RepeatWrapping;
+      this.hexBumpTexture.wrapT = THREE.RepeatWrapping;
+      this.hexBumpTexture.repeat.set(5, 5);
+    }
+    return this.hexBumpTexture;
+  }
+
+  /**
+   * Generates fine carbon fiber weave bump map for technical exosuit fabrics
+   */
+  private static getCarbonBumpTexture(): THREE.CanvasTexture {
+    if (!this.carbonBumpTexture) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#777777';
+        ctx.fillRect(0, 0, 64, 64);
+        ctx.fillStyle = '#999999';
+        for (let y = 0; y < 64; y += 4) {
+          for (let x = 0; x < 64; x += 4) {
+            if ((x + y) % 8 === 0) {
+              ctx.fillRect(x, y, 4, 4);
+            }
+          }
+        }
+      }
+      this.carbonBumpTexture = new THREE.CanvasTexture(canvas);
+      this.carbonBumpTexture.wrapS = THREE.RepeatWrapping;
+      this.carbonBumpTexture.wrapT = THREE.RepeatWrapping;
+      this.carbonBumpTexture.repeat.set(8, 8);
+    }
+    return this.carbonBumpTexture;
+  }
 
   /**
    * Generates the Masterpiece 3D Traveler Astronaut model.
-   * Defaults to the Ultra-High-Fidelity No Man's Sky Exosuit (zero jitter, zero clipping, perfect PBR materials),
-   * while also seamlessly supporting Kenney Space Kit GLB models with exact origin recentering.
+   * Recreates the authentic No Man's Sky Anomaly Traveler Exosuit with museum-grade precision:
+   * Full-face amber bubble visor, Atlas life-support diamond core, dual swiveling thruster jetpack,
+   * tactical multi-tool blaster, wrist HUD terminal, and articulated magnetic planetary boots.
    */
   public static createTraveler(modelKey: string = 'master_exosuit'): THREE.Group {
     const traveler = new THREE.Group();
     traveler.name = 'traveler_player';
 
-    // 1. Initial Masterpiece Exosuit container (Immediate 60fps rendering, never blinks or clips)
+    // 1. Masterpiece Exosuit Container (Immediate, stable 60fps rendering)
     const masterGroup = this.createMasterExosuit();
     masterGroup.name = 'traveler_master';
     traveler.add(masterGroup);
 
-    // 2. Attach jetpack thruster plasma flames (fixed anchor to traveler group)
-    const glowBlueMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff });
-    [-0.26, 0.26].forEach((xPos) => {
-      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.65, 8), glowBlueMat);
-      flame.name = `jet_flame_${xPos > 0 ? 'r' : 'l'}`;
-      flame.position.set(xPos, 0.72, -0.42);
-      flame.rotation.x = Math.PI;
-      flame.visible = false;
-      flame.frustumCulled = false;
-      traveler.add(flame);
+    // 2. High-energy dual plasma thruster flames
+    const flameCoreMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const flameOuterMat = new THREE.MeshBasicMaterial({
+      color: 0x00f5ff,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
     });
 
-    // 3. Multi-tool laser emitter anchor point
-    const toolGroup = new THREE.Group();
-    toolGroup.name = 'multitool';
-    toolGroup.position.set(0.55, 1.35, 0.68);
-    traveler.add(toolGroup);
+    [-0.30, 0.30].forEach((xPos) => {
+      const flameGroup = new THREE.Group();
+      flameGroup.name = `jet_flame_${xPos > 0 ? 'r' : 'l'}`;
+      flameGroup.position.set(xPos, 0.76, -0.44);
+      flameGroup.visible = false;
 
-    // 4. Apply requested model if GLB is selected
+      // Inner concentrated blue core
+      const innerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.55, 8), flameCoreMat);
+      innerFlame.rotation.x = Math.PI;
+      innerFlame.position.y = -0.25;
+      innerFlame.frustumCulled = false;
+      flameGroup.add(innerFlame);
+
+      // Outer luminous sheath
+      const outerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.80, 8), flameOuterMat);
+      outerFlame.rotation.x = Math.PI;
+      outerFlame.position.y = -0.38;
+      outerFlame.frustumCulled = false;
+      flameGroup.add(outerFlame);
+
+      traveler.add(flameGroup);
+    });
+
+    // 3. Multi-tool laser emitter anchor point (exactly at rifle barrel tip)
+    const toolAnchor = new THREE.Group();
+    toolAnchor.name = 'multitool';
+    toolAnchor.position.set(0.52, 1.34, 0.78);
+    traveler.add(toolAnchor);
+
+    // 4. Load Kenney model if specifically requested via Appearance Modifier
     if (modelKey && modelKey !== 'master_exosuit' && modelKey !== 'classic') {
       this.applyGlbModel(traveler, modelKey);
     }
 
-    // Ensure entire traveler group has frustum culling disabled for 100% stable visibility
+    // Mathematical immunity to frustum culling
     traveler.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         child.frustumCulled = false;
@@ -68,11 +149,9 @@ export class TravelerBuilder {
     this.gltfLoader.load(
       glbPath,
       (gltf) => {
-        // Remove previous GLB mesh
         const existingGlb = travelerGroup.getObjectByName('traveler_glb_root');
         if (existingGlb) travelerGroup.remove(existingGlb);
 
-        // Hide master model
         const master = travelerGroup.getObjectByName('traveler_master');
         if (master) master.visible = false;
 
@@ -81,7 +160,6 @@ export class TravelerBuilder {
 
         const characterModel = gltf.scene.clone();
 
-        // Disable frustum culling on all child meshes to prevent blinking
         characterModel.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
@@ -97,9 +175,7 @@ export class TravelerBuilder {
           }
         });
 
-        // Exact mathematical origin recentering:
-        // Kenney models have arbitrary root node offsets (e.g. translation: [2, 0, 1.5]).
-        // We recompute bounding box in world space, scale to height 2.0u, and shift to exact (0,0,0) pivot.
+        // Exact origin recentering: cancel Kenney root translation offset [2, 0, 1.5]
         characterModel.updateMatrixWorld(true);
         const bbox = new THREE.Box3().setFromObject(characterModel);
         const size = bbox.getSize(new THREE.Vector3());
@@ -107,17 +183,14 @@ export class TravelerBuilder {
         const scale = targetHeight / (size.y || 1);
         characterModel.scale.setScalar(scale);
 
-        // Recompute bbox after scaling
         characterModel.updateMatrixWorld(true);
         const scaledBbox = new THREE.Box3().setFromObject(characterModel);
         const scaledCenter = scaledBbox.getCenter(new THREE.Vector3());
 
-        // Shift position so that feet are at Y=0 and center is at X=0, Z=0
         characterModel.position.x -= scaledCenter.x;
         characterModel.position.y -= scaledBbox.min.y;
         characterModel.position.z -= scaledCenter.z;
 
-        // Map Kenney limbs to standard names for walking animation
         const kenneyLegL = characterModel.getObjectByName('legLeft');
         const kenneyLegR = characterModel.getObjectByName('legRight');
         const kenneyArmL = characterModel.getObjectByName('armLeft');
@@ -141,238 +214,503 @@ export class TravelerBuilder {
   }
 
   /**
-   * --- AUTHENTIC NO MAN'S SKY MASTERPIECE 3D EXOSUIT ---
-   * Crafted with high-grade PBR physical materials, reflective amber visor,
-   * neon life-support core, dual thruster jetpack, and multi-tool blaster.
-   * Completely immune to camera clipping and frustum culling.
+   * --- 100% AUTHENTIC NO MAN'S SKY MASTERPIECE EXOSUIT ---
+   * Fully handcrafted 3D character incorporating all signature No Man's Sky visual elements:
+   * - Golden Amber Physical Glass Visor with clearcoat reflective coating
+   * - Atlas Diamond Pulse Core in the center chest
+   * - Twin Ribbed Life-Support Breathing Hoses
+   * - Tactical Dual Swiveling Thruster Jetpack with Turbine Vents
+   * - Atlantid Multi-Tool Weapon with Holographic Sight & Crystal Muzzle
+   * - Wrist-mounted Exosuit Hologram Terminal (Cyan illuminated)
+   * - Heavy Articulated Magnetic Planetary Boots
    */
   public static createMasterExosuit(): THREE.Group {
     const root = new THREE.Group();
     root.name = 'traveler_master';
 
-    // Premium PBR Materials
-    const suitMat = new THREE.MeshStandardMaterial({
-      color: 0x1e293b, // Deep space slate exosuit weave
-      roughness: 0.6,
-      metalness: 0.2,
-    });
-    const armorWhiteMat = new THREE.MeshStandardMaterial({
-      color: 0xf8fafc, // Pristine ceramic composite armor plates
-      roughness: 0.35,
-      metalness: 0.4,
-    });
-    const armorCyanMat = new THREE.MeshStandardMaterial({
-      color: 0x0284c7, // Vibrant sci-fi cyan armor trim
-      roughness: 0.3,
-      metalness: 0.5,
-    });
-    const visorMat = new THREE.MeshPhysicalMaterial({
-      color: 0xf59e0b, // Iconic Golden Amber reflective visor
-      metalness: 0.95,
-      roughness: 0.08,
-      reflectivity: 1.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-    });
-    const metalDarkMat = new THREE.MeshStandardMaterial({
-      color: 0x0f172a, // Dark titanium mechanical chassis
-      roughness: 0.4,
-      metalness: 0.85,
-    });
-    const neonCyanMat = new THREE.MeshBasicMaterial({
-      color: 0x00f5ff, // Life support energy glow
+    const hexBump = this.getHexBumpTexture();
+    const carbonBump = this.getCarbonBumpTexture();
+
+    // =========================================================================
+    // --- 1. PREMIUM PBR PHYSICAL MATERIALS (Real-time IBL reflection) ---
+    // =========================================================================
+
+    // Undersuit weave: high-density ribbed synthetic weave
+    const underSuitMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b, // Deep dark slate
+      roughness: 0.72,
+      metalness: 0.15,
+      bumpMap: carbonBump,
+      bumpScale: 1.2,
     });
 
-    // 1. Torso & Life Support Chest Rig
+    // Primary ceramic armor: pristine orbital white composite
+    const armorWhiteMat = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.32,
+      metalness: 0.35,
+      bumpMap: hexBump,
+      bumpScale: 0.8,
+    });
+
+    // Secondary sci-fi armor: vibrant No Man's Sky teal/cyan trim
+    const armorTealMat = new THREE.MeshStandardMaterial({
+      color: 0x0284c7, // Radiant sky/teal cyan
+      roughness: 0.28,
+      metalness: 0.55,
+      bumpMap: hexBump,
+      bumpScale: 0.6,
+    });
+
+    // Mechanical chassis: dark brushed titanium
+    const darkTitaniumMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      roughness: 0.38,
+      metalness: 0.88,
+    });
+
+    // Rubber gaskets, joint seals & breathing hoses
+    const rubberMat = new THREE.MeshStandardMaterial({
+      color: 0x18181b,
+      roughness: 0.85,
+      metalness: 0.05,
+    });
+
+    // Iconic No Man's Sky Golden Amber Visor (Reflective PBR Physical Material)
+    const visorPhysicalMat = new THREE.MeshPhysicalMaterial({
+      color: 0xf59e0b, // Radiant amber gold
+      metalness: 0.96,
+      roughness: 0.06,
+      reflectivity: 1.0,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.08,
+      ior: 1.55,
+    });
+
+    // Atlas Neon Core & Headlamp LEDs
+    const neonAtlasMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff });
+    const neonHeadlampMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const neonAmberMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
+
+    // =========================================================================
+    // --- 2. PELVIS & LOWER TORSO ---
+    // =========================================================================
+    const pelvisGroup = new THREE.Group();
+    pelvisGroup.name = 'pelvis';
+    pelvisGroup.position.set(0, 0.95, 0);
+
+    // Pelvis core block
+    const pelvisCore = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.28, 0.24, 16), underSuitMat);
+    pelvisCore.castShadow = true;
+    pelvisGroup.add(pelvisCore);
+
+    // Groin protector plate
+    const groinPlate = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.22, 0.12), armorWhiteMat);
+    groinPlate.position.set(0, -0.04, 0.18);
+    groinPlate.castShadow = true;
+    pelvisGroup.add(groinPlate);
+
+    // Heavy tactical belt
+    const beltTorus = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.045, 8, 24), darkTitaniumMat);
+    beltTorus.rotation.x = Math.PI / 2;
+    beltTorus.position.y = 0.08;
+    pelvisGroup.add(beltTorus);
+
+    // Tactical utility survival pouches (4 units around waist)
+    [-0.30, 0.30].forEach((xPos) => {
+      const pouch = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.16), darkTitaniumMat);
+      pouch.position.set(xPos, 0.06, 0.05);
+      pelvisGroup.add(pouch);
+    });
+    [-0.14, 0.14].forEach((xPos) => {
+      const rearPouch = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 0.10), darkTitaniumMat);
+      rearPouch.position.set(xPos, 0.06, -0.28);
+      pelvisGroup.add(rearPouch);
+    });
+
+    root.add(pelvisGroup);
+
+    // =========================================================================
+    // --- 3. UPPER TORSO & ATLAS LIFE-SUPPORT CHEST RIG ---
+    // =========================================================================
     const torsoGroup = new THREE.Group();
     torsoGroup.name = 'torso';
 
-    // Core under-suit
-    const torsoCore = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 0.85, 16), suitMat);
-    torsoCore.position.y = 1.25;
-    torsoCore.castShadow = true;
-    torsoGroup.add(torsoCore);
+    // Segmented Abdominal Armor (3 flexible articulative segments)
+    [1.08, 1.18, 1.28].forEach((yPos, i) => {
+      const abSeg = new THREE.Mesh(new THREE.BoxGeometry(0.48 - i * 0.02, 0.08, 0.32), darkTitaniumMat);
+      abSeg.position.set(0, yPos, 0.06);
+      abSeg.castShadow = true;
+      torsoGroup.add(abSeg);
+    });
 
-    // Front Chest Armor Plate
-    const chestPlate = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.48, 0.22), armorWhiteMat);
-    chestPlate.position.set(0, 1.38, 0.22);
+    // Upper Ribcage Under-suit
+    const ribcage = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.34, 0.45, 16), underSuitMat);
+    ribcage.position.set(0, 1.48, 0);
+    ribcage.castShadow = true;
+    torsoGroup.add(ribcage);
+
+    // Front Ceramic Chest Plate (Aerodynamic beveled armor)
+    const chestPlate = new THREE.Mesh(new THREE.BoxGeometry(0.70, 0.38, 0.26), armorWhiteMat);
+    chestPlate.position.set(0, 1.54, 0.18);
     chestPlate.castShadow = true;
     torsoGroup.add(chestPlate);
 
-    // Cyan Chest Accent
-    const chestAccent = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.08), armorCyanMat);
-    chestAccent.position.set(0, 1.48, 0.32);
-    torsoGroup.add(chestAccent);
+    // Chest Teal Accents & Framing
+    const chestBorder = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.16, 0.08), armorTealMat);
+    chestBorder.position.set(0, 1.62, 0.30);
+    torsoGroup.add(chestBorder);
 
-    // Neon Life Support Atlas Indicator
-    const lifeCore = new THREE.Mesh(new THREE.CircleGeometry(0.065, 16), neonCyanMat);
-    lifeCore.position.set(0.18, 1.42, 0.35);
-    torsoGroup.add(lifeCore);
+    // Atlas Life Support Diamond Core (Iconic No Man's Sky centerpiece)
+    const atlasDiamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.065, 0), neonAtlasMat);
+    atlasDiamond.position.set(0, 1.54, 0.34);
+    atlasDiamond.scale.set(0.8, 1.2, 0.5);
+    torsoGroup.add(atlasDiamond);
 
-    // Abdominal Segmented Armor
-    const abPlate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.24, 0.16), metalDarkMat);
-    abPlate.position.set(0, 1.05, 0.18);
-    torsoGroup.add(abPlate);
+    // Status Indicator Bar
+    const statusBar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.025, 0.02), neonAmberMat);
+    statusBar.position.set(0, 1.44, 0.32);
+    torsoGroup.add(statusBar);
+
+    // Collar Armor Ring protecting throat
+    const throatCollar = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.06, 12, 24), darkTitaniumMat);
+    throatCollar.position.set(0, 1.76, 0.04);
+    throatCollar.rotation.x = Math.PI / 2;
+    torsoGroup.add(throatCollar);
+
+    // Twin Ribbed Life-Support Breathing Hoses (from collar to lower chest rig)
+    [-0.18, 0.18].forEach((xPos) => {
+      const hoseCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(xPos * 0.9, 1.80, 0.20),
+        new THREE.Vector3(xPos * 1.3, 1.66, 0.28),
+        new THREE.Vector3(xPos * 0.8, 1.48, 0.30),
+      ]);
+      const hoseGeo = new THREE.TubeGeometry(hoseCurve, 12, 0.028, 8, false);
+      const hoseMesh = new THREE.Mesh(hoseGeo, rubberMat);
+      torsoGroup.add(hoseMesh);
+    });
 
     root.add(torsoGroup);
 
-    // 2. Iconic Helmet & Amber Visor
+    // =========================================================================
+    // --- 4. ICONIC HELMET & AMBER BUBBLE VISOR ---
+    // =========================================================================
     const headGroup = new THREE.Group();
     headGroup.name = 'head';
 
-    // Helmet Dome
-    const domeGeo = new THREE.SphereGeometry(0.34, 24, 24);
-    domeGeo.scale(1.0, 1.08, 1.05);
-    const helmetDome = new THREE.Mesh(domeGeo, armorWhiteMat);
-    helmetDome.position.set(0, 1.95, 0.02);
+    // Aerodynamic Helmet Outer Shell (Beveled spheroid)
+    const helmetGeo = new THREE.SphereGeometry(0.36, 32, 24);
+    helmetGeo.scale(1.0, 1.10, 1.08);
+    const helmetDome = new THREE.Mesh(helmetGeo, armorWhiteMat);
+    helmetDome.position.set(0, 2.02, 0.02);
     helmetDome.castShadow = true;
     headGroup.add(helmetDome);
 
-    // Amber Reflective Visor
-    const visorGeo = new THREE.SphereGeometry(0.28, 24, 24, 0, Math.PI, 0, Math.PI * 0.72);
-    const visorMesh = new THREE.Mesh(visorGeo, visorMat);
-    visorMesh.position.set(0, 1.95, 0.14);
+    // Helmet Teal Crown Strip
+    const helmetCrown = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.44, 0.62), armorTealMat);
+    helmetCrown.position.set(0, 2.14, 0.04);
+    headGroup.add(helmetCrown);
+
+    // Full-Face Amber Bubble Visor (Iconic curvature with PBR reflections)
+    const visorGeo = new THREE.SphereGeometry(0.30, 32, 24, 0, Math.PI, 0, Math.PI * 0.74);
+    const visorMesh = new THREE.Mesh(visorGeo, visorPhysicalMat);
+    visorMesh.position.set(0, 2.02, 0.15);
     visorMesh.rotation.y = -Math.PI / 2;
     headGroup.add(visorMesh);
 
-    // Helmet Chin & Oxygen Rebreather Collar
-    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.08, 12, 24), metalDarkMat);
-    collar.position.set(0, 1.74, 0.04);
-    collar.rotation.x = Math.PI / 2;
-    headGroup.add(collar);
+    // Visor Rubber Gasket Frame Seal
+    const gasket = new THREE.Mesh(new THREE.TorusGeometry(0.30, 0.022, 10, 32), rubberMat);
+    gasket.position.set(0, 2.02, 0.16);
+    headGroup.add(gasket);
 
-    // Side Antenna Fins
-    [-0.34, 0.34].forEach((xPos) => {
-      const antenna = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.28, 0.08), armorCyanMat);
-      antenna.position.set(xPos, 2.05, -0.04);
-      headGroup.add(antenna);
+    // Forehead Exploration LED Headlamps (Twin High-Output Mini Lenses)
+    [-0.10, 0.10].forEach((xPos) => {
+      const lampBezel = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.034, 0.04, 12), darkTitaniumMat);
+      lampBezel.position.set(xPos, 2.22, 0.26);
+      lampBezel.rotation.x = Math.PI / 2.8;
+      headGroup.add(lampBezel);
+
+      const lampLens = new THREE.Mesh(new THREE.CircleGeometry(0.022, 12), neonHeadlampMat);
+      lampLens.position.set(xPos, 2.23, 0.28);
+      headGroup.add(lampLens);
+    });
+
+    // Side Oxygen Filter Puck Canisters & Comms Earpieces
+    [-0.35, 0.35].forEach((xPos) => {
+      const can = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.08, 16), darkTitaniumMat);
+      can.position.set(xPos, 2.02, 0);
+      can.rotation.z = Math.PI / 2;
+      headGroup.add(can);
+
+      const canRing = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.015, 8, 16), armorTealMat);
+      canRing.position.set(xPos * 1.1, 2.02, 0);
+      canRing.rotation.y = Math.PI / 2;
+      headGroup.add(canRing);
     });
 
     root.add(headGroup);
 
-    // 3. Dual-Thruster Jetpack Unit
+    // =========================================================================
+    // --- 5. AUTHENTIC DUAL-THRUSTER JETPACK UNIT ---
+    // =========================================================================
     const jetpackGroup = new THREE.Group();
     jetpackGroup.name = 'jetpack';
 
-    const packMain = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.76, 0.32), armorWhiteMat);
-    packMain.position.set(0, 1.38, -0.36);
-    packMain.castShadow = true;
-    jetpackGroup.add(packMain);
+    // Streamlined Main Shell Housing
+    const packBody = new THREE.Mesh(new THREE.BoxGeometry(0.70, 0.78, 0.32), armorWhiteMat);
+    packBody.position.set(0, 1.44, -0.36);
+    packBody.castShadow = true;
+    jetpackGroup.add(packBody);
 
-    const packCoreAccent = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.28, 0.12), armorCyanMat);
-    packCoreAccent.position.set(0, 1.5, -0.5);
-    jetpackGroup.add(packCoreAccent);
+    // Center Core Inset & Power Cells
+    const packCore = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.52, 0.12), darkTitaniumMat);
+    packCore.position.set(0, 1.44, -0.50);
+    jetpackGroup.add(packCore);
 
-    // Twin Exhaust Nozzles
-    [-0.26, 0.26].forEach((xPos) => {
-      const thruster = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, 0.36, 16), metalDarkMat);
-      thruster.position.set(xPos, 1.02, -0.42);
-      thruster.castShadow = true;
-      jetpackGroup.add(thruster);
+    // Top Air Intake Honeycomb Grille
+    const packGrille = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.08, 0.18), darkTitaniumMat);
+    packGrille.position.set(0, 1.84, -0.38);
+    jetpackGroup.add(packGrille);
+
+    // Whip Antenna (Tactical carbon fiber communications mast)
+    const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.014, 0.52, 8), darkTitaniumMat);
+    antenna.position.set(0.24, 2.08, -0.40);
+    antenna.rotation.z = -0.12;
+    jetpackGroup.add(antenna);
+
+    // Emergency Flashing Beacon Light
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 12), neonAmberMat);
+    beacon.position.set(0, 1.88, -0.42);
+    jetpackGroup.add(beacon);
+
+    // Left & Right Swiveling Gimbal Thruster Pods (Authentic No Man's Sky Pods)
+    [-0.30, 0.30].forEach((xPos, idx) => {
+      const podGroup = new THREE.Group();
+      podGroup.name = idx === 0 ? 'thruster_l' : 'thruster_r';
+      podGroup.position.set(xPos, 1.34, -0.38);
+
+      // Main cylindrical rocket pod
+      const podCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.42, 16), armorTealMat);
+      podCyl.castShadow = true;
+      podGroup.add(podCyl);
+
+      // Top Intake Turbine Ring
+      const topRing = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 16), darkTitaniumMat);
+      topRing.position.y = 0.21;
+      topRing.rotation.x = Math.PI / 2;
+      podGroup.add(topRing);
+
+      // Titanium Bell Nozzle (Exhaust bell where flame originates)
+      const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.15, 0.28, 16), darkTitaniumMat);
+      nozzle.position.y = -0.30;
+      nozzle.castShadow = true;
+      podGroup.add(nozzle);
+
+      // Inner Glow Ring
+      const glowRing = new THREE.Mesh(new THREE.RingGeometry(0.04, 0.12, 12), neonAtlasMat);
+      glowRing.position.y = -0.43;
+      glowRing.rotation.x = Math.PI / 2;
+      podGroup.add(glowRing);
+
+      jetpackGroup.add(podGroup);
     });
 
     root.add(jetpackGroup);
 
-    // 4. Fully Articulated Legs (Hip Pivots for realistic walking strides)
+    // =========================================================================
+    // --- 6. FULLY ARTICULATED LEGS & MAGNETIC PLANETARY BOOTS ---
+    // =========================================================================
     [-0.22, 0.22].forEach((xPos, idx) => {
       const legPivot = new THREE.Group();
       legPivot.name = idx === 0 ? 'leg_l' : 'leg_r';
       legPivot.position.set(xPos, 0.88, 0);
 
-      // Thigh
-      const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.48, 0.28), suitMat);
-      thigh.position.set(0, -0.22, 0);
+      // Thigh Core (Thermal fabric)
+      const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.44, 16), underSuitMat);
+      thigh.position.set(0, -0.20, 0);
       thigh.castShadow = true;
       legPivot.add(thigh);
 
-      // Knee Guard
-      const knee = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.16, 0.14), armorCyanMat);
-      knee.position.set(0, -0.38, 0.14);
+      // Outer Thigh Ballistic Armor Plate
+      const thighArmor = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.32, 0.24), armorWhiteMat);
+      thighArmor.position.set(xPos > 0 ? 0.13 : -0.13, -0.18, 0);
+      thighArmor.castShadow = true;
+      legPivot.add(thighArmor);
+
+      // Articulated Round Knee Guard
+      const knee = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.12, 16), armorTealMat);
+      knee.rotation.z = Math.PI / 2;
+      knee.position.set(0, -0.42, 0.08);
+      knee.castShadow = true;
       legPivot.add(knee);
 
-      // Shin
-      const shin = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.44, 0.26), armorWhiteMat);
-      shin.position.set(0, -0.56, 0);
+      // Shin Guard & Rear Calf Servos
+      const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.12, 0.38, 16), armorWhiteMat);
+      shin.position.set(0, -0.62, 0);
       shin.castShadow = true;
       legPivot.add(shin);
 
-      // Magnetic Boots
-      const boot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.2, 0.42), metalDarkMat);
-      boot.position.set(0, -0.78, 0.08);
-      boot.castShadow = true;
-      legPivot.add(boot);
+      const calfExo = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.28, 0.06), darkTitaniumMat);
+      calfExo.position.set(0, -0.62, -0.12);
+      legPivot.add(calfExo);
 
+      // Magnetic Planetary Boots (Heavy treaded off-world boots)
+      const bootGroup = new THREE.Group();
+      bootGroup.position.set(0, -0.80, 0);
+
+      // Upper Boot Cuff
+      const bootCuff = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.14, 0.28), darkTitaniumMat);
+      bootCuff.position.set(0, 0.02, 0);
+      bootGroup.add(bootCuff);
+
+      // Front Toe Box Cap
+      const toeCap = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.12, 0.22), armorTealMat);
+      toeCap.position.set(0, -0.04, 0.15);
+      toeCap.castShadow = true;
+      bootGroup.add(toeCap);
+
+      // Rugged Magnetic Tread Sole
+      const treadSole = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.06, 0.44), rubberMat);
+      treadSole.position.set(0, -0.08, 0.06);
+      treadSole.castShadow = true;
+      bootGroup.add(treadSole);
+
+      legPivot.add(bootGroup);
       root.add(legPivot);
     });
 
-    // 5. Fully Articulated Arms & Multi-Tool Blaster
-    // Left Arm (Swings naturally opposite to leg)
+    // =========================================================================
+    // --- 7. ARTICULATED ARMS, WRIST HUD & ATLANTID MULTI-TOOL ---
+    // =========================================================================
+
+    // --- LEFT ARM (Natural dynamic walking swing opposite to legs) ---
     const leftArmPivot = new THREE.Group();
     leftArmPivot.name = 'arm_l';
-    leftArmPivot.position.set(-0.54, 1.52, 0);
+    leftArmPivot.position.set(-0.52, 1.54, 0);
 
-    const leftPauldron = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), armorCyanMat);
-    leftPauldron.position.set(0, 0, 0);
-    leftArmPivot.add(leftPauldron);
+    // 2-Piece Articulated Shoulder Pauldron
+    const leftShoulder = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), armorTealMat);
+    leftShoulder.scale.set(1.1, 0.9, 1.1);
+    leftArmPivot.add(leftShoulder);
 
-    const leftBicep = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), suitMat);
-    leftBicep.position.set(0, -0.24, 0);
+    // Upper Arm Bicep (Fabric + Carbon plating)
+    const leftBicep = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.10, 0.36, 12), underSuitMat);
+    leftBicep.position.set(0, -0.22, 0);
     leftBicep.castShadow = true;
     leftArmPivot.add(leftBicep);
 
-    const leftForearm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.42, 0.24), armorWhiteMat);
-    leftForearm.position.set(0, -0.54, 0.04);
+    // Elbow Guard
+    const leftElbow = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), darkTitaniumMat);
+    leftElbow.position.set(0, -0.40, -0.04);
+    leftArmPivot.add(leftElbow);
+
+    // Forearm Gauntlet & Wrist Hologram Terminal
+    const leftForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.10, 0.34, 12), armorWhiteMat);
+    leftForearm.position.set(0, -0.58, 0.02);
     leftForearm.castShadow = true;
     leftArmPivot.add(leftForearm);
 
+    // Exosuit Wrist Terminal Screen (Illuminated Cyan Status HUD)
+    const wristScreen = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.02), neonAtlasMat);
+    wristScreen.position.set(0, -0.54, 0.13);
+    wristScreen.rotation.x = -0.2;
+    leftArmPivot.add(wristScreen);
+
+    // Tactical Gloved Hand
+    const leftHand = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.16), darkTitaniumMat);
+    leftHand.position.set(0, -0.78, 0.04);
+    leftHand.castShadow = true;
+    leftArmPivot.add(leftHand);
+
     root.add(leftArmPivot);
 
-    // Right Arm (Holding Atlantid Multi-Tool Weapon)
+    // --- RIGHT ARM (Forward Tactical Grip on Atlantid Multi-Tool) ---
     const rightArmPivot = new THREE.Group();
     rightArmPivot.name = 'arm_r';
-    rightArmPivot.position.set(0.54, 1.52, 0);
-    rightArmPivot.rotation.x = -Math.PI / 4.5;
+    rightArmPivot.position.set(0.52, 1.54, 0);
+    rightArmPivot.rotation.x = -Math.PI / 4.2;
 
-    const rightPauldron = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), armorCyanMat);
-    rightPauldron.position.set(0, 0, 0);
-    rightArmPivot.add(rightPauldron);
+    // Right Shoulder Pauldron
+    const rightShoulder = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), armorTealMat);
+    rightShoulder.scale.set(1.1, 0.9, 1.1);
+    rightArmPivot.add(rightShoulder);
 
-    const rightBicep = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), suitMat);
-    rightBicep.position.set(0, -0.24, 0);
+    // Right Bicep
+    const rightBicep = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.10, 0.36, 12), underSuitMat);
+    rightBicep.position.set(0, -0.22, 0);
+    rightBicep.castShadow = true;
     rightArmPivot.add(rightBicep);
 
-    const rightForearm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.42, 0.24), armorWhiteMat);
-    rightForearm.position.set(0, -0.54, 0.04);
+    // Right Forearm
+    const rightForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.10, 0.34, 12), armorWhiteMat);
+    rightForearm.position.set(0, -0.58, 0.02);
+    rightForearm.castShadow = true;
     rightArmPivot.add(rightForearm);
 
-    // Atlantid Multi-Tool Weapon
+    // Right Gloved Hand gripping gun handle
+    const rightHand = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.16), darkTitaniumMat);
+    rightHand.position.set(0, -0.76, 0.06);
+    rightHand.castShadow = true;
+    rightArmPivot.add(rightHand);
+
+    // =========================================================================
+    // --- 8. ICONIC ATLANTID MULTI-TOOL BLASTER ---
+    // =========================================================================
     const multiToolMesh = new THREE.Group();
-    multiToolMesh.position.set(0, -0.68, 0.35);
+    multiToolMesh.position.set(0, -0.74, 0.38);
 
-    const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.22, 0.62), metalDarkMat);
-    gunBody.castShadow = true;
-    multiToolMesh.add(gunBody);
+    // Main Receiver Chassis (Angled Bullpup Profile)
+    const rifleBody = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, 0.68), darkTitaniumMat);
+    rifleBody.castShadow = true;
+    multiToolMesh.add(rifleBody);
 
-    const gunChassis = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.42), armorCyanMat);
-    gunChassis.position.set(0, 0.08, -0.06);
-    multiToolMesh.add(gunChassis);
+    // Teal Upper Composite Housing
+    const rifleUpper = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 0.48), armorTealMat);
+    rifleUpper.position.set(0, 0.10, -0.06);
+    rifleUpper.castShadow = true;
+    multiToolMesh.add(rifleUpper);
 
-    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.32, 12), metalDarkMat);
+    // Top Holographic Optical Sight
+    const holoOptic = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.18), darkTitaniumMat);
+    holoOptic.position.set(0, 0.20, -0.08);
+    multiToolMesh.add(holoOptic);
+
+    const holoLens = new THREE.Mesh(new THREE.RingGeometry(0.015, 0.035, 8), neonAtlasMat);
+    holoLens.position.set(0, 0.20, 0.01);
+    multiToolMesh.add(holoLens);
+
+    // Heavy Barrel & Cooling Heat-sink Ribs
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.36, 16), darkTitaniumMat);
     barrel.rotation.x = Math.PI / 2;
-    barrel.position.set(0, 0.02, 0.42);
+    barrel.position.set(0, 0.02, 0.46);
     multiToolMesh.add(barrel);
 
-    const muzzleGlow = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.065, 12), neonCyanMat);
-    muzzleGlow.position.set(0, 0.02, 0.59);
-    multiToolMesh.add(muzzleGlow);
+    // Focusing Crystal Chamber (Emitting intense blue laser readiness)
+    const crystalRing = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.018, 8, 16), neonAtlasMat);
+    crystalRing.position.set(0, 0.02, 0.58);
+    multiToolMesh.add(crystalRing);
+
+    // Muzzle Emitter Disc
+    const muzzleDisc = new THREE.Mesh(new THREE.CircleGeometry(0.042, 12), neonAtlasMat);
+    muzzleDisc.position.set(0, 0.02, 0.64);
+    multiToolMesh.add(muzzleDisc);
+
+    // Lower Energy Battery Mag (Removable carbon cartridge)
+    const batteryMag = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.16, 0.14), armorWhiteMat);
+    batteryMag.position.set(0, -0.16, -0.12);
+    multiToolMesh.add(batteryMag);
 
     rightArmPivot.add(multiToolMesh);
     root.add(rightArmPivot);
 
-    // Disable frustum culling on all parts so it NEVER clips or vanishes
+    // =========================================================================
+    // --- 9. GLOBAL GUARANTEE: NEVER CLIPS, NEVER CULLED, 100% PERSISTENT ---
+    // =========================================================================
     root.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         child.frustumCulled = false;
+        child.castShadow = true;
+        child.receiveShadow = true;
       }
     });
 
