@@ -48,6 +48,7 @@ export class ThreeGameEngine {
   private starshipGroup: THREE.Group | null = null;
   private currentShipType: ShipType = 'MECHANICAL';
   private travelerGroup: THREE.Group | null = null;
+  private currentCharacterModel: string = 'astronautA';
   private spaceStationGroup: THREE.Group | null = null;
   private asteroidItems: AsteroidItem[] = [];
   private planetGroups: Map<string, THREE.Group> = new Map();
@@ -297,6 +298,12 @@ export class ThreeGameEngine {
     this.updateStarship(this.currentShipType, colorHex);
   }
 
+  public updateTravelerModel(modelKey: string) {
+    if (!this.travelerGroup) return;
+    this.currentCharacterModel = modelKey;
+    TravelerBuilder.applyGlbModel(this.travelerGroup, modelKey);
+  }
+
   private syncPlanets() {
     game.entities.planets.forEach((p) => {
       if (!this.planetGroups.has(p.name)) {
@@ -364,6 +371,11 @@ export class ThreeGameEngine {
     // Ship class upgrade sync
     if (game.data.shipType !== this.currentShipType) {
       this.updateStarship(game.data.shipType);
+    }
+
+    // Character 3D model sync
+    if (game.data.characterModel && game.data.characterModel !== this.currentCharacterModel) {
+      this.updateTravelerModel(game.data.characterModel);
     }
 
     // 1. STATE HANDLING: SPACE vs PLANET vs WARP
@@ -1130,7 +1142,7 @@ export class ThreeGameEngine {
       this.travelerGroup.position.copy(this.travelerPos);
       this.travelerGroup.rotation.set(0, this.travelerYaw, 0);
 
-      // Leg stride swing animation
+      // Leg stride swing animation (procedural mesh)
       const legL = this.travelerGroup.getObjectByName('leg_l');
       const legR = this.travelerGroup.getObjectByName('leg_r');
       if (legL && legR) {
@@ -1140,6 +1152,18 @@ export class ThreeGameEngine {
         } else {
           legL.rotation.x = 0;
           legR.rotation.x = 0;
+        }
+      }
+
+      // Authentic walking bounce & tilt animation for Kenney 3D GLB Model
+      const glbRoot = this.travelerGroup.getObjectByName('traveler_glb_root');
+      if (glbRoot) {
+        if (this.travelerWalkCycle > 0) {
+          glbRoot.position.y = Math.abs(Math.sin(this.travelerWalkCycle * 2)) * 0.08;
+          glbRoot.rotation.z = Math.sin(this.travelerWalkCycle) * 0.05;
+        } else {
+          glbRoot.position.y = 0;
+          glbRoot.rotation.z = 0;
         }
       }
 

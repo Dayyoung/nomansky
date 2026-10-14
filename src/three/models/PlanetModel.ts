@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { PlanetEntity } from '../../types';
 
 export class PlanetBuilder {
+  private static textureLoader = new THREE.TextureLoader();
+
   /**
-   * Generates a realistic 3D No Man's Sky planet sphere with procedural texture,
+   * Generates a realistic 3D No Man's Sky planet sphere with Kenney Planets textures,
    * atmospheric glow, cloud layer, and optional planetary rings.
    */
   public static createPlanet(planetData: PlanetEntity): THREE.Group {
@@ -13,7 +15,7 @@ export class PlanetBuilder {
     // Compute relative 3D scale based on 2D radius (0.1 scale factor consistent with world coordinates)
     const planetRadius = Math.max(85, Math.min(135, planetData.r * 0.1));
 
-    // 1. Procedural Surface Texture Generator via HTML5 Canvas
+    // 1. Procedural Fallback Textures (Immediate rendering)
     const surfaceTexture = this.generatePlanetTexture(planetData);
     const bumpTexture = this.generateBumpTexture(planetData);
 
@@ -25,6 +27,41 @@ export class PlanetBuilder {
       roughness: 0.85,
       metalness: 0.1,
     });
+
+    // 1-A. Load Authentic Kenney Planets Texture (planet00.png ~ planet09.png)
+    const nameHash = Math.abs(planetData.name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0));
+    const kenneyTexIndex = nameHash % 10;
+    const kenneyTexUrl = `/assets/kenney/planets/planet0${kenneyTexIndex}.png`;
+    const kenneyBumpUrl = `/assets/kenney/planets/noise0${nameHash % 6}.png`;
+
+    this.textureLoader.load(
+      kenneyTexUrl,
+      (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        planetMat.map = tex;
+        planetMat.needsUpdate = true;
+      },
+      undefined,
+      (err) => {
+        // Fallback already assigned
+      }
+    );
+
+    this.textureLoader.load(
+      kenneyBumpUrl,
+      (bumpTex) => {
+        bumpTex.wrapS = THREE.RepeatWrapping;
+        bumpTex.wrapT = THREE.RepeatWrapping;
+        bumpTex.repeat.set(2, 2);
+        planetMat.bumpMap = bumpTex;
+        planetMat.bumpScale = 4.0;
+        planetMat.needsUpdate = true;
+      },
+      undefined,
+      () => {}
+    );
 
     const planetMesh = new THREE.Mesh(planetGeo, planetMat);
     planetMesh.castShadow = true;

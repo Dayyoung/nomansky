@@ -171,6 +171,7 @@ export class GameEngine {
     lifeSupport: 100,
     weaponCharge: 100,
     toolMode: 'MINING BEAM' as ToolMode,
+    characterModel: 'astronautA' as string,
     shipType: 'MECHANICAL' as ShipType,
     shipClass: 'C' as ShipClass,
     ammo: 24,
@@ -2880,6 +2881,19 @@ export class GameEngine {
     this.data.utopiaSpeederClaimed = true;
     AudioSys.playDiscoveryFanfare();
     this.spawnFloatText("🚀 UTOPIA SPEEDER STARSHIP CLAIMED // SPEED & AGILITY MAXIMIZED!", undefined, this.height / 2 - 70, '#00e5ff');
+    this.notify();
+  }
+
+  public setCharacterModel(modelKey: string) {
+    this.data.characterModel = modelKey;
+    const labelMap: Record<string, string> = {
+      astronautA: 'Kenney 3D 우주복 A (White & Blue)',
+      astronautB: 'Kenney 3D 우주복 B (Orange & White)',
+      alien: 'Kenney 3D 외계인 탐험가 (Alien Explorer)',
+      classic: '클래식 엑소슈트 (Classic Exosuit)'
+    };
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText(`👨‍🚀 3D 외형 변경: ${labelMap[modelKey] || modelKey}`, undefined, undefined, '#38bdf8');
     this.notify();
   }
 

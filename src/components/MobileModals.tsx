@@ -643,32 +643,71 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
               <div className="p-3 bg-pink-950/40 rounded-xl border border-pink-400 flex justify-between items-center">
                 <div>
                   <span className="text-xs font-bold text-white block">외형 조작기 (Appearance Modifier)</span>
-                  <span className="text-[10px] text-pink-300">6대 은하 종족, 망토 시뮬레이션 및 아머 도색</span>
+                  <span className="text-[10px] text-pink-300">Kenney 3D GLB 우주비행사 모델 & 은하 종족 선택</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                {[
-                  { name: '아노말리 (인간)', icon: '👨‍🚀', perk: '방호 소모율 -20%' },
-                  { name: '코르박스 (전자)', icon: '🤖', perk: '바이저 스캔 +30%' },
-                  { name: '바이킨 (전사)', icon: '⚔️', perk: '무기 공격력 +20%' },
-                  { name: '게크 (조류 상인)', icon: '🐦', perk: '상점 매입 15% 할인' },
-                  { name: '여행자 (영혼)', icon: '🌌', perk: '워프 도약 +200 LY' },
-                  { name: '오토파지 (로봇)', icon: '🧵', perk: '스태프 화력 +30%' }
-                ].map((race, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      AudioSys.playDiscoveryFanfare();
-                      game.spawnFloatText(`종족 변경: ${race.name} (${race.perk})`, undefined, undefined, '#ec4899');
-                    }}
-                    className="p-3 rounded-xl bg-slate-900 border border-white/10 hover:border-pink-400 flex flex-col items-center gap-1 cursor-pointer active:scale-95"
-                  >
-                    <span className="text-2xl">{race.icon}</span>
-                    <span className="font-bold text-white text-xs">{race.name}</span>
-                    <span className="text-[9px] text-pink-300">{race.perk}</span>
-                  </button>
-                ))}
+              {/* Kenney 3D GLB Character Models */}
+              <div>
+                <span className="text-xs font-bold text-cyan-300 block mb-1.5">🌟 3D 캐릭터 모델 (Kenney Space Kit)</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {[
+                    { id: 'astronautA', name: '우주비행사 A (기본)', icon: '👨‍🚀', desc: '화이트 & 블루 배색 정밀 3D GLB' },
+                    { id: 'astronautB', name: '우주비행사 B (오렌지)', icon: '🚀', desc: '오렌지 & 화이트 탐사복 3D GLB' },
+                    { id: 'alien', name: '외계인 탐험가 (Alien)', icon: '👽', desc: '외계 미지의 생명체 3D GLB' },
+                    { id: 'classic', name: '클래식 엑소슈트', icon: '🤖', desc: '초기 절차적 큐브/스피어 수트' }
+                  ].map((m) => {
+                    const isSelected = (game.data.characterModel || 'astronautA') === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          game.setCharacterModel(m.id);
+                          triggerRender();
+                        }}
+                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-95 ${
+                          isSelected
+                            ? 'bg-cyan-950/80 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.5)]'
+                            : 'bg-slate-900 border-white/10 hover:border-cyan-400/50 text-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xl">{m.icon}</span>
+                          <span className="font-bold text-xs text-white">{m.name}</span>
+                          {isSelected && <span className="text-[9px] bg-cyan-500 text-black px-1.5 py-0.2 rounded font-bold ml-auto">착용 중</span>}
+                        </div>
+                        <p className="text-[10px] text-gray-400">{m.desc}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xs font-bold text-pink-300 block mb-1.5">🌌 6대 은하 종족 (특수 패시브)</span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  {[
+                    { name: '아노말리 (인간)', icon: '👨‍🚀', perk: '방호 소모율 -20%' },
+                    { name: '코르박스 (전자)', icon: '🤖', perk: '바이저 스캔 +30%' },
+                    { name: '바이킨 (전사)', icon: '⚔️', perk: '무기 공격력 +20%' },
+                    { name: '게크 (조류 상인)', icon: '🐦', perk: '상점 매입 15% 할인' },
+                    { name: '여행자 (영혼)', icon: '🌌', perk: '워프 도약 +200 LY' },
+                    { name: '오토파지 (로봇)', icon: '🧵', perk: '스태프 화력 +30%' }
+                  ].map((race, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        AudioSys.playDiscoveryFanfare();
+                        game.spawnFloatText(`종족 변경: ${race.name} (${race.perk})`, undefined, undefined, '#ec4899');
+                      }}
+                      className="p-3 rounded-xl bg-slate-900 border border-white/10 hover:border-pink-400 flex flex-col items-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      <span className="text-2xl">{race.icon}</span>
+                      <span className="font-bold text-white text-xs">{race.name}</span>
+                      <span className="text-[9px] text-pink-300">{race.perk}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -3748,6 +3787,65 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
                   >
                     {game.data.shipType === 'UTOPIA_SPEEDER' ? '✓ 조종석 활성화 완료' : '🚀 유토피아 스피더 즉시 탑승'}
                   </button>
+                </div>
+
+                {/* CC0 Asset Attribution & Kenney Links */}
+                <div className="p-3.5 bg-slate-900/90 rounded-xl border border-emerald-500/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">📜</span>
+                      <div>
+                        <span className="text-xs font-bold text-white block">3D 에셋 & 오픈소스 라이센스 표기 (Asset Credits)</span>
+                        <span className="text-[10px] text-emerald-400">Creative Commons Zero (CC0 1.0 Universal) - Public Domain</span>
+                      </div>
+                    </div>
+                    <a
+                      href="https://creativecommons.org/publicdomain/zero/1.0/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-900 transition-colors"
+                    >
+                      CC0 전문 ↗
+                    </a>
+                  </div>
+
+                  <p className="text-[11px] text-gray-300 leading-relaxed">
+                    본 프로젝트의 3D 사람 캐릭터 모델 및 3D 행성 텍스처는 <strong>Kenney(www.kenney.nl)</strong>에서 제작 및 배포한 공식 CC0 에셋 패키지를 사용하고 있습니다.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <a
+                      href="https://kenney.nl/assets/space-kit"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2.5 rounded-lg bg-slate-950 border border-white/10 hover:border-emerald-400/60 flex items-center justify-between transition-colors group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">👨‍🚀</span>
+                        <div>
+                          <span className="font-bold text-white block text-[11px] group-hover:text-emerald-300">Kenney Space Kit 2.0</span>
+                          <span className="text-[9.5px] text-gray-400">3D 우주비행사 GLB & 우주선 모델</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-emerald-400">링크 ↗</span>
+                    </a>
+
+                    <a
+                      href="https://kenney.nl/assets/planets"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2.5 rounded-lg bg-slate-950 border border-white/10 hover:border-emerald-400/60 flex items-center justify-between transition-colors group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🪐</span>
+                        <div>
+                          <span className="font-bold text-white block text-[11px] group-hover:text-emerald-300">Kenney Planets Pack</span>
+                          <span className="text-[9.5px] text-gray-400">10종 고해상도 행성 표면 텍스처</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-emerald-400">링크 ↗</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             );
