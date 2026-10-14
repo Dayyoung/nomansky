@@ -113,16 +113,16 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
     <div
       className={`fixed inset-0 z-50 flex ${
         isDemoActive
-          ? 'items-start justify-center pt-24 xs:pt-28 sm:pt-32 p-2 sm:p-4 pb-4'
-          : 'items-center justify-center p-2 sm:p-4'
-      } bg-black/85 backdrop-blur-md overflow-hidden`}
+          ? 'items-start justify-center pt-24 xs:pt-28 sm:pt-32 p-2 sm:p-4 pb-4 bg-black/35 backdrop-blur-sm pointer-events-none'
+          : 'items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md'
+      } overflow-hidden`}
     >
       <div
         className={`relative w-full max-w-2xl ${
           isDemoActive
-            ? 'max-h-[calc(100vh-6.5rem)] xs:max-h-[calc(100vh-7.5rem)] sm:max-h-[calc(100vh-8.5rem)]'
+            ? 'max-h-[calc(100vh-6.5rem)] xs:max-h-[calc(100vh-7.5rem)] sm:max-h-[calc(100vh-8.5rem)] pointer-events-auto'
             : 'max-h-[92vh]'
-        } flex flex-col bg-slate-950 border border-cyan-400/60 rounded-2xl shadow-[0_0_35px_rgba(0,229,255,0.25)] overflow-hidden`}
+        } flex flex-col bg-slate-950/95 border border-cyan-400/60 rounded-2xl shadow-[0_0_35px_rgba(0,229,255,0.25)] overflow-hidden`}
       >
         {/* Dedicated Live Demo Showcase In-Modal Top Header */}
         {isDemoActive && (
@@ -4314,8 +4314,260 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             </div>
           )}
 
+          {/* 54. PLANETARY SETTLEMENT OVERSEER ADMINISTRATION (FRONTIERS) */}
+          {activeModal === 'settlement' && (
+            <div className="space-y-3.5">
+              {/* Header Banner */}
+              <div className="p-4 bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-950/80 rounded-xl border border-amber-400/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(251,191,36,0.25)]">
+                    🏛️
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-extrabold text-white">
+                        {game.data.settlement.name}
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400">
+                        {game.data.settlement.rank}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-amber-200/80 font-mono block mt-0.5">
+                      📍 행성 표면 좌표: {game.data.settlement.coords} | 행정관: 여행자 개척자
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    game.collectSettlementDailyHarvest();
+                    triggerRender();
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 text-black font-extrabold rounded-lg text-xs cursor-pointer shadow-md active:scale-98"
+                >
+                  💰 일일 세수 수확 (Harvest)
+                </button>
+              </div>
+
+              {/* Sub-Tabs */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
+                {[
+                  { id: 0, label: '📊 행정 대시보드' },
+                  { id: 1, label: '⚖️ 주민 분쟁 판결' },
+                  { id: 2, label: '🏗️ 시설 건축 확충' },
+                  { id: 3, label: '📦 일일 생산 수확' }
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setSubTab(t.id)}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-all shrink-0 cursor-pointer ${
+                      subTab === t.id
+                        ? 'bg-amber-500/30 text-amber-300 border border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
+                        : 'bg-slate-900 text-gray-400 hover:text-white border border-white/5'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab 0: Overview & Statistics */}
+              {subTab === 0 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 text-center">
+                      <span className="text-[10px] text-gray-400 block">주민 인구</span>
+                      <span className="text-base font-extrabold text-white mt-1 block">
+                        {game.data.settlement.population}명
+                      </span>
+                      <span className="text-[9px] text-emerald-400 font-bold">+2명/주</span>
+                    </div>
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 text-center">
+                      <span className="text-[10px] text-gray-400 block">정착지 행복도</span>
+                      <span className="text-base font-extrabold text-amber-400 mt-1 block">
+                        {game.data.settlement.happiness}%
+                      </span>
+                      <span className="text-[9px] text-emerald-400 font-bold">번영 지수 S</span>
+                    </div>
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 text-center">
+                      <span className="text-[10px] text-gray-400 block">일일 총생산</span>
+                      <span className="text-base font-extrabold text-cyan-400 mt-1 block">
+                        {(game.data.settlement.productivity).toLocaleString()} ₩
+                      </span>
+                      <span className="text-[9px] text-cyan-300 font-bold">색층 금속 합금</span>
+                    </div>
+                    <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 text-center">
+                      <span className="text-[10px] text-gray-400 block">센티넬 위협도</span>
+                      <span className="text-base font-extrabold text-emerald-400 mt-1 block">
+                        {game.data.settlement.sentinelThreat}%
+                      </span>
+                      <span className="text-[9px] text-emerald-300 font-bold">치안 평화로움</span>
+                    </div>
+                  </div>
+
+                  {/* Citizen Directory */}
+                  <div className="p-3.5 bg-slate-900/80 rounded-xl border border-white/10 space-y-2">
+                    <span className="text-xs font-bold text-amber-300 block">
+                      👥 정착지 상주 주민 및 주요 인사 명부
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      {game.data.settlement.citizens.map((cit, idx) => (
+                        <div key={idx} className="p-2.5 bg-black/40 rounded-lg border border-white/5 flex items-center justify-between">
+                          <div>
+                            <span className="font-bold text-white block">{cit.name}</span>
+                            <span className="text-[10px] text-gray-400">{cit.role} // {cit.race}</span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                            {cit.mood}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 1: Citizen Disputes */}
+              {subTab === 1 && (
+                <div className="space-y-3 text-xs">
+                  <div className="p-4 bg-slate-900/90 rounded-xl border border-amber-400/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-amber-300 text-sm">
+                        ⚖️ 주민 민원 분쟁 중재 심리
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-300 border border-red-500/30">
+                        판결 계류 중
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-black/40 rounded-lg border border-white/5 space-y-1">
+                      <span className="font-bold text-white block">
+                        안건: {game.data.settlement.currentDispute.title}
+                      </span>
+                      <p className="text-gray-300 text-[11px] leading-relaxed">
+                        {game.data.settlement.currentDispute.desc}
+                      </p>
+                      <div className="text-[10px] text-amber-200/70 pt-1">
+                        • 청구인: {game.data.settlement.currentDispute.plaintiff} | 피청구인: {game.data.settlement.currentDispute.defendant}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      <button
+                        onClick={() => {
+                          game.resolveSettlementDispute('A');
+                          triggerRender();
+                        }}
+                        className="p-3 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-400 rounded-xl text-left cursor-pointer transition-all active:scale-98"
+                      >
+                        <span className="font-bold text-cyan-300 block text-xs">
+                          {game.data.settlement.currentDispute.optA}
+                        </span>
+                        <span className="text-[10px] text-gray-400 mt-1 block">
+                          주민 여가 복지 및 소비 생산력 확대 인가
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          game.resolveSettlementDispute('B');
+                          triggerRender();
+                        }}
+                        className="p-3 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-400 rounded-xl text-left cursor-pointer transition-all active:scale-98"
+                      >
+                        <span className="font-bold text-emerald-300 block text-xs">
+                          {game.data.settlement.currentDispute.optB}
+                        </span>
+                        <span className="text-[10px] text-gray-400 mt-1 block">
+                          방위 사령관 요청 수락: 센티넬 위협 억제
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 2: Infrastructure Expansion */}
+              {subTab === 2 && (
+                <div className="space-y-2.5 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {[
+                      {
+                        title: '바이오 클럽하우스',
+                        icon: '🎪',
+                        desc: '주민 여가 문화 공간. 행복도 +12%',
+                        cost: '순수 페라이트 x250'
+                      },
+                      {
+                        title: '센티넬 조기 경보 안테나',
+                        icon: '📡',
+                        desc: '타키온 주파수 탐지탑. 위협도 -25%',
+                        cost: '나트륨 x180'
+                      },
+                      {
+                        title: '자율 합금 정제탑',
+                        icon: '🏭',
+                        desc: '미네랄 제련 시설. 일일 생산 +65,000₩',
+                        cost: '색층 금속 x150'
+                      }
+                    ].map((bld, idx) => (
+                      <div key={idx} className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex flex-col justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{bld.icon}</span>
+                            <span className="font-bold text-white text-xs">{bld.title}</span>
+                          </div>
+                          <p className="text-[10px] text-gray-300 mt-1">{bld.desc}</p>
+                          <span className="text-[9px] text-amber-300 font-mono mt-1 block">소모: {bld.cost}</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            game.data.units += 50000;
+                            AudioSys.playDiscoveryFanfare();
+                            game.spawnFloatText(`🏗️ [${bld.title}] 착공 완료! 정착지 번영 지수 상승`, undefined, undefined, '#facc15');
+                            triggerRender();
+                          }}
+                          className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-black font-extrabold rounded-lg text-[10px] cursor-pointer"
+                        >
+                          착공 승인
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 3: Daily Harvest */}
+              {subTab === 3 && (
+                <div className="space-y-3 text-xs">
+                  <div className="p-4 bg-slate-900/90 rounded-xl border border-emerald-400/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <span className="font-bold text-emerald-300 text-sm block">
+                        📦 일일 정착지 특산물 및 행정 세수 수확
+                      </span>
+                      <p className="text-gray-300 text-[11px] mt-1">
+                        정착지 주민들이 자율 채굴 파이프라인에서 추출한 색층 금속 합금 및 일일 무역 관세입니다.
+                      </p>
+                      <div className="mt-2 text-xs font-mono text-amber-300">
+                        • 미수령 화폐: +85,000 ₩ | 자원: 색층 금속 x240, 농축 탄소 x180, 나노로봇 +120 ⬡
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        game.collectSettlementDailyHarvest();
+                        triggerRender();
+                      }}
+                      className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 text-white font-extrabold rounded-xl text-xs cursor-pointer shadow-lg active:scale-98 shrink-0"
+                    >
+                      💰 일괄 수확 (Collect All)
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 55. DEFAULT FALLBACK MODAL HANDLER */}
-          {!['inventory', 'quick-recharge', 'galaxy-map', 'solar-ship', 'laylaps', 'fishing', 'black-hole', 'portal', 'wonders', 'supercharge', 'appearance', 'weapon-arsenal', 'station', 'sandworm', 'base-computer', 'abandoned-building', 'archaeology', 'specialist-terminals', 'pirate-flagship', 'large-refiner', 'atlantid-tool', 'livestock-ranch', 'organic-fleet', 'egg-sequencer', 'biodome', 'orbital-freighter', 'expedition', 'scrapper', 'trade-outpost', 'atlas-path', 'outlaw-station', 'manufacturing', 'minotaur', 'teleport', 'nutrient', 'discoveries', 'build-menu', 'milestones', 'hazard-protection', 'multi-tool-salvage', 'cartographer', 'exosuit-upgrade', 'guild-envoy', 'galactic-core', 'starship-weapons', 'floating-islands', 'boundary-failure', 'abyssal-horror', 'living-ship', 'derelict-freighter', 'extreme-weather', 'volcano', 'aquarium', 'spacewalk', 'bioluminescent-forest', 'race-initiator', 'titan-beetle', 'short-range-teleporter', 'em-generator', 'aquatic-base', 'power-grid', 'gas-harvester', 'ship-paint', 'custom-difficulty', 'nautilon-sonar', 'harmonic-interface', 'station-tech'].includes(activeModal) && (
+          {!['inventory', 'quick-recharge', 'galaxy-map', 'solar-ship', 'laylaps', 'fishing', 'black-hole', 'portal', 'wonders', 'supercharge', 'appearance', 'weapon-arsenal', 'station', 'sandworm', 'base-computer', 'abandoned-building', 'archaeology', 'specialist-terminals', 'pirate-flagship', 'large-refiner', 'atlantid-tool', 'livestock-ranch', 'organic-fleet', 'egg-sequencer', 'biodome', 'orbital-freighter', 'expedition', 'scrapper', 'trade-outpost', 'atlas-path', 'outlaw-station', 'manufacturing', 'minotaur', 'teleport', 'nutrient', 'discoveries', 'build-menu', 'milestones', 'hazard-protection', 'multi-tool-salvage', 'cartographer', 'exosuit-upgrade', 'guild-envoy', 'galactic-core', 'starship-weapons', 'floating-islands', 'boundary-failure', 'abyssal-horror', 'living-ship', 'derelict-freighter', 'extreme-weather', 'volcano', 'aquarium', 'spacewalk', 'bioluminescent-forest', 'race-initiator', 'titan-beetle', 'short-range-teleporter', 'em-generator', 'aquatic-base', 'power-grid', 'gas-harvester', 'ship-paint', 'custom-difficulty', 'nautilon-sonar', 'harmonic-interface', 'station-tech', 'settlement'].includes(activeModal) && (
             <div className="space-y-4 text-center py-6">
               <span className="text-4xl block">✨</span>
               <span className="text-sm font-bold text-white block">

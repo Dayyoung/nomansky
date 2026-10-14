@@ -10,8 +10,8 @@ export class PlanetBuilder {
     const group = new THREE.Group();
     group.name = `planet_${planetData.name}`;
 
-    // Compute relative 3D scale based on 2D radius
-    const planetRadius = Math.max(120, Math.min(350, planetData.r * 0.4));
+    // Compute relative 3D scale based on 2D radius (0.1 scale factor consistent with world coordinates)
+    const planetRadius = Math.max(85, Math.min(135, planetData.r * 0.1));
 
     // 1. Procedural Surface Texture Generator via HTML5 Canvas
     const surfaceTexture = this.generatePlanetTexture(planetData);

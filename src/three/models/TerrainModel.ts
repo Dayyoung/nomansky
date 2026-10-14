@@ -106,6 +106,14 @@ export class TerrainBuilder {
     const crashedShipMesh = PlanetaryStructuresBuilder.createCrashedShipMesh(85, 75);
     terrainGroup.add(crashedShipMesh);
 
+    // 5-E. 3D Planetary Base Housing Complex (Base Computer, Bio-Dome, Solar Grid, Living Dome)
+    const baseHousingMesh = PlanetaryStructuresBuilder.createBaseHousingMesh(24, 18);
+    terrainGroup.add(baseHousingMesh);
+
+    // 5-F. 3D Planetary Settlement Colony (Frontiers Overseer Town Hall, Citizens, Dwellings & Bazaar)
+    const settlementMesh = PlanetaryStructuresBuilder.createSettlementColonyMesh(-36, -27);
+    terrainGroup.add(settlementMesh);
+
     // 6. 3D Knowledge Stones
     if (planet.knowledgeStones) {
       planet.knowledgeStones.forEach((ks) => {

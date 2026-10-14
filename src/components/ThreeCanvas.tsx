@@ -45,6 +45,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
   // Pointer drag state
   const isPointerDownRef = useRef(false);
   const lastPointerPosRef = useRef({ x: 0, y: 0 });
+  const lastDemoPhaseRef = useRef<string | null>(null);
 
   // Initialize ThreeGameEngine on mount
   useEffect(() => {
@@ -76,31 +77,61 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
         // Sync with Demo Showcase Phase when demo tour is running
         if (game.isAutoPilot && game.data.demoShowcase.isActive) {
           const phase = game.data.demoShowcase.phase;
-          if (phase === 'DERELICT_FREIGHTER' && engineRef.current.current3DSceneMode !== 'DERELICT_FREIGHTER') {
-            engineRef.current.set3DSceneMode('DERELICT_FREIGHTER');
-            setActive3DScene('DERELICT_FREIGHTER');
-          } else if (phase === 'EVA_SPACEWALK' && engineRef.current.current3DSceneMode !== 'EVA_SPACEWALK') {
-            engineRef.current.set3DSceneMode('EVA_SPACEWALK');
-            setActive3DScene('EVA_SPACEWALK');
-          } else if (phase === 'BLACK_HOLE' && engineRef.current.current3DSceneMode !== 'BLACK_HOLE') {
-            engineRef.current.set3DSceneMode('BLACK_HOLE');
-            setActive3DScene('BLACK_HOLE');
-          } else if (phase === 'SPACE_STATION' && engineRef.current.current3DSceneMode !== 'SPACE_STATION') {
-            engineRef.current.set3DSceneMode('SPACE_STATION');
-            setActive3DScene('SPACE_STATION');
-          } else if (['STARSHIP_CYCLE', 'SHIP_FABRICATION', 'SOLAR_SAIL'].includes(phase) && engineRef.current.current3DSceneMode !== 'SHIP_HANGAR') {
-            engineRef.current.set3DSceneMode('SHIP_HANGAR');
-            setActive3DScene('SHIP_HANGAR');
-          } else if (phase === 'GALAXY_MAP' && engineRef.current.current3DSceneMode !== 'GALAXY_MAP') {
-            engineRef.current.set3DSceneMode('GALAXY_MAP');
-            setActive3DScene('GALAXY_MAP');
-          } else if (phase === 'AQUARIUS_FISHING' && engineRef.current.current3DSceneMode !== 'OCEAN_FISHING') {
-            engineRef.current.set3DSceneMode('OCEAN_FISHING');
-            setActive3DScene('OCEAN_FISHING');
+          const phaseChanged = lastDemoPhaseRef.current !== phase;
+          if (phaseChanged) {
+            lastDemoPhaseRef.current = phase;
+          }
+
+          if (phase === 'DERELICT_FREIGHTER') {
+            if (engineRef.current.current3DSceneMode !== 'DERELICT_FREIGHTER' || phaseChanged) {
+              engineRef.current.set3DSceneMode('DERELICT_FREIGHTER');
+              setActive3DScene('DERELICT_FREIGHTER');
+            }
+          } else if (phase === 'EVA_SPACEWALK') {
+            if (engineRef.current.current3DSceneMode !== 'EVA_SPACEWALK' || phaseChanged) {
+              engineRef.current.set3DSceneMode('EVA_SPACEWALK');
+              setActive3DScene('EVA_SPACEWALK');
+            }
+          } else if (phase === 'BLACK_HOLE') {
+            if (engineRef.current.current3DSceneMode !== 'BLACK_HOLE' || phaseChanged) {
+              engineRef.current.set3DSceneMode('BLACK_HOLE');
+              setActive3DScene('BLACK_HOLE');
+            }
+          } else if (phase === 'SPACE_STATION') {
+            if (engineRef.current.current3DSceneMode !== 'SPACE_STATION' || phaseChanged) {
+              engineRef.current.set3DSceneMode('SPACE_STATION');
+              setActive3DScene('SPACE_STATION');
+            }
+          } else if (['STARSHIP_CYCLE', 'SHIP_FABRICATION', 'SOLAR_SAIL'].includes(phase)) {
+            if (engineRef.current.current3DSceneMode !== 'SHIP_HANGAR' || phaseChanged) {
+              engineRef.current.set3DSceneMode('SHIP_HANGAR');
+              setActive3DScene('SHIP_HANGAR');
+            }
+          } else if (phase === 'GALAXY_MAP') {
+            if (engineRef.current.current3DSceneMode !== 'GALAXY_MAP' || phaseChanged) {
+              engineRef.current.set3DSceneMode('GALAXY_MAP');
+              setActive3DScene('GALAXY_MAP');
+            }
+          } else if (phase === 'AQUARIUS_FISHING') {
+            if (engineRef.current.current3DSceneMode !== 'OCEAN_FISHING' || phaseChanged) {
+              engineRef.current.set3DSceneMode('OCEAN_FISHING');
+              setActive3DScene('OCEAN_FISHING');
+            }
+          } else if (['BASE_BUILDING', 'BUILD_MENU_SYSTEM'].includes(phase)) {
+            if (engineRef.current.current3DSceneMode !== 'BASE_BUILDING' || phaseChanged) {
+              engineRef.current.set3DSceneMode('BASE_BUILDING');
+              setActive3DScene('BASE_BUILDING');
+            }
           } else if (game.currState === 'PLANET' && !['OCEAN_FISHING', 'BASE_BUILDING', 'FAUNA_INSPECT'].includes(engineRef.current.current3DSceneMode)) {
-            if (engineRef.current.current3DSceneMode !== 'PLANET') {
+            if (engineRef.current.current3DSceneMode !== 'PLANET' || phaseChanged) {
               engineRef.current.set3DSceneMode('PLANET');
               setActive3DScene('PLANET');
+            }
+          } else {
+            // Space Flight phases (STARSHIP_WEAPONS, SPACE_COMBAT, SPACE_PULSE, PIRATE_DREADNOUGHT, etc.)
+            if (engineRef.current.current3DSceneMode !== 'FLIGHT' || phaseChanged) {
+              engineRef.current.set3DSceneMode('FLIGHT');
+              setActive3DScene('FLIGHT');
             }
           }
         }

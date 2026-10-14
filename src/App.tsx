@@ -133,17 +133,41 @@ export default function App() {
   // Keyboard Event Listeners for desktop fallback
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'TEXTAREA') {
+        return;
+      }
       AudioSys.unlockOnFirstInteraction();
       game.notifyUserInput();
       const code = e.code;
-      if (code === 'KeyW' || code === 'ArrowUp') game.keyboard.w = 1;
-      if (code === 'KeyS' || code === 'ArrowDown') game.keyboard.s = 1;
-      if (code === 'KeyA' || code === 'ArrowLeft') game.keyboard.a = 1;
-      if (code === 'KeyD' || code === 'ArrowRight') game.keyboard.d = 1;
-      if (code === 'Space') game.keyboard.space = 1;
-      if (code === 'ShiftLeft' || code === 'ShiftRight') game.keyboard.shift = 1;
-      if (code === 'KeyE') game.keyboard.e = 1;
-      if (code === 'KeyF') {
+      const key = e.key?.toLowerCase();
+
+      // Support English WASD, Arrow keys, and Korean IME keys (ㅈ, ㅁ, ㄴ, ㅇ, ㄷ)
+      const isW = code === 'KeyW' || code === 'ArrowUp' || key === 'w' || key === 'ㅈ' || key === 'arrowup';
+      const isS = code === 'KeyS' || code === 'ArrowDown' || key === 's' || key === 'ㄴ' || key === 'arrowdown';
+      const isA = code === 'KeyA' || code === 'ArrowLeft' || key === 'a' || key === 'ㅁ' || key === 'arrowleft';
+      const isD = code === 'KeyD' || code === 'ArrowRight' || key === 'd' || key === 'ㅇ' || key === 'arrowright';
+      const isSpace = code === 'Space' || key === ' ';
+      const isShift = code === 'ShiftLeft' || code === 'ShiftRight' || e.shiftKey;
+      const isE = code === 'KeyE' || key === 'e' || key === 'ㄷ';
+
+      if (isW) game.keyboard.w = 1;
+      if (isS) game.keyboard.s = 1;
+      if (isA) game.keyboard.a = 1;
+      if (isD) game.keyboard.d = 1;
+      if (isSpace) game.keyboard.space = 1;
+      if (isShift) game.keyboard.shift = 1;
+      if (isE) {
+        game.keyboard.e = 1;
+        if (game.data.activeInteractAction) {
+          game.data.activeInteractAction();
+        } else if (game.insidePlanetInFlight || game.currState === 'SPACE') {
+          const atmoPlanet = game.getPlanetInAtmosphere() || game.data.activePlanet || (game.entities.planets.length > 0 ? game.entities.planets[0] : null);
+          if (atmoPlanet) {
+            game.landCurrentShip(atmoPlanet);
+          }
+        }
+      }
+      if (code === 'KeyF' || key === 'f' || key === 'ㄹ') {
         game.data.isVisorActive = !game.data.isVisorActive;
         setIsVisorActive(game.data.isVisorActive);
       }
@@ -305,13 +329,24 @@ export default function App() {
 
     const handleKeyUp = (e: KeyboardEvent) => {
       const code = e.code;
-      if (code === 'KeyW' || code === 'ArrowUp') game.keyboard.w = 0;
-      if (code === 'KeyS' || code === 'ArrowDown') game.keyboard.s = 0;
-      if (code === 'KeyA' || code === 'ArrowLeft') game.keyboard.a = 0;
-      if (code === 'KeyD' || code === 'ArrowRight') game.keyboard.d = 0;
-      if (code === 'Space') game.keyboard.space = 0;
-      if (code === 'ShiftLeft' || code === 'ShiftRight') game.keyboard.shift = 0;
-      if (code === 'KeyE') game.keyboard.e = 0;
+      const key = e.key?.toLowerCase();
+      if (code === 'KeyW' || code === 'ArrowUp' || key === 'w' || key === 'ㅈ' || key === 'arrowup') game.keyboard.w = 0;
+      if (code === 'KeyS' || code === 'ArrowDown' || key === 's' || key === 'ㄴ' || key === 'arrowdown') game.keyboard.s = 0;
+      if (code === 'KeyA' || code === 'ArrowLeft' || key === 'a' || key === 'ㅁ' || key === 'arrowleft') game.keyboard.a = 0;
+      if (code === 'KeyD' || code === 'ArrowRight' || key === 'd' || key === 'ㅇ' || key === 'arrowright') game.keyboard.d = 0;
+      if (code === 'Space' || key === ' ') game.keyboard.space = 0;
+      if (code === 'ShiftLeft' || code === 'ShiftRight' || !e.shiftKey) game.keyboard.shift = 0;
+      if (code === 'KeyE' || key === 'e' || key === 'ㄷ') game.keyboard.e = 0;
+    };
+
+    const handleBlur = () => {
+      game.keyboard.w = 0;
+      game.keyboard.s = 0;
+      game.keyboard.a = 0;
+      game.keyboard.d = 0;
+      game.keyboard.space = 0;
+      game.keyboard.shift = 0;
+      game.keyboard.e = 0;
     };
 
     const onUserPointerDown = (e: MouseEvent | TouchEvent | PointerEvent) => {
@@ -373,6 +408,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
     window.addEventListener('pointerdown', onUserPointerDown);
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -382,6 +418,7 @@ export default function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
       window.removeEventListener('pointerdown', onUserPointerDown);
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchmove', onTouchMove);

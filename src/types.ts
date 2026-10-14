@@ -513,7 +513,7 @@ export interface DemoShowcaseState {
   modalTab?: string;
   phaseDuration: number;
   phaseElapsed: number;
-  currentActivity?: 'GATHERING' | 'HUNTING' | 'SENTINEL_COMBAT' | 'SURVIVAL' | 'EXPLORATION' | 'FISHING' | 'SPACE_FLIGHT';
+  currentActivity?: 'GATHERING' | 'BASE_BUILDING' | 'HUNTING' | 'SENTINEL_COMBAT' | 'SETTLEMENT_ADMIN' | 'SURVIVAL' | 'EXPLORATION' | 'FISHING' | 'SPACE_FLIGHT';
   activityLabel?: string;
   currentTargetName?: string;
   currentTargetDist?: number;

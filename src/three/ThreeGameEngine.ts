@@ -595,15 +595,35 @@ export class ThreeGameEngine {
       const dz = targetZ - this.shipPos.z;
       const distToTarget = Math.hypot(dx, dz);
 
+      const isSpaceExclusive = [
+        'SPACE_PULSE', 'SPACE_COMBAT', 'STARSHIP_CYCLE', 'SOLAR_SAIL',
+        'SPACE_STATION', 'GALAXY_MAP', 'PIRATE_DREADNOUGHT', 'OUTLAW_STATION',
+        'SPACE_ANOMALY', 'BLACK_HOLE', 'DERELICT_FREIGHTER', 'EVA_SPACEWALK',
+        'SHIP_FABRICATION', 'STARSHIP_WEAPONS', 'GALACTIC_CORE', 'ORGANIC_FLEET'
+      ].includes(phase);
+
       let targetHeading = targetFound ? Math.atan2(dx, dz) : this.shipYaw;
       let targetTilt = 0;
 
+      // Orbit gracefully around planets during space exclusive phases to avoid crashing into surface
+      if (isSpaceExclusive && distToTarget < 220.0 && !['DERELICT_FREIGHTER', 'EVA_SPACEWALK', 'BLACK_HOLE', 'SPACE_STATION'].includes(phase)) {
+        const orbitAngle = Math.atan2(this.shipPos.z - targetZ, this.shipPos.x - targetX);
+        targetHeading = orbitAngle + Math.PI / 2 + 0.15; // Smooth orbital cruise
+        targetTilt = 0;
+      }
+
       // Space combat dogfight weaving & auto-firing in 3D
-      if (phase === 'SPACE_COMBAT') {
+      if (phase === 'SPACE_COMBAT' || phase === 'STARSHIP_WEAPONS') {
         targetHeading += Math.sin(this.totalElapsedTime * 3.2) * 0.45;
         targetTilt = Math.sin(this.totalElapsedTime * 2.4) * 0.25;
-        if (Math.floor(this.totalElapsedTime * 10) % 4 === 0) {
+        if (!this.lastFireTime || this.totalElapsedTime - this.lastFireTime > 0.22) {
           this.fireLaser();
+          this.lastFireTime = this.totalElapsedTime;
+          if (phase === 'STARSHIP_WEAPONS' && Math.floor(this.totalElapsedTime * 4) % 6 === 0) {
+            const weaponNames = ['포톤 캐논', '인프라-나이프 가속기', '포지트론 이젝터', '사이클로트론 발리스타', '로켓 런처'];
+            const wIdx = Math.floor((this.totalElapsedTime * 1.5) % weaponNames.length);
+            game.spawnFloatText(`🚀 [스타쉽 화기 오버드라이브] ${weaponNames[wIdx]} 일제 사격!`, undefined, undefined, '#38bdf8');
+          }
         }
       }
 
@@ -636,17 +656,18 @@ export class ThreeGameEngine {
           isPulse = distToTarget > 100.0;
           this.shipTargetSpeed = isPulse ? 85.0 : 20.0;
         }
+      } else if (phase === 'SPACE_COMBAT' || phase === 'STARSHIP_WEAPONS') {
+        isPulse = false;
+        this.lastPulseActive = false;
+        this.shipTargetSpeed = 26.0; // Combat dogfight speed
       } else {
-        isPulse = (distToTarget > 120.0 || Boolean(game.data.isPulseActive)) && phase !== 'SPACE_COMBAT';
+        isPulse = (distToTarget > 140.0 || Boolean(game.data.isPulseActive));
         if (isPulse) {
           if (!this.lastPulseActive) {
             NmsAudioEngine.getInstance().playPulseDrive();
             this.lastPulseActive = true;
           }
           this.shipTargetSpeed = 95.0;
-        } else if (phase === 'SPACE_COMBAT') {
-          this.lastPulseActive = false;
-          this.shipTargetSpeed = 26.0;
         } else {
           this.lastPulseActive = false;
           this.shipTargetSpeed = 16.0;
@@ -661,13 +682,6 @@ export class ThreeGameEngine {
         const pDist = Math.hypot(this.shipPos.x - p3dX, this.shipPos.z - p3dZ);
         const atmoR = (p.r + 35) * 0.1;
         if (pDist <= atmoR) {
-          const isSpaceExclusive = [
-            'SPACE_PULSE', 'SPACE_COMBAT', 'STARSHIP_CYCLE', 'SOLAR_SAIL',
-            'SPACE_STATION', 'GALAXY_MAP', 'PIRATE_DREADNOUGHT', 'OUTLAW_STATION',
-            'SPACE_ANOMALY', 'BLACK_HOLE', 'DERELICT_FREIGHTER', 'EVA_SPACEWALK',
-            'SHIP_FABRICATION', 'STARSHIP_WEAPONS', 'GALACTIC_CORE', 'ORGANIC_FLEET'
-          ].includes(phase);
-
           if (!isSpaceExclusive) {
             game.landCurrentShip(p);
             this.transitionToPlanetSurface(p);
@@ -675,20 +689,19 @@ export class ThreeGameEngine {
           }
         }
       }
-    } else {
-      // Manual flight controls - JOYSTICK DIRECTION VERIFIED:
-      // A (or joystick left): Left yaw turn (-steerYaw) and left strafe (-strafeInput)
-      // D (or joystick right): Right yaw turn (+steerYaw) and right strafe (+strafeInput)
+      // Manual flight controls - ACCURATELY ALIGNED LEFT/RIGHT:
+      // A (좌): Left yaw turn (-steerYaw => ship turns Left), left strafe (-strafeInput)
+      // D (우): Right yaw turn (+steerYaw => ship turns Right), right strafe (+strafeInput)
       if (kb.a) {
-        steerYaw -= 1.0; // A: 좌 방향 선회 (Turn Left)
-        strafeInput -= 1.0; // A: 좌 방향 이동 (Strafe Left)
+        steerYaw -= 1.0; // A: 좌회전 (Turn Left)
+        strafeInput -= 1.0; // A: 좌측 횡이동 (Strafe Left)
       }
       if (kb.d) {
-        steerYaw += 1.0; // D: 우 방향 선회 (Turn Right)
-        strafeInput += 1.0; // D: 우 방향 이동 (Strafe Right)
+        steerYaw += 1.0; // D: 우회전 (Turn Right)
+        strafeInput += 1.0; // D: 우측 횡이동 (Strafe Right)
       }
       if (tc.joystickVector.x) {
-        // [3D 조이스틱 좌우 반전 완벽 수정]: 오른쪽으로 밀면 우회전(+X), 왼쪽으로 밀면 좌회전(-X)
+        // [3D 조이스틱 좌우]: 오른쪽으로 밀면 우회전/우측이동, 왼쪽으로 밀면 좌회전/좌측이동
         steerYaw += tc.joystickVector.x;
         strafeInput += tc.joystickVector.x;
       }
@@ -745,7 +758,7 @@ export class ThreeGameEngine {
     this.shipPitch = Math.max(-0.65, Math.min(0.65, this.shipPitch));
 
     // Authentic Wing Roll Banking into Turns (-40° to +40°)
-    // In No Man's Sky, turning left banks the left wing down (-roll), turning right banks right wing down (+roll)
+    // In No Man's Sky, turning right banks right wing down (-roll), turning left banks left wing down (+roll)
     const targetRoll = -steerYaw * 0.65;
     this.shipRoll += (targetRoll - this.shipRoll) * Math.min(1.0, delta * 7.0);
 
@@ -756,7 +769,7 @@ export class ThreeGameEngine {
       Math.cos(this.shipYaw) * Math.cos(this.shipPitch)
     ).normalize();
 
-    // Lateral right vector for responsive strafe movement
+    // Lateral right vector for responsive strafe movement (Points TRUE Screen Right: cos(yaw), 0, -sin(yaw))
     const lateralRight = new THREE.Vector3(Math.cos(this.shipYaw), 0, -Math.sin(this.shipYaw)).normalize();
 
     // Advance 3D Starship Position (Forward + Lateral Strafe)
@@ -919,15 +932,15 @@ export class ThreeGameEngine {
     const kb = game.keyboard;
     const tc = game.touchControls;
 
-    // Camera Orbit Mouse / Touch Drag
+    // Camera Orbit Mouse / Touch Drag (Natural right/left drag rotates right/left)
     if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.05 || Math.abs(this.mouseLookDelta.y) > 0.05)) {
-      this.orbitYaw -= this.mouseLookDelta.x * 0.004;
-      this.orbitPitch += this.mouseLookDelta.y * 0.003;
+      this.orbitYaw += this.mouseLookDelta.x * 0.004;
+      this.orbitPitch -= this.mouseLookDelta.y * 0.003;
       // Clamp pitch to prevent flipping upside down
       this.orbitPitch = Math.max(-0.25, Math.min(1.2, this.orbitPitch));
     }
 
-    // Camera forward and right vectors projected onto ground plane (XZ)
+    // Camera forward and right vectors projected onto ground plane (XZ - camRight points TRUE screen right)
     const camFwd = new THREE.Vector3(Math.sin(this.orbitYaw), 0, Math.cos(this.orbitYaw)).normalize();
     const camRight = new THREE.Vector3(Math.cos(this.orbitYaw), 0, -Math.sin(this.orbitYaw)).normalize();
 
@@ -1001,15 +1014,15 @@ export class ThreeGameEngine {
       if (Math.hypot(tc.joystickVector.x, tc.joystickVector.y) > 0.1) {
         inputRight += tc.joystickVector.x; // 우측으로 밀면 우측 이동, 좌측으로 밀면 좌측 이동
         inputFwd -= tc.joystickVector.y; // 앞으로 밀면 전진, 뒤로 밀면 후진
-        this.orbitYaw -= tc.joystickVector.x * delta * 1.8; // 모바일 조이스틱 좌우 회전 동기화
+        this.orbitYaw += tc.joystickVector.x * delta * 1.8; // 모바일 조이스틱 우측 밀면 시점 우회전
       }
 
-      // Smooth keyboard/mouse camera turn assist with A/D (우주선과 동일한 좌우 회전 지원)
-      if (kb.a) {
-        this.orbitYaw += delta * 1.8; // A키 입력 시 좌측 방향 선회 회전
-      }
+      // Smooth keyboard/mouse camera turn assist with A/D (우주선 및 마우스와 일관된 시점 회전)
       if (kb.d) {
-        this.orbitYaw -= delta * 1.8; // D키 입력 시 우측 방향 선회 회전
+        this.orbitYaw += delta * 1.8; // D: 우측 시점 회전 (마우스 우측 드래그와 일치)
+      }
+      if (kb.a) {
+        this.orbitYaw -= delta * 1.8; // A: 좌측 시점 회전 (마우스 좌측 드래그와 일치)
       }
 
       const isMoving = Math.hypot(inputFwd, inputRight) > 0.08;
@@ -1365,6 +1378,39 @@ export class ThreeGameEngine {
         if (this.miningSparksMesh) this.miningSparksMesh.visible = false;
       }
     }
+
+    // Dynamic 3D Base Housing & Settlement Colony Animations
+    if (this.surfaceTerrainGroup) {
+      // Spinning Base Computer Hologram Ring
+      const holoRing = this.surfaceTerrainGroup.getObjectByName('base_computer_holo_ring');
+      if (holoRing) {
+        holoRing.rotation.z += delta * 1.8;
+        holoRing.rotation.y += delta * 0.9;
+      }
+
+      // Pulsing Construction Blueprint Scaffold
+      const holoScaffold = this.surfaceTerrainGroup.getObjectByName('holo_scaffold');
+      if (holoScaffold && holoScaffold instanceof THREE.Mesh) {
+        (holoScaffold.material as THREE.MeshBasicMaterial).opacity = 0.35 + Math.sin(this.totalElapsedTime * 4.5) * 0.22;
+      }
+
+      // Flashing Settlement Radio Tower Warning Beacon
+      const spireBeacon = this.surfaceTerrainGroup.getObjectByName('settlement_spire_beacon');
+      if (spireBeacon && spireBeacon instanceof THREE.Mesh) {
+        (spireBeacon.material as THREE.MeshBasicMaterial).color.setHex(
+          Math.floor(this.totalElapsedTime * 3) % 2 === 0 ? 0xef4444 : 0x7f1d1d
+        );
+      }
+
+      // Idle breathing and greeting movements for Settlement NPC citizens
+      ['citizen_korvax', 'citizen_vykeen', 'citizen_gek'].forEach((cName, cIdx) => {
+        const citizen = this.surfaceTerrainGroup?.getObjectByName(cName);
+        if (citizen) {
+          citizen.position.y = Math.sin(this.totalElapsedTime * 2.2 + cIdx * 1.5) * 0.15;
+          citizen.rotation.y = Math.sin(this.totalElapsedTime * 0.8 + cIdx) * 0.25;
+        }
+      });
+    }
   }
 
   // =========================================================================
@@ -1434,14 +1480,49 @@ export class ThreeGameEngine {
       case 'SHIP_HANGAR':
         this.orbitYaw = this.totalElapsedTime * 0.5;
         this.orbitPitch = 0.25;
+        // Ensure ship is positioned cleanly at hangar bay/station, not trapped inside derelict freighter
+        if (this.derelictFreighterGroup && this.shipPos.distanceTo(this.derelictFreighterGroup.position) < 160) {
+          const st = game.entities.station;
+          if (st) {
+            this.shipPos.set(st.x * 0.1, 4.0, st.y * 0.1 - 38);
+          } else {
+            this.shipPos.set(120, 20, 120);
+          }
+        }
         break;
       case 'GALAXY_MAP':
         break;
       case 'BASE_BUILDING':
         this.orbitPitch = 0.45;
+        // Focus camera on the planetary base housing complex (24, 18)
+        this.travelerPos.set(24, getTerrainHeight(24, 18), 18);
+        this.travelerYaw = Math.PI * 0.25;
         break;
       case 'OCEAN_FISHING':
         this.orbitPitch = 0.15;
+        break;
+      case 'FLIGHT':
+        this.cameraMode = 'CHASE';
+        // Verify ship is positioned in open space, not trapped inside derelict freighter, station, or planet
+        {
+          const curPlanet = game.data.activePlanet || game.entities.planets[0];
+          if (curPlanet) {
+            const p3dX = curPlanet.x * 0.1;
+            const p3dZ = curPlanet.y * 0.1;
+            const orbitDist = Math.max(220, (curPlanet.r * 0.1) * 2.2);
+            const distToFreighter = this.derelictFreighterGroup ? this.shipPos.distanceTo(this.derelictFreighterGroup.position) : 999;
+            const distToPlanet = Math.hypot(this.shipPos.x - p3dX, this.shipPos.z - p3dZ);
+            // If trapped inside derelict freighter (-180, 25, 260) or planet mesh or uninitialized
+            if (distToFreighter < 160 || distToPlanet < curPlanet.r * 0.1 + 45 || isNaN(this.shipPos.x) || Math.abs(this.shipPos.y) > 1000 || this.shipPos.y < 5) {
+              this.shipPos.set(p3dX + orbitDist * 0.707, 24.0, p3dZ + orbitDist * 0.707);
+              this.shipYaw = Math.atan2(-orbitDist * 0.707, -orbitDist * 0.707) + Math.PI / 2;
+              this.shipPitch = 0;
+              this.shipRoll = 0;
+              this.cameraPos.copy(this.shipPos).sub(new THREE.Vector3(0, -6, 26));
+              this.cameraLookAt.copy(this.shipPos);
+            }
+          }
+        }
         break;
       default:
         break;
@@ -1624,6 +1705,14 @@ export class ThreeGameEngine {
       }
     }
 
+    // Mathematical safety guard against NaN or non-finite values (prevents black screen)
+    if (isNaN(this.cameraPos.x) || isNaN(this.cameraPos.y) || isNaN(this.cameraPos.z)) {
+      this.cameraPos.copy(this.targetCamPos);
+    }
+    if (isNaN(this.cameraLookAt.x) || isNaN(this.cameraLookAt.y) || isNaN(this.cameraLookAt.z)) {
+      this.cameraLookAt.copy(this.targetCamLookAt);
+    }
+
     this.rendererSys.camera.position.copy(this.cameraPos);
     this.rendererSys.camera.lookAt(this.cameraLookAt);
   }
@@ -1676,8 +1765,9 @@ export class ThreeGameEngine {
     if (curPlanet) {
       const p3dX = curPlanet.x * 0.1;
       const p3dZ = curPlanet.y * 0.1;
-      const atmoR = (curPlanet.r + 55) * 0.1;
-      this.shipPos.set(p3dX + atmoR * 0.7, 0, p3dZ + atmoR * 0.7);
+      const orbitDist = Math.max(220, (curPlanet.r * 0.1) * 2.2);
+      this.shipPos.set(p3dX + orbitDist * 0.707, 18.0, p3dZ + orbitDist * 0.707);
+      this.shipYaw = Math.atan2(-orbitDist * 0.707, -orbitDist * 0.707) + Math.PI / 2;
     }
     this.shipSpeed = 12.0;
     this.shipTargetSpeed = 18.0;

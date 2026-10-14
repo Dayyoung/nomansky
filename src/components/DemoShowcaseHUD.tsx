@@ -65,6 +65,10 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
 
   const getActivityIcon = () => {
     switch (currentActivity) {
+      case 'BASE_BUILDING':
+        return <Layers className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />;
+      case 'SETTLEMENT_ADMIN':
+        return <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />;
       case 'HUNTING':
         return <Crosshair className="w-3.5 h-3.5 text-amber-400 animate-pulse" />;
       case 'SENTINEL_COMBAT':
@@ -149,9 +153,11 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
             <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
               {/* 카운터 요약 */}
               <div className="hidden sm:flex items-center gap-1.5 font-mono text-[9.5px] text-gray-300 mr-1">
-                <span className="text-cyan-300">⛏️{gatheredCount}</span>
-                <span className="text-amber-300">🍖{huntedCount}</span>
-                <span className="text-rose-400">🤖{sentinelsKilled}</span>
+                <span className="text-cyan-300" title="자원 광맥 채취 횟수">⛏️{gatheredCount}</span>
+                <span className="text-amber-300" title="야생 생물 사냥 횟수">🍖{huntedCount}</span>
+                <span className="text-rose-400" title="센티넬 드론 격퇴 횟수">🤖{sentinelsKilled}</span>
+                <span className="text-emerald-300" title="기지 바이오돔 수확 횟수">🏠{game.data.baseHousing.harvestCycles}</span>
+                <span className="text-yellow-300" title="정착지 행복도 지수">🏛️{game.data.settlement.happiness}%</span>
               </div>
 
               {/* 이전 / 다음 단계 */}

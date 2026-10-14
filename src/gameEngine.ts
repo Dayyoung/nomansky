@@ -230,6 +230,55 @@ export class GameEngine {
         paralysisMortar: 15
       }
     } as SecondaryWeaponsData,
+    baseHousing: {
+      activeTab: 0,
+      name: '아틀라스 오아시스 기지 (Atlas Oasis Outpost)',
+      coords: '+34.82, -112.45',
+      lx: 160,
+      ly: 120,
+      claimed: true,
+      powerOutput: 350,
+      powerDemand: 180,
+      batteryStored: 100000,
+      batteryCapacity: 100000,
+      modulesCount: 7,
+      bioDomeYieldReady: true,
+      bioDomeCrops: ['별빛 가시풀 (Star Bramble)', '솔라 바인 (Solar Vine)', '닙닙 새싹 (NipNip Buds)'],
+      constructionPhase: 3,
+      harvestCycles: 14
+    },
+    settlement: {
+      activeTab: 0,
+      name: '뉴 헤스페로스 정착지 (New Hesperos Colony)',
+      coords: '+18.15, +45.80',
+      lx: -240,
+      ly: -180,
+      rank: 'A-CLASS',
+      population: 68,
+      happiness: 88,
+      productivity: 450000,
+      debt: 0,
+      sentinelThreat: 14,
+      citizens: [
+        { name: '과학관 카르-탈론', race: 'KORVAX', role: '수석 연구원', mood: '황홀함' },
+        { name: '전사 그록-도르', race: 'VYKEEN', role: '방위 사령관', mood: '용맹함' },
+        { name: '무역상 피프-보보', race: 'GEK', role: '시장 지배인', mood: '풍요로움' },
+        { name: '엔지니어 노아-9', race: 'KORVAX', role: '전력망 기사', mood: '만족함' }
+      ],
+      currentDispute: {
+        id: 'disp_01',
+        title: '신규 아공간 비어가든 건설 vs 센티넬 경보탑 증설',
+        plaintiff: '무역상 피프-보보',
+        defendant: '전사 그록-도르',
+        desc: '주민 여가 복지를 위한 바이오 펍 건설을 원하는 겍 무역상과 보안 강화를 요구하는 바이킨 전사 사이의 의견 충돌입니다.',
+        optA: '🍺 비어가든 허가 (행복도 +8%, 생산성 +5%)',
+        optB: '🛡️ 경보탑 증설 (센티넬 위협 -15%, 방어력 상승)',
+        resolved: false
+      },
+      dailyHarvestReady: true,
+      uncollectedUnits: 85000,
+      uncollectedMaterials: '색층 금속 x240, 농축 탄소 x180'
+    },
     demoShowcase: {
       isActive: false,
       mode: 'REAL_PLAYER',
@@ -473,7 +522,7 @@ export class GameEngine {
 
   // Real Player Autoplay Agent State (일반 사냥 & 채집 집중 데모 플레이어)
   public realPlayerState = {
-    action: 'GATHERING' as 'GATHERING' | 'HUNTING' | 'SENTINEL_COMBAT' | 'SURVIVAL' | 'EXPLORATION' | 'FISHING' | 'SPACE_FLIGHT',
+    action: 'GATHERING' as 'GATHERING' | 'BASE_BUILDING' | 'HUNTING' | 'SENTINEL_COMBAT' | 'SETTLEMENT_OVERSEER' | 'SURVIVAL' | 'EXPLORATION' | 'FISHING' | 'SPACE_FLIGHT',
     timer: 0,
     targetId: null as string | null,
     targetName: '페라이트 광석',
@@ -780,6 +829,80 @@ export class GameEngine {
     }, fullBanner.durationMs);
   }
 
+  // --- Base Housing & Settlement Management Methods ---
+  public harvestBioDomeCrops() {
+    this.data.inv.carbon = (this.data.inv.carbon || 0) + 160;
+    this.data.inv.oxygen = (this.data.inv.oxygen || 0) + 120;
+    this.data.units += 48000;
+    this.data.nanites += 75;
+    this.data.baseHousing.harvestCycles++;
+    AudioSys.playDiscoveryFanfare();
+    this.triggerMilestoneBanner({
+      category: '기지 하우징 농업 // BIODOME HARVEST',
+      title: '별빛 가시풀 & 닙닙 온실 수확 완료',
+      subTitle: `아틀라스 오아시스 (+34.82, -112.45) // +48,000 ₩, +75 ⬡`,
+      rank: 'MASTER BOTANIST',
+      durationMs: 3500
+    });
+    this.spawnFloatText("🌿 바이오돔 수확 완료: 별빛 가시풀 +160, 닙닙 새싹 (+48,000 ₩, +75 ⬡)", undefined, undefined, '#10b981');
+    this.notify();
+  }
+
+  public boostBasePowerGrid() {
+    this.data.baseHousing.powerOutput = 480;
+    this.data.baseHousing.batteryStored = this.data.baseHousing.batteryCapacity;
+    AudioSys.playRecharge();
+    this.spawnFloatText("⚡ 기지 태양광 전력망 과급: 480 kW 가동 & 배터리 100,000 kF 완충", undefined, undefined, '#facc15');
+    this.notify();
+  }
+
+  public claimBaseComputer() {
+    this.data.nanites += 150;
+    this.data.units += 80000;
+    AudioSys.playDiscoveryFanfare();
+    this.triggerMilestoneBanner({
+      category: '기지 컴퓨터 아카이브 // BASE CLAIMED',
+      title: '아틀라스 오아시스 기지 부지 점검 완료',
+      subTitle: `좌표: +34.82, -112.45 // 영유권 보장 및 아카이브 복원 (+80,000 ₩, +150 ⬡)`,
+      rank: 'PLANETARY COLONIST',
+      durationMs: 3500
+    });
+    this.notify();
+  }
+
+  public resolveSettlementDispute(choice: 'A' | 'B' = 'A') {
+    if (choice === 'A') {
+      this.data.settlement.happiness = Math.min(100, this.data.settlement.happiness + 8);
+      this.data.settlement.productivity += 35000;
+      this.data.settlement.population += 2;
+      this.spawnFloatText("⚖️ 주민 분쟁 판결 완료! [선택 A 인가: 행복도 +8%, 생산성 +35,000 ₩, 인구 +2명]", undefined, undefined, '#38bdf8');
+    } else {
+      this.data.settlement.sentinelThreat = Math.max(0, this.data.settlement.sentinelThreat - 15);
+      this.data.settlement.happiness = Math.min(100, this.data.settlement.happiness + 4);
+      this.spawnFloatText("🛡️ 방어 정책 확정! [선택 B 인가: 센티넬 위협 -15%, 방위 등급 상승]", undefined, undefined, '#10b981');
+    }
+    this.data.settlement.currentDispute.resolved = true;
+    AudioSys.playDiscoveryFanfare();
+    this.triggerMilestoneBanner({
+      category: '정착지 행정관 집무 // OVERSEER RULING',
+      title: '뉴 헤스페로스 정착지 정책 재가',
+      subTitle: `좌표: +18.15, +45.80 // 행복도 ${this.data.settlement.happiness}% (A-Class)`,
+      rank: 'COLONY OVERSEER',
+      durationMs: 3500
+    });
+    this.notify();
+  }
+
+  public collectSettlementDailyHarvest() {
+    this.data.units += this.data.settlement.uncollectedUnits;
+    this.data.inv.chromaticMetal = (this.data.inv.chromaticMetal || 0) + 240;
+    this.data.inv.condensedCarbon = (this.data.inv.condensedCarbon || 0) + 180;
+    this.data.nanites += 120;
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText(`🏛️ 정착지 일일 세수 및 합금 수확 완료! (+${this.data.settlement.uncollectedUnits.toLocaleString()} ₩, +240 색층금속, +120 ⬡)`, undefined, undefined, '#fbbf24');
+    this.notify();
+  }
+
   public launchToOrbit() {
     if (this.currState !== 'PLANET' || !this.data.activePlanet) return;
     const p = this.data.activePlanet;
@@ -848,7 +971,13 @@ export class GameEngine {
   }
 
   public enterAtmosphere(planet: PlanetEntity) {
-    this.landCurrentShip(planet);
+    this.insidePlanetInFlight = planet.name;
+    this.data.activePlanet = planet;
+    AudioSys.playAtmosphereBurn();
+    AudioSys.playDiscoveryFanfare();
+    this.spawnFloatText(`🔥 ${planet.name} 대기권 진입 완료! 저공 비행 모드 가동`, undefined, undefined, '#10b981');
+    this.spawnFloatText(`🛬 [E] 키 또는 착륙 버튼을 누르면 이 위치에 착륙 후 사람 모드로 전환됩니다`, undefined, this.height / 2 - 25, '#00e5ff');
+    this.notify();
   }
 
   public getPlanetInAtmosphere(): PlanetEntity | null {
@@ -1893,6 +2022,21 @@ export class GameEngine {
         AudioSys.playNote(540, 'sine', 0.2);
         this.spawnFloatText("⛵ 솔라선 베스퍼 세일 태양광 돛 전개!", undefined, undefined, '#fbbf24');
         break;
+      case 'STARSHIP_WEAPONS':
+        this.data.isPulseActive = false;
+        this.currState = 'SPACE';
+        if (this.entities.planets.length > 0) {
+          const targetP = this.data.activePlanet || this.entities.planets[0];
+          const orbitDist = targetP.r + 350;
+          this.player.x = targetP.x + orbitDist * 0.707;
+          this.player.y = targetP.y + orbitDist * 0.707;
+          this.player.angle = Math.PI * 0.25;
+          this.player.vx = 8;
+          this.player.vy = 8;
+        }
+        AudioSys.playNote(520, 'sawtooth', 0.2);
+        this.spawnFloatText("🚀 함선 5대 첨단 전투 무장 오버드라이브 가동!", undefined, undefined, '#38bdf8');
+        break;
       case 'PLANET_APPROACH':
         this.data.isPulseActive = true;
         if (!this.autoPilotTargetPlanet) this.selectRandomAutoPilotPlanet();
@@ -1935,6 +2079,25 @@ export class GameEngine {
       case 'SECONDARY_ORDNANCE':
         this.data.toolMode = 'BOLTCASTER';
         this.equipSecondaryWeapon('plasmaLauncher');
+        break;
+      case 'BASE_BUILDING':
+      case 'BUILD_MENU_SYSTEM':
+        this.player.px = this.data.baseHousing.lx;
+        this.player.py = this.data.baseHousing.ly;
+        this.player.isMining = true;
+        this.data.toolMode = 'TERRAIN MANIPULATOR';
+        this.boostBasePowerGrid();
+        this.harvestBioDomeCrops();
+        AudioSys.playDiscoveryFanfare();
+        this.spawnFloatText("🏗️ [오미아-A 행성 좌표 +34.82, -112.45] 기지 하우징 및 바이오 온실 관리 가동!", undefined, undefined, '#10b981');
+        break;
+      case 'SETTLEMENT_ADMIN':
+        this.player.px = this.data.settlement.lx;
+        this.player.py = this.data.settlement.ly;
+        this.resolveSettlementDispute('A');
+        this.collectSettlementDailyHarvest();
+        AudioSys.playDiscoveryFanfare();
+        this.spawnFloatText("🏛️ [오미아-A 행성 좌표 -12.40, +68.91] 뉴 헤스페로스 정착지 행정관 집무 개시!", undefined, undefined, '#38bdf8');
         break;
       case 'NAUTILON_SUBMARINE':
         this.data.nautilon.boarded = true;
@@ -2073,6 +2236,15 @@ export class GameEngine {
             AudioSys.playPulseDrive();
             this.spawnFloatText("🌌 심우주 무중력 EVA 유영 // 선체 외벽 가스 집진기 점검 완료", undefined, undefined, '#38bdf8');
           }
+        } else if (curDemoCfg?.phase === 'STARSHIP_WEAPONS') {
+          this.data.demoShowcase.currentActivity = 'SPACE_FLIGHT';
+          this.data.demoShowcase.activityLabel = '🚀 스타쉽 5대 첨단 전투 무장 오버드라이브';
+          if (this.demoActionSubTimer % 25 === 0) {
+            this.fireSpaceWeapons();
+            const wList = ['포톤 캐논', '인프라-나이프 가속기', '포지트론 이젝터', '사이클로트론 발리스타', '로켓 런처'];
+            const chosen = wList[Math.floor(Math.random() * wList.length)];
+            this.data.demoShowcase.actionDetails = `함포 발사: ${chosen}`;
+          }
         }
 
         // 행성 지표면 착륙 (오직 지표면 탐사 및 착륙 단계에서만 수행)
@@ -2080,8 +2252,8 @@ export class GameEngine {
           this.data.isPulseActive = false;
           this.landCurrentShip(target);
           AudioSys.playDiscoveryFanfare();
-          this.spawnFloatText(`🌍 ${target.name} 표면 착륙 // 일반 사냥 및 채집 활동 개시`, undefined, undefined, '#4ade80');
-          this.realPlayerState.action = 'GATHERING';
+          this.spawnFloatText(`🌍 ${target.name} 표면 착륙 // [+34.82, -112.45] 기지 하우징 및 거주지 자율 관리 개시`, undefined, undefined, '#4ade80');
+          this.realPlayerState.action = 'BASE_BUILDING';
           this.realPlayerState.timer = 0;
           return;
         }
@@ -2119,10 +2291,10 @@ export class GameEngine {
       const action = this.realPlayerState.action;
 
       switch (action) {
-        // [1] 채집 및 채광 집중 루프 (Gathering & Mining) - 고가중치 (40%)
+        // [1] 채집 및 채광 집중 루프 (Gathering & Mining) - 기지 유지관리 자재 수집
         case 'GATHERING': {
           this.data.demoShowcase.currentActivity = 'GATHERING';
-          this.data.demoShowcase.activityLabel = '⛏️ 채집 모드: 자원 광맥 & 탄소 식물 채광 중';
+          this.data.demoShowcase.activityLabel = '⛏️ 채집 모드: 기지 하우징 건설용 광맥 & 탄소 식물 채광 중';
 
           // HP가 남은 가장 가까운 자원 광맥 탐색
           let closestDep: DepositEntity | null = null;
@@ -2168,7 +2340,7 @@ export class GameEngine {
                 this.player.isJetpacking = false;
               }
               this.player.isMining = false;
-              this.data.demoShowcase.actionDetails = `광맥 접근 중 (${Math.round(dist)}m)`;
+              this.data.demoShowcase.actionDetails = `건설 자재 광맥 접근 중 (${Math.round(dist)}m)`;
             } else {
               // 채굴 유효 사정거리 진입!
               this.player.isJetpacking = false;
@@ -2184,19 +2356,77 @@ export class GameEngine {
                 this.handlePlanetFire(planet);
                 this.data.demoShowcase.actionDetails = `채굴 레이저 가동: ${closestDep.type.toUpperCase()} 채취 중`;
 
-                // 광맥 파괴 완료
+                // 광맥 파괴 완료 -> 곧바로 기지 하우징으로 귀환하여 증설 관리!
                 if (closestDep.hp <= 0) {
                   this.realPlayerState.gatheredCount++;
                   this.data.demoShowcase.gatheredCount = this.realPlayerState.gatheredCount;
                   
-                  // 자원을 3개 채취한 후 야생 생물 사냥으로 자연스럽게 전환!
-                  if (this.realPlayerState.gatheredCount >= 3) {
-                    this.realPlayerState.action = 'HUNTING';
+                  if (this.realPlayerState.gatheredCount >= 1) {
+                    this.realPlayerState.action = 'BASE_BUILDING';
                     this.realPlayerState.timer = 0;
-                    this.spawnFloatText("🎯 주변 외계 생물 서식지 포착 // 사냥 모드로 전환!", undefined, undefined, '#f97316');
+                    this.spawnFloatText("🏠 건설 자재 확보 완료 // [+34.82, -112.45] 아틀라스 오아시스 기지 하우징 관리 귀환!", undefined, undefined, '#10b981');
                   }
                 }
               }
+            }
+          }
+          break;
+        }
+
+        // [1-B] 기지 하우징 건설 & 바이오 온실 관리 루프 (Base Housing & Greenhouse Management)
+        case 'BASE_BUILDING': {
+          this.data.demoShowcase.currentActivity = 'BASE_BUILDING';
+          this.data.demoShowcase.activityLabel = '🏗️ 기지 하우징: 바이오 온실 수확 & 전력망 증설';
+
+          const targetX = this.data.baseHousing.lx;
+          const targetY = this.data.baseHousing.ly;
+          const dx = targetX - this.player.px;
+          const dy = targetY - this.player.py;
+          const dist = Math.hypot(dx, dy);
+
+          this.data.demoShowcase.currentTargetName = `📍 ${this.data.baseHousing.name} (${this.data.baseHousing.coords})`;
+          this.data.demoShowcase.currentTargetDist = Math.round(dist);
+
+          if (dist > 75) {
+            // 기지로 제트팩 도약 이동
+            const spd = 3.8;
+            this.player.px += (dx / dist) * spd;
+            this.player.py += (dy / dist) * spd;
+            this.player.facing = dx >= 0 ? 1 : -1;
+            this.player.anim += 0.22;
+
+            if (dist > 180 && this.realPlayerState.subActionTick % 50 < 22) {
+              this.player.isJetpacking = true;
+              this.player.py -= 1.6;
+              if (this.realPlayerState.subActionTick % 16 === 0) AudioSys.playJetpack();
+            } else {
+              this.player.isJetpacking = false;
+            }
+            this.player.isMining = false;
+            this.data.demoShowcase.actionDetails = `기지 좌표(+34.82, -112.45) 귀환 이동 중 (${Math.round(dist)}m)`;
+          } else {
+            // 기지 내부 도착: 기지 컴퓨터 영토 등록, 하우징 증설 & 온실 수확 & 전력 과급 집무 수행
+            this.player.isJetpacking = false;
+            this.player.facing = dx >= 0 ? 1 : -1;
+            this.data.toolMode = 'TERRAIN MANIPULATOR'; // 청사진 건설 광선 연출
+            this.player.isMining = true;
+
+            // 주기적 바이오돔 농작물 수확 및 전력망 과급
+            if (this.realPlayerState.subActionTick % 70 === 20) {
+              this.harvestBioDomeCrops();
+            }
+            if (this.realPlayerState.subActionTick % 70 === 50) {
+              this.boostBasePowerGrid();
+            }
+
+            this.data.demoShowcase.actionDetails = `[좌표 +34.82, -112.45] 기지 컴퓨터 등록 // 원형 거주구 & 바이오 온실 청사진 건설 광선 가동`;
+
+            // 기지 관리 160틱 후 거주지(정착지) 행정관 관리로 자연스럽게 이동
+            if (this.realPlayerState.timer > 160) {
+              this.player.isMining = false;
+              this.realPlayerState.action = 'SETTLEMENT_OVERSEER';
+              this.realPlayerState.timer = 0;
+              this.spawnFloatText("🏛️ 기지 관리 완수 // [-12.40, +68.91] 뉴 헤스페로스 정착지 행정관 집무 순찰 개시!", undefined, undefined, '#38bdf8');
             }
           }
           break;
@@ -2341,16 +2571,76 @@ export class GameEngine {
               this.data.demoShowcase.sentinelsKilled = this.realPlayerState.sentinelsKilled;
 
               if (this.realPlayerState.sentinelsKilled >= 2) {
-                const roll = Math.random();
-                if (roll < 0.25 && planet.waterBodies && planet.waterBodies.length > 0) {
-                  this.realPlayerState.action = 'FISHING';
-                } else if (roll < 0.45) {
-                  this.realPlayerState.action = 'SPACE_FLIGHT';
-                } else {
-                  this.realPlayerState.action = 'GATHERING';
-                }
+                this.realPlayerState.action = 'SETTLEMENT_OVERSEER';
                 this.realPlayerState.timer = 0;
+                this.spawnFloatText("🏛️ 센티넬 격퇴 완료 // 뉴 헤스페로스 정착지 행정관 집무 순찰 개시!", undefined, undefined, '#38bdf8');
               }
+            }
+          }
+          break;
+        }
+
+        // [3-B] 행성 정착지 행정관 집무 루프 (Frontiers Settlement Administration)
+        case 'SETTLEMENT_OVERSEER': {
+          this.data.demoShowcase.currentActivity = 'SETTLEMENT_ADMIN';
+          this.data.demoShowcase.activityLabel = '🏛️ 정착지 행정 관리: 주민 분쟁 판결 & 일일 세수 수확';
+
+          const targetX = this.data.settlement.lx;
+          const targetY = this.data.settlement.ly;
+          const dx = targetX - this.player.px;
+          const dy = targetY - this.player.py;
+          const dist = Math.hypot(dx, dy);
+
+          this.data.demoShowcase.currentTargetName = `📍 ${this.data.settlement.name} (${this.data.settlement.coords})`;
+          this.data.demoShowcase.currentTargetDist = Math.round(dist);
+
+          if (dist > 90) {
+            // 정착지 청사를 향해 신속하게 이동
+            const spd = 3.8;
+            this.player.px += (dx / dist) * spd;
+            this.player.py += (dy / dist) * spd;
+            this.player.facing = dx >= 0 ? 1 : -1;
+            this.player.anim += 0.24;
+
+            if (dist > 180 && this.realPlayerState.subActionTick % 50 < 22) {
+              this.player.isJetpacking = true;
+              this.player.py -= 1.6;
+              if (this.realPlayerState.subActionTick % 16 === 0) AudioSys.playJetpack();
+            } else {
+              this.player.isJetpacking = false;
+            }
+            this.player.isMining = false;
+            this.data.demoShowcase.actionDetails = `정착지 좌표(-12.40, +68.91) 청사 행차 중 (${Math.round(dist)}m)`;
+          } else {
+            // 정착지 광장 진입: 행정관 집무 수행
+            this.player.isJetpacking = false;
+            this.player.isMining = false;
+            this.player.facing = dx >= 0 ? 1 : -1;
+
+            // 주민 분쟁 판결 및 일일 세수 수거
+            if (this.realPlayerState.subActionTick % 70 === 20) {
+              this.resolveSettlementDispute('A');
+            }
+            if (this.realPlayerState.subActionTick % 70 === 50) {
+              this.collectSettlementDailyHarvest();
+            }
+
+            this.data.demoShowcase.actionDetails = `[좌표 -12.40, +68.91] 행정관 청사 집무: 주민 분쟁 판결 & 일일 합금 생산 세수 수확`;
+
+            // 정착지 집무 160틱 후 자원 채굴 또는 기지 하우징으로 지속 순환 관리
+            if (this.realPlayerState.timer > 160) {
+              const roll = Math.random();
+              if (roll < 0.45) {
+                this.realPlayerState.action = 'GATHERING';
+                this.spawnFloatText("⛏️ 정착지 집무 완수 // 기지 증설용 광맥 신규 채굴 개시", undefined, undefined, '#4ade80');
+              } else {
+                this.realPlayerState.action = 'BASE_BUILDING';
+                this.spawnFloatText("🏠 정착지 집무 완수 // [+34.82, -112.45] 아틀라스 오아시스 기지 하우징으로 귀환!", undefined, undefined, '#10b981');
+              }
+              this.realPlayerState.gatheredCount = 0;
+              this.realPlayerState.huntedCount = 0;
+              this.realPlayerState.sentinelsKilled = 0;
+              this.realPlayerState.timer = 0;
             }
           }
           break;
@@ -2978,8 +3268,8 @@ export class GameEngine {
     let moveY = this.touchControls.joystickVector.y;
     if (this.keyboard.w) moveY -= 1;
     if (this.keyboard.s) moveY += 1;
-    if (this.keyboard.a) moveX -= 1;
-    if (this.keyboard.d) moveX += 1;
+    if (this.keyboard.a) moveX -= 1; // A: 좌측 이동 (Left)
+    if (this.keyboard.d) moveX += 1; // D: 우측 이동 (Right)
 
     const inputLen = Math.hypot(moveX, moveY);
     if (inputLen > 1) {
@@ -4081,6 +4371,162 @@ export class GameEngine {
           ctx.restore();
         }
       }
+
+      // --- Planetary Base Housing Complex (아틀라스 오아시스 기지) ---
+      const base = this.data.baseHousing;
+      ctx.save();
+      ctx.translate(base.lx, base.ly);
+
+      // Base Perimeter Shield Circle
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.35)';
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      ctx.arc(0, 0, 75, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Cylindrical Habitation Dome
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Interior warm observation lights
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Geodesic Glass Bio-Dome Greenhouse
+      ctx.save();
+      ctx.translate(45, 0);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.45)';
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Star Bramble Plants inside Bio-Dome
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText("🌿", 0, 4);
+      ctx.restore();
+
+      // Base Computer Stand & Holographic Ring
+      ctx.save();
+      ctx.translate(-24, 24);
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Pulsing Holo Ring
+      const bHoloPhase = (Date.now() * 0.004) % (Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.8)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 12 + Math.sin(bHoloPhase) * 2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Solar Panels & Battery
+      ctx.fillStyle = '#1d4ed8';
+      ctx.fillRect(-38, -26, 14, 8);
+      ctx.fillRect(-38, -14, 14, 8);
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(-20, -22, 8, 12);
+
+      // Base Name & Coordinates Tag
+      ctx.font = 'bold 9px Orbitron, sans-serif';
+      ctx.fillStyle = '#00e5ff';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🏠 ${base.name} [${base.coords}]`, 15, -42);
+      ctx.font = '8px monospace';
+      ctx.fillStyle = '#facc15';
+      ctx.fillText(`발전량: ${base.powerOutput}kW | 배터리 완충 | 모듈: ${base.modulesCount}기`, 15, -30);
+      ctx.restore();
+
+      // --- Planetary Settlement Colony (뉴 헤스페로스 정착지) ---
+      const setm = this.data.settlement;
+      ctx.save();
+      ctx.translate(setm.lx, setm.ly);
+
+      // Settlement Territory Perimeter
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 8]);
+      ctx.beginPath();
+      ctx.arc(0, 0, 95, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Overseer Town Hall
+      ctx.fillStyle = '#334155';
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(-24, -18, 48, 36, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Golden Overseer Emblem
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Habitation Dwellings
+      [-48, 48].forEach((hx, idx) => {
+        ctx.fillStyle = '#475569';
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(hx - 12, (idx === 0 ? 20 : -35), 24, 18, 3);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      // Trade Bazaar
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(36, 15, 26, 18);
+      ctx.fillStyle = '#fef08a';
+      ctx.font = '9px sans-serif';
+      ctx.fillText("🛒", 49, 28);
+
+      // Citizen NPCs Walking Around
+      setm.citizens.forEach((cit, cIdx) => {
+        const cAng = Date.now() * 0.0012 + cIdx * 1.6;
+        const cDist = 32 + (cIdx % 2) * 16;
+        const cx = Math.cos(cAng) * cDist;
+        const cy = Math.sin(cAng) * cDist;
+
+        ctx.fillStyle = cit.race === 'KORVAX' ? '#38bdf8' : cit.race === 'VYKEEN' ? '#ef4444' : '#facc15';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '7px monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.fillText(cit.name.split('-')[0], cx, cy - 6);
+      });
+
+      // Settlement Header Tag
+      ctx.font = 'bold 10px Orbitron, sans-serif';
+      ctx.fillStyle = '#fbbf24';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🏛️ ${setm.name} [${setm.coords}]`, 0, -56);
+      ctx.font = '8px monospace';
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText(`인구: ${setm.population}명 | 행복도: ${setm.happiness}% | 일일생산: 450,000₩`, 0, -44);
+      ctx.restore();
 
       // Parked Ship beside player on planet surface
       ctx.save();
