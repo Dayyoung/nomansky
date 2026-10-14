@@ -32,7 +32,9 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install @rolldown/binding-linux-x64-gnu --no-save || true
 
       - name: Build project
         run: npm run build
