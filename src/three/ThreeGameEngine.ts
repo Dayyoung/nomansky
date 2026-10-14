@@ -817,17 +817,29 @@ export class ThreeGameEngine {
       const p3dZ = p.y * 0.1;
       const center = new THREE.Vector3(p3dX, 0, p3dZ);
       const planetRadius = Math.max(85, Math.min(135, p.r * 0.1));
-      const atmoR = planetRadius + 38.0;
+      const atmoR = planetRadius + 60.0;
+      const orbitR = planetRadius + 130.0;
       const dist3D = this.shipPos.distanceTo(center);
 
-      // 1. Atmosphere Envelope: Atmospheric halo & Landing Prompt (Static label - NO spamming!)
-      if (dist3D <= atmoR) {
+      // Orbital Approach & Atmosphere Envelope: Landing Prompt & Action Registration
+      if (dist3D <= orbitR) {
         inAnyPlanetAtmosphere = true;
-        this.rendererSys.setAtmosphereFog(p.color || '#38bdf8', 0.002);
+        if (dist3D <= atmoR) {
+          this.rendererSys.setAtmosphereFog(p.color || '#38bdf8', 0.002);
+        }
 
-        // Landing interaction prompt (Quiet & static on HUD)
+        // Landing interaction prompt & actionable callback (Quiet & static on HUD)
         game.data.interactLabel = `🛬 [E / 착륙버튼] ${p.name} 지표면 착륙`;
+        game.data.activeInteractAction = () => {
+          game.keyboard.e = 0;
+          game.touchControls.isInteracting = false;
+          game.landCurrentShip(p);
+          this.transitionToPlanetSurface(p);
+        };
+
         if (kb.e === 1 || tc.isInteracting) {
+          kb.e = 0;
+          tc.isInteracting = false;
           game.landCurrentShip(p);
           this.transitionToPlanetSurface(p);
           return;
@@ -851,6 +863,10 @@ export class ThreeGameEngine {
 
     if (!inAnyPlanetAtmosphere) {
       this.rendererSys.setAtmosphereFog(null);
+      if (game.data.interactLabel?.includes('착륙')) {
+        game.data.interactLabel = null;
+        game.data.activeInteractAction = null;
+      }
     }
 
     // Space station docking check
@@ -1775,9 +1791,26 @@ export class ThreeGameEngine {
 
     // Switch visual mode: Hide spherical planet spheres, show flat detailed surface terrain
     this.planetGroups.forEach((pg) => (pg.visible = false));
+
+    // Ensure surface terrain is generated immediately for this planet
+    if (!this.surfaceTerrainGroup || this.currentPlanetName !== planet.name) {
+      this.currentPlanetName = planet.name;
+      if (this.surfaceTerrainGroup) {
+        this.rendererSys.scene.remove(this.surfaceTerrainGroup);
+      }
+      this.surfaceTerrainGroup = TerrainBuilder.createSurfaceTerrain(planet);
+      this.rendererSys.scene.add(this.surfaceTerrainGroup);
+    }
+
     if (this.surfaceTerrainGroup) this.surfaceTerrainGroup.visible = true;
     if (this.travelerGroup) this.travelerGroup.visible = true;
     this.rendererSys.setAtmosphereFog(planet.color || '#38bdf8', 0.0035);
+
+    // Reset interaction triggers
+    game.keyboard.e = 0;
+    game.touchControls.isInteracting = false;
+    game.data.interactLabel = null;
+    game.data.activeInteractAction = null;
 
     this.faunaGroupMap.forEach((fg) => {
       fg.visible = true;

@@ -926,7 +926,7 @@ export class GameEngine {
 
   public landCurrentShip(planet?: PlanetEntity | null) {
     if (this.currState !== 'SPACE') return;
-    const targetPlanet = planet || this.getPlanetInAtmosphere() || this.getNearestPlanet()?.planet;
+    const targetPlanet = planet || this.getPlanetInAtmosphere() || this.getNearestPlanet()?.planet || (this.entities.planets.length > 0 ? this.entities.planets[0] : null);
     if (!targetPlanet) return;
 
     // Convert ship's current space coordinate to planet-local coordinate
@@ -984,9 +984,13 @@ export class GameEngine {
 
   public getPlanetInAtmosphere(): PlanetEntity | null {
     if (this.currState !== 'SPACE') return null;
+    if (this.insidePlanetInFlight) {
+      const found = this.entities.planets.find(p => p.name === this.insidePlanetInFlight);
+      if (found) return found;
+    }
     for (const p of this.entities.planets) {
       const d = Math.hypot(this.player.x - p.x, this.player.y - p.y);
-      if (d <= p.r + 40) return p;
+      if (d <= Math.max(p.r + 750, 1800)) return p;
     }
     return null;
   }

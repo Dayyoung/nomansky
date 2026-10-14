@@ -161,7 +161,7 @@ export default function App() {
         if (game.data.activeInteractAction) {
           game.data.activeInteractAction();
         } else if (game.insidePlanetInFlight || game.currState === 'SPACE') {
-          const atmoPlanet = game.getPlanetInAtmosphere() || game.data.activePlanet || (game.entities.planets.length > 0 ? game.entities.planets[0] : null);
+          const atmoPlanet = game.getPlanetInAtmosphere() || game.getNearestPlanet()?.planet || game.data.activePlanet || (game.entities.planets.length > 0 ? game.entities.planets[0] : null);
           if (atmoPlanet) {
             game.landCurrentShip(atmoPlanet);
           }

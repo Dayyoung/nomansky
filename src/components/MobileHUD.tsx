@@ -90,9 +90,9 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
   const nearestInfo = gameState === 'SPACE' ? game.getNearestPlanet() : null;
   const nearestPlanet = nearestInfo?.planet;
   const nearestDist = nearestInfo?.distance ?? 0;
-  const insidePlanet = gameState === 'SPACE' ? game.getPlanetInAtmosphere() : null;
+  const insidePlanet = gameState === 'SPACE' ? (game.getPlanetInAtmosphere() || (nearestPlanet && nearestDist < (nearestPlanet.r + 750) ? nearestPlanet : null)) : null;
   const isInsidePlanet = Boolean(insidePlanet);
-  const isLandingReady = Boolean(isInsidePlanet || (nearestPlanet && nearestDist < nearestPlanet.r + 380));
+  const isLandingReady = Boolean(isInsidePlanet || (nearestPlanet && nearestDist < nearestPlanet.r + 1400));
 
   const displayLocation = isInsidePlanet
     ? `🪐 ${insidePlanet?.name}`
@@ -167,7 +167,8 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
                   <button
                     onClick={() => {
                       AudioSys.unlockOnFirstInteraction();
-                      game.landCurrentShip(insidePlanet);
+                      const target = insidePlanet || nearestPlanet || game.getNearestPlanet()?.planet;
+                      if (target) game.landCurrentShip(target);
                     }}
                     className="px-2.5 py-0.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 text-black font-black rounded-full text-[11px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.8)] whitespace-nowrap"
                   >
@@ -186,15 +187,15 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
                       <Navigation className="w-2.5 h-2.5 text-cyan-200 animate-spin" style={{ animationDuration: '6s' }} />
                       <span>방향 정렬</span>
                     </button>
-                    {isLandingReady && (
+                    {isLandingReady && nearestPlanet && (
                       <button
                         onClick={() => {
                           AudioSys.unlockOnFirstInteraction();
-                          game.enterAtmosphere(nearestPlanet);
+                          game.landCurrentShip(nearestPlanet);
                         }}
-                        className="px-2 py-0.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-bold rounded-full text-[9.5px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm whitespace-nowrap"
+                        className="px-2.5 py-0.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 text-black font-black rounded-full text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.8)] whitespace-nowrap"
                       >
-                        <span>🛬 대기권 착륙</span>
+                        <span>🛬 지금 착륙</span>
                       </button>
                     )}
                   </>
@@ -351,7 +352,8 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
                   <button
                     onClick={() => {
                       AudioSys.unlockOnFirstInteraction();
-                      game.landCurrentShip(insidePlanet);
+                      const target = insidePlanet || nearestPlanet || game.getNearestPlanet()?.planet;
+                      if (target) game.landCurrentShip(target);
                     }}
                     className="ml-0.5 px-2 py-0.5 bg-emerald-500 text-black font-black rounded-full text-[8.5px] xs:text-[9px] active:scale-95 whitespace-nowrap cursor-pointer shadow"
                   >
@@ -368,11 +370,11 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
                     >
                       정렬
                     </button>
-                    {isLandingReady && (
+                    {isLandingReady && nearestPlanet && (
                       <button
                         onClick={() => {
                           AudioSys.unlockOnFirstInteraction();
-                          game.enterAtmosphere(nearestPlanet);
+                          game.landCurrentShip(nearestPlanet);
                         }}
                         className="px-1.5 py-0.5 bg-emerald-600 text-white font-bold rounded-full text-[8px] xs:text-[8.5px] active:scale-95 whitespace-nowrap cursor-pointer"
                       >
@@ -440,7 +442,8 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
               <button
                 onClick={() => {
                   AudioSys.unlockOnFirstInteraction();
-                  if (insidePlanet) game.landCurrentShip(insidePlanet);
+                  const target = insidePlanet || nearestPlanet || game.getNearestPlanet()?.planet;
+                  if (target) game.landCurrentShip(target);
                 }}
                 className="px-2.5 py-0.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-md shadow-md active:scale-95 cursor-pointer"
               >
@@ -453,13 +456,26 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
 
         {/* Orbit Approach Landing Ready Banner */}
         {!isInsidePlanet && isLandingReady && gameState === 'SPACE' && (
-          <div className="bg-emerald-950/95 border-2 border-emerald-400 px-4 py-2 rounded-full shadow-[0_0_25px_rgba(16,185,129,0.6)] backdrop-blur-md animate-bounce text-center pointer-events-auto">
-            <span className="text-xs font-bold text-emerald-300 font-mono tracking-wider block">
-              ✨ [{nearestPlanet?.name}] 대기권 궤도 접근
-            </span>
-            <span className="text-[10px] text-white font-mono">
-              전진하여 행성에 진입(저공 비행)하거나 상단 [대기권 착륙]을 누르세요
-            </span>
+          <div className="bg-emerald-950/95 border-2 border-emerald-400 px-4 py-2 rounded-full shadow-[0_0_25px_rgba(16,185,129,0.6)] backdrop-blur-md animate-bounce text-center pointer-events-auto flex items-center justify-center gap-2">
+            <div>
+              <span className="text-xs font-bold text-emerald-300 font-mono tracking-wider block">
+                ✨ [{nearestPlanet?.name}] 대기권 궤도 접근
+              </span>
+              <span className="text-[10px] text-white font-mono">
+                전진하여 저공 비행하거나 즉시 착륙할 수 있습니다
+              </span>
+            </div>
+            {nearestPlanet && (
+              <button
+                onClick={() => {
+                  AudioSys.unlockOnFirstInteraction();
+                  game.landCurrentShip(nearestPlanet);
+                }}
+                className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-full text-xs font-mono shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
+              >
+                🛬 즉시 착륙
+              </button>
+            )}
           </div>
         )}
 
