@@ -33,8 +33,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          rm -f package-lock.json
           npm install
-          npm install @rolldown/binding-linux-x64-gnu --no-save || true
 
       - name: Build project
         run: npm run build
