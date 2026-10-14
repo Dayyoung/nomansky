@@ -689,30 +689,34 @@ export class ThreeGameEngine {
           }
         }
       }
+    } else {
+      // =======================================================================
+      // --- MANUAL HUMAN PLAYER STARSHIP FLIGHT CONTROLS ---
+      // =======================================================================
       // Manual flight controls - ACCURATELY ALIGNED LEFT/RIGHT:
-      // A (좌): Left yaw turn (-steerYaw => ship turns Left), left strafe (-strafeInput)
-      // D (우): Right yaw turn (+steerYaw => ship turns Right), right strafe (+strafeInput)
+      // A (좌): Left yaw turn (+steerYaw => ship turns Left), left strafe (-strafeInput)
+      // D (우): Right yaw turn (-steerYaw => ship turns Right), right strafe (+strafeInput)
       if (kb.a) {
-        steerYaw -= 1.0; // A: 좌회전 (Turn Left)
-        strafeInput -= 1.0; // A: 좌측 횡이동 (Strafe Left)
+        steerYaw += 1.0; // A: 좌회전 (Turn Left -> 기수 화면 왼쪽 선회)
+        strafeInput -= 1.0; // A: 좌측 횡이동 (Strafe Left -> 화면 왼쪽)
       }
       if (kb.d) {
-        steerYaw += 1.0; // D: 우회전 (Turn Right)
-        strafeInput += 1.0; // D: 우측 횡이동 (Strafe Right)
+        steerYaw -= 1.0; // D: 우회전 (Turn Right -> 기수 화면 오른쪽 선회)
+        strafeInput += 1.0; // D: 우측 횡이동 (Strafe Right -> 화면 오른쪽)
       }
       if (tc.joystickVector.x) {
-        // [3D 조이스틱 좌우]: 오른쪽으로 밀면 우회전/우측이동, 왼쪽으로 밀면 좌회전/좌측이동
-        steerYaw += tc.joystickVector.x;
+        // [3D 조이스틱 좌우]: 오른쪽으로 밀면 우회전 & 우측이동, 왼쪽으로 밀면 좌회전 & 좌측이동
+        steerYaw -= tc.joystickVector.x;
         strafeInput += tc.joystickVector.x;
       }
 
       // Mouse drag steering (No Man's Sky flight control)
       if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.1 || Math.abs(this.mouseLookDelta.y) > 0.1)) {
-        steerYaw += this.mouseLookDelta.x * 0.0035;
+        steerYaw -= this.mouseLookDelta.x * 0.0035;
         steerPitch -= this.mouseLookDelta.y * 0.0025;
       }
 
-      // Throttle input: W accelerates, S brakes/reverses
+      // Throttle input: W accelerates (전진 가속), S brakes/reverses (감속/제동)
       const isW = kb.w || tc.joystickVector.y < -0.3;
       const isS = kb.s || tc.joystickVector.y > 0.3;
       isBoost = Boolean(kb.shift || tc.isJetpacking);
@@ -758,7 +762,7 @@ export class ThreeGameEngine {
     this.shipPitch = Math.max(-0.65, Math.min(0.65, this.shipPitch));
 
     // Authentic Wing Roll Banking into Turns (-40° to +40°)
-    // In No Man's Sky, turning right banks right wing down (-roll), turning left banks left wing down (+roll)
+    // In No Man's Sky, turning right banks right wing down (+roll), turning left banks left wing down (-roll)
     const targetRoll = -steerYaw * 0.65;
     this.shipRoll += (targetRoll - this.shipRoll) * Math.min(1.0, delta * 7.0);
 
@@ -769,8 +773,8 @@ export class ThreeGameEngine {
       Math.cos(this.shipYaw) * Math.cos(this.shipPitch)
     ).normalize();
 
-    // Lateral right vector for responsive strafe movement (Points TRUE Screen Right: cos(yaw), 0, -sin(yaw))
-    const lateralRight = new THREE.Vector3(Math.cos(this.shipYaw), 0, -Math.sin(this.shipYaw)).normalize();
+    // Lateral right vector for responsive strafe movement (Points TRUE Screen Right: -cos(yaw), 0, sin(yaw))
+    const lateralRight = new THREE.Vector3(-Math.cos(this.shipYaw), 0, Math.sin(this.shipYaw)).normalize();
 
     // Advance 3D Starship Position (Forward + Lateral Strafe)
     this.shipPos.addScaledVector(forward, this.shipSpeed * delta * 5.0);
@@ -942,7 +946,7 @@ export class ThreeGameEngine {
 
     // Camera forward and right vectors projected onto ground plane (XZ - camRight points TRUE screen right)
     const camFwd = new THREE.Vector3(Math.sin(this.orbitYaw), 0, Math.cos(this.orbitYaw)).normalize();
-    const camRight = new THREE.Vector3(Math.cos(this.orbitYaw), 0, -Math.sin(this.orbitYaw)).normalize();
+    const camRight = new THREE.Vector3(-Math.cos(this.orbitYaw), 0, Math.sin(this.orbitYaw)).normalize();
 
     let isJetpackActive = false;
 
@@ -1007,22 +1011,13 @@ export class ThreeGameEngine {
       // W: Forward (전진), S: Backward (후진)
       if (kb.w) inputFwd += 1;
       if (kb.s) inputFwd -= 1;
-      if (kb.d) inputRight += 1; // D: 우측 이동 (Right Strafe)
-      if (kb.a) inputRight -= 1; // A: 좌측 이동 (Left Strafe)
+      if (kb.d) inputRight += 1; // D: 우측 이동 (Right Strafe -> 화면 오른쪽)
+      if (kb.a) inputRight -= 1; // A: 좌측 이동 (Left Strafe -> 화면 왼쪽)
 
       // Virtual Joystick support
       if (Math.hypot(tc.joystickVector.x, tc.joystickVector.y) > 0.1) {
         inputRight += tc.joystickVector.x; // 우측으로 밀면 우측 이동, 좌측으로 밀면 좌측 이동
         inputFwd -= tc.joystickVector.y; // 앞으로 밀면 전진, 뒤로 밀면 후진
-        this.orbitYaw += tc.joystickVector.x * delta * 1.8; // 모바일 조이스틱 우측 밀면 시점 우회전
-      }
-
-      // Smooth keyboard/mouse camera turn assist with A/D (우주선 및 마우스와 일관된 시점 회전)
-      if (kb.d) {
-        this.orbitYaw += delta * 1.8; // D: 우측 시점 회전 (마우스 우측 드래그와 일치)
-      }
-      if (kb.a) {
-        this.orbitYaw -= delta * 1.8; // A: 좌측 시점 회전 (마우스 좌측 드래그와 일치)
       }
 
       const isMoving = Math.hypot(inputFwd, inputRight) > 0.08;
