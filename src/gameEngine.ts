@@ -505,6 +505,7 @@ export class GameEngine {
   private nextTextId: number = 1;
   private shipFireCooldown: number = 0;
   private nearPlanetAlertId: string | null = null;
+  private lastPlanetAlertTime: Record<string, number> = {};
   private boundaryCooldown: number = 0;
   private insidePlanetInFlight: string | null = null;
 
@@ -3337,21 +3338,25 @@ export class GameEngine {
       let interactAction: (() => void) | null = null;
       let nearestPlanetInRange: PlanetEntity | null = null;
 
+      const nowAlertTime = Date.now();
       for (const p of this.entities.planets) {
         const d = Math.hypot(this.player.x - p.x, this.player.y - p.y);
 
-        // When entering planet atmosphere in airplane mode (d <= p.r):
+        // When entering planet atmosphere (d <= p.r):
         if (d <= p.r) {
           nearestPlanetInRange = p;
           interactTarget = `🛬 ${p.name} 착륙 [E / 착륙버튼]`;
           interactAction = () => this.landCurrentShip(p);
 
-          // Detect initial atmosphere entry
+          // Detect initial atmosphere entry with 12s cooldown to prevent message spamming
           if (this.insidePlanetInFlight !== p.name) {
             this.insidePlanetInFlight = p.name;
-            AudioSys.playDiscoveryFanfare();
-            this.spawnFloatText(`🔥 ${p.name} 대기권 진입 완료! 저공 비행 중`, undefined, undefined, '#10b981');
-            this.spawnFloatText(`🛬 [착륙] 버튼 또는 [E]를 누르면 이 위치에 착륙합니다`, undefined, this.height / 2 - 25, '#00e5ff');
+            const lastAlert = this.lastPlanetAlertTime[p.name] || 0;
+            if (nowAlertTime - lastAlert > 12000) {
+              this.lastPlanetAlertTime[p.name] = nowAlertTime;
+              AudioSys.playDiscoveryFanfare();
+              this.spawnFloatText(`🔥 ${p.name} 대기권 진입 완료! 저공 비행 중`, undefined, undefined, '#10b981');
+            }
           }
           break;
         } else if (d < p.r + 380) {
@@ -3360,26 +3365,25 @@ export class GameEngine {
           interactTarget = `🛬 ${p.name} 궤도 착륙 [E]`;
           interactAction = () => this.landCurrentShip(p);
 
-          // If exiting planet atmosphere into outer space
-          if (this.insidePlanetInFlight === p.name && d > p.r + 40) {
+          // Clear insidePlanet only when sufficiently far away (hysteresis: d > p.r + 200)
+          if (this.insidePlanetInFlight === p.name && d > p.r + 200) {
             this.insidePlanetInFlight = null;
-            this.spawnFloatText(`🚀 ${p.name} 대기권 돌파 탈출 // 성간 우주 궤도 진입`, undefined, undefined, '#00e5ff');
           }
 
           if (this.nearPlanetAlertId !== p.name && !this.insidePlanetInFlight) {
             this.nearPlanetAlertId = p.name;
-            AudioSys.playDiscoveryFanfare();
-            this.spawnFloatText(`🛬 [행성 접근] ${p.name} 궤도 도달`, undefined, undefined, '#10b981');
-            this.spawnFloatText(`대기권으로 하강하여 저공 비행하거나 [착륙]할 수 있습니다`, undefined, this.height / 2 - 25, '#00e5ff');
+            const lastAlert = this.lastPlanetAlertTime[`near_${p.name}`] || 0;
+            if (nowAlertTime - lastAlert > 15000) {
+              this.lastPlanetAlertTime[`near_${p.name}`] = nowAlertTime;
+              AudioSys.playDiscoveryFanfare();
+              this.spawnFloatText(`🛬 [행성 접근] ${p.name} 궤도 도달`, undefined, undefined, '#10b981');
+            }
           }
           break;
         }
       }
 
       if (!nearestPlanetInRange) {
-        if (this.insidePlanetInFlight) {
-          this.insidePlanetInFlight = null;
-        }
         this.nearPlanetAlertId = null;
       }
 
