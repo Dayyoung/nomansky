@@ -991,6 +991,10 @@ export class ThreeGameEngine {
     const kb = game.keyboard;
     const tc = game.touchControls;
 
+    // Collect interaction, mining and firing states early to avoid TDZ (Temporal Dead Zone)
+    const isMining = Boolean(tc.isFiring || this.isPointerDown || kb.e === 1 || (game.isAutoPilot && game.player.isMining));
+    const toolMode = game.data.toolMode;
+
     // Camera Orbit Mouse / Touch Drag (Natural right/left drag rotates right/left)
     if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.05 || Math.abs(this.mouseLookDelta.y) > 0.05)) {
       this.orbitYaw += this.mouseLookDelta.x * 0.004;
@@ -1272,9 +1276,6 @@ export class ThreeGameEngine {
       }
     }
 
-    // Collect interaction and firing states early
-    const isMining = Boolean(tc.isFiring || this.isPointerDown || kb.e === 1 || (game.isAutoPilot && game.player.isMining));
-    const toolMode = game.data.toolMode;
 
     // Update 3D Alien Fauna Ecosystem (No Man's Sky 절차적 외계 생명체 시뮬레이션)
     if (curPlanet) {
@@ -1868,6 +1869,7 @@ export class ThreeGameEngine {
 
   // Transitions
   private transitionToPlanetSurface(planet: PlanetEntity) {
+    this.lastGameState = 'PLANET';
     NmsAudioEngine.getInstance().playAtmosphereBurn();
     NmsAudioEngine.getInstance().playDiscoveryFanfare();
     NmsAudioEngine.getInstance().playExosuitVoice(`Atmosphere entered. Planetary landing confirmed on ${planet.name}.`);
@@ -1880,13 +1882,18 @@ export class ThreeGameEngine {
     });
     game.spawnFloatText(`🌍 [${planet.name}] 행성 표면 착륙 성공! (생물군계: ${planet.type})`, undefined, undefined, '#10b981');
 
-    const tX = (game.player.px || 0) * 0.15;
-    const tZ = (game.player.py || 0) * 0.15;
-    const groundY = getTerrainHeight(tX, tZ);
+    const rawPx = game.player.px ?? 0;
+    const rawPy = game.player.py ?? 0;
+    const tX = isNaN(rawPx) ? 0 : rawPx * 0.15;
+    const tZ = isNaN(rawPy) ? 0 : rawPy * 0.15;
+    const rawGroundY = getTerrainHeight(tX, tZ);
+    const groundY = isNaN(rawGroundY) ? 0 : rawGroundY;
+
     this.travelerPos.set(tX, groundY, tZ);
     this.travelerVelY = 0;
     this.isGrounded = true;
     this.orbitYaw = this.shipYaw;
+    this.orbitPitch = 0.15;
 
     // Place parked starship accurately beside landing site
     this.shipPos.set(tX, groundY + 0.6, tZ);
@@ -1917,6 +1924,24 @@ export class ThreeGameEngine {
     if (this.travelerGroup) this.travelerGroup.visible = true;
     this.rendererSys.setAtmosphereFog(planet.color || '#38bdf8', 0.0035);
 
+    // Instantly snap camera to 3rd-person chase position behind astronaut (no sudden jerks or freezes)
+    const dist = 7.5;
+    const camOffset = new THREE.Vector3(
+      -Math.sin(this.orbitYaw) * Math.cos(this.orbitPitch) * dist,
+      Math.sin(this.orbitPitch) * dist + 3.2,
+      -Math.cos(this.orbitYaw) * Math.cos(this.orbitPitch) * dist
+    );
+    this.targetCamPos.copy(this.travelerPos).add(camOffset);
+    const camTerrainY = getTerrainHeight(this.targetCamPos.x, this.targetCamPos.z);
+    if (this.targetCamPos.y < camTerrainY + 1.2) {
+      this.targetCamPos.y = camTerrainY + 1.2;
+    }
+    this.targetCamLookAt.copy(this.travelerPos).add(new THREE.Vector3(0, 1.6, 0));
+    this.cameraPos.copy(this.targetCamPos);
+    this.cameraLookAt.copy(this.targetCamLookAt);
+    this.rendererSys.camera.position.copy(this.cameraPos);
+    this.rendererSys.camera.lookAt(this.cameraLookAt);
+
     // Reset interaction triggers
     game.keyboard.e = 0;
     game.touchControls.isInteracting = false;
@@ -1929,6 +1954,7 @@ export class ThreeGameEngine {
   }
 
   private transitionToSpaceFlight() {
+    this.lastGameState = 'SPACE';
     game.insidePlanetInFlight = null;
     NmsAudioEngine.getInstance().setJetpack(false);
     NmsAudioEngine.getInstance().setMiningLaser(false);
@@ -2026,8 +2052,12 @@ export class ThreeGameEngine {
     this.lastPerfTime = now;
     const delta = Math.min(0.05, Math.max(0.001, rawDelta));
 
-    this.update(delta);
-    this.rendererSys.render();
+    try {
+      this.update(delta);
+      this.rendererSys.render();
+    } catch (err) {
+      console.error('[ThreeGameEngine] Render loop non-fatal error caught:', err);
+    }
   }
 
   public resize(width: number, height: number) {
