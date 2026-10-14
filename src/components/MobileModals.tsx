@@ -652,12 +652,12 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
                 <span className="text-xs font-bold text-cyan-300 block mb-1.5">🌟 3D 캐릭터 모델 (Kenney Space Kit)</span>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {[
-                    { id: 'astronautA', name: '우주비행사 A (기본)', icon: '👨‍🚀', desc: '화이트 & 블루 배색 정밀 3D GLB' },
-                    { id: 'astronautB', name: '우주비행사 B (오렌지)', icon: '🚀', desc: '오렌지 & 화이트 탐사복 3D GLB' },
-                    { id: 'alien', name: '외계인 탐험가 (Alien)', icon: '👽', desc: '외계 미지의 생명체 3D GLB' },
-                    { id: 'classic', name: '클래식 엑소슈트', icon: '🤖', desc: '초기 절차적 큐브/스피어 수트' }
+                    { id: 'master_exosuit', name: '마스터피스 엑소슈트 (추천)', icon: '⭐', desc: '황금 바이저 & 네온 코어 하이엔드 3D' },
+                    { id: 'astronautA', name: '우주비행사 A (Kenney)', icon: '👨‍🚀', desc: '화이트 & 블루 배색 정밀 3D GLB' },
+                    { id: 'astronautB', name: '우주비행사 B (Kenney)', icon: '🚀', desc: '오렌지 & 화이트 탐사복 3D GLB' },
+                    { id: 'alien', name: '외계인 탐험가 (Kenney)', icon: '👽', desc: '외계 미지의 생명체 3D GLB' }
                   ].map((m) => {
-                    const isSelected = (game.data.characterModel || 'astronautA') === m.id;
+                    const isSelected = (game.data.characterModel || 'master_exosuit') === m.id;
                     return (
                       <button
                         key={m.id}

@@ -171,7 +171,7 @@ export class GameEngine {
     lifeSupport: 100,
     weaponCharge: 100,
     toolMode: 'MINING BEAM' as ToolMode,
-    characterModel: 'astronautA' as string,
+    characterModel: 'master_exosuit' as string,
     shipType: 'MECHANICAL' as ShipType,
     shipClass: 'C' as ShipClass,
     ammo: 24,
@@ -2887,6 +2887,7 @@ export class GameEngine {
   public setCharacterModel(modelKey: string) {
     this.data.characterModel = modelKey;
     const labelMap: Record<string, string> = {
+      master_exosuit: '마스터피스 3D 엑소슈트 (Masterpiece Exosuit)',
       astronautA: 'Kenney 3D 우주복 A (White & Blue)',
       astronautB: 'Kenney 3D 우주복 B (Orange & White)',
       alien: 'Kenney 3D 외계인 탐험가 (Alien Explorer)',

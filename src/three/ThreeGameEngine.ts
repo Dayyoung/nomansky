@@ -48,7 +48,7 @@ export class ThreeGameEngine {
   private starshipGroup: THREE.Group | null = null;
   private currentShipType: ShipType = 'MECHANICAL';
   private travelerGroup: THREE.Group | null = null;
-  private currentCharacterModel: string = 'astronautA';
+  private currentCharacterModel: string = 'master_exosuit';
   private spaceStationGroup: THREE.Group | null = null;
   private asteroidItems: AsteroidItem[] = [];
   private planetGroups: Map<string, THREE.Group> = new Map();
@@ -163,8 +163,8 @@ export class ThreeGameEngine {
     // 3. Create Starship
     this.updateStarship(game.data.shipType);
 
-    // 4. Create Traveler Astronaut
-    this.travelerGroup = TravelerBuilder.createTraveler();
+    // 4. Create Traveler Astronaut (Masterpiece Exosuit)
+    this.travelerGroup = TravelerBuilder.createTraveler(game.data.characterModel || 'master_exosuit');
     this.rendererSys.scene.add(this.travelerGroup);
 
     // 5. Create Planets
@@ -1142,25 +1142,43 @@ export class ThreeGameEngine {
       this.travelerGroup.position.copy(this.travelerPos);
       this.travelerGroup.rotation.set(0, this.travelerYaw, 0);
 
-      // Leg stride swing animation (procedural mesh)
+      // Leg stride swing animation (Masterpiece Exosuit)
       const legL = this.travelerGroup.getObjectByName('leg_l');
       const legR = this.travelerGroup.getObjectByName('leg_r');
+      const armL = this.travelerGroup.getObjectByName('arm_l');
       if (legL && legR) {
         if (this.travelerWalkCycle > 0) {
           legL.rotation.x = Math.sin(this.travelerWalkCycle) * 0.55;
           legR.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.55;
+          if (armL) armL.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.45;
         } else {
           legL.rotation.x = 0;
           legR.rotation.x = 0;
+          if (armL) armL.rotation.x = 0;
         }
       }
 
-      // Authentic walking bounce & tilt animation for Kenney 3D GLB Model
+      // Authentic limb & bounce animation for Kenney 3D GLB Model
+      const glbLegL = this.travelerGroup.getObjectByName('glb_leg_l');
+      const glbLegR = this.travelerGroup.getObjectByName('glb_leg_r');
+      const glbArmL = this.travelerGroup.getObjectByName('glb_arm_l');
+      if (glbLegL && glbLegR) {
+        if (this.travelerWalkCycle > 0) {
+          glbLegL.rotation.x = Math.sin(this.travelerWalkCycle) * 0.55;
+          glbLegR.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.55;
+          if (glbArmL) glbArmL.rotation.x = -Math.sin(this.travelerWalkCycle) * 0.45;
+        } else {
+          glbLegL.rotation.x = 0;
+          glbLegR.rotation.x = 0;
+          if (glbArmL) glbArmL.rotation.x = 0;
+        }
+      }
+
       const glbRoot = this.travelerGroup.getObjectByName('traveler_glb_root');
       if (glbRoot) {
         if (this.travelerWalkCycle > 0) {
           glbRoot.position.y = Math.abs(Math.sin(this.travelerWalkCycle * 2)) * 0.08;
-          glbRoot.rotation.z = Math.sin(this.travelerWalkCycle) * 0.05;
+          glbRoot.rotation.z = Math.sin(this.travelerWalkCycle) * 0.04;
         } else {
           glbRoot.position.y = 0;
           glbRoot.rotation.z = 0;
@@ -1728,6 +1746,13 @@ export class ThreeGameEngine {
           -Math.cos(this.orbitYaw) * Math.cos(this.orbitPitch) * dist
         );
         this.targetCamPos.copy(this.travelerPos).add(camOffset);
+
+        // Anti-Clipping Guard: Ensure camera never sinks into ground terrain behind player
+        const camTerrainY = getTerrainHeight(this.targetCamPos.x, this.targetCamPos.z);
+        if (this.targetCamPos.y < camTerrainY + 1.2) {
+          this.targetCamPos.y = camTerrainY + 1.2;
+        }
+
         this.targetCamLookAt.copy(this.travelerPos).add(new THREE.Vector3(0, 1.6, 0));
 
         // Exponential smoothing (Mathematically guaranteed zero jitter!)
