@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, RefreshCw, Zap, Rocket, Shield, Sparkles, Check, ChevronRight } from 'lucide-react';
+import { X, RefreshCw, Zap, Rocket, Shield, Sparkles, Check, ChevronRight, Minimize2, Maximize2, EyeOff } from 'lucide-react';
 import { game } from '../gameEngine';
 import { AudioSys } from '../audio';
 import { ToolMode, DifficultyPreset, DifficultySettings } from '../types';
@@ -90,6 +90,7 @@ interface MobileModalsProps {
 export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose }) => {
   const [subTab, setSubTab] = useState(0);
   const [, setTick] = useState(0);
+  const [isDemoMinimized, setIsDemoMinimized] = useState(true);
   const triggerRender = () => setTick((t) => t + 1);
 
   if (!activeModal) return null;
@@ -109,18 +110,47 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
     title: activeModal.replace(/-/g, ' ').toUpperCase()
   };
 
+  // 1. 데모 중 팝업 최소화 상태 (화면 중앙 시야 100% 확보, 하단 슬림 바 도킹)
+  if (isDemoActive && isDemoMinimized) {
+    return (
+      <div className="fixed bottom-14 xs:bottom-16 sm:bottom-12 left-1/2 -translate-x-1/2 z-50 pointer-events-auto max-w-[94%]">
+        <div className="flex items-center gap-1.5 xs:gap-2 px-3 py-1.5 rounded-full bg-slate-950/92 border border-cyan-400/70 shadow-[0_4px_25px_rgba(0,0,0,0.8)] backdrop-blur-md text-white text-[10px] xs:text-[11px] sm:text-xs font-mono">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
+          <span className="font-bold text-cyan-200 truncate max-w-[150px] xs:max-w-[220px] sm:max-w-xs">
+            {meta.icon} {meta.title.split(' ')[0]} 시연 중
+          </span>
+          <button
+            onClick={() => setIsDemoMinimized(false)}
+            className="px-2 py-0.5 rounded-full bg-cyan-600/40 hover:bg-cyan-600/70 text-cyan-200 border border-cyan-400/50 font-bold active:scale-95 cursor-pointer flex items-center gap-1 shrink-0"
+            title="팝업 상세 창 펼치기"
+          >
+            <Maximize2 className="w-2.5 h-2.5" />
+            <span>상세보기</span>
+          </button>
+          <button
+            onClick={handleClose}
+            className="p-1 rounded-full hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer shrink-0"
+            title="팝업 닫기"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`fixed inset-0 z-50 flex ${
         isDemoActive
-          ? 'items-start justify-center pt-24 xs:pt-28 sm:pt-32 p-2 sm:p-4 pb-4 bg-black/35 backdrop-blur-sm pointer-events-none'
+          ? 'items-end sm:items-center justify-center p-2 sm:p-4 pb-14 sm:pb-4 bg-black/20 pointer-events-none'
           : 'items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md'
       } overflow-hidden`}
     >
       <div
         className={`relative w-full max-w-2xl ${
           isDemoActive
-            ? 'max-h-[calc(100vh-6.5rem)] xs:max-h-[calc(100vh-7.5rem)] sm:max-h-[calc(100vh-8.5rem)] pointer-events-auto'
+            ? 'max-h-[46vh] xs:max-h-[50vh] sm:max-h-[75vh] pointer-events-auto border-cyan-400/80 shadow-[0_0_30px_rgba(0,229,255,0.3)]'
             : 'max-h-[92vh]'
         } flex flex-col bg-slate-950/95 border border-cyan-400/60 rounded-2xl shadow-[0_0_35px_rgba(0,229,255,0.25)] overflow-hidden`}
       >
@@ -130,7 +160,7 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             <div className="flex items-center gap-1.5 overflow-hidden">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
               <span className="font-bold text-white tracking-wide truncate">
-                🎬 AI 자동 시연 진행 중 ({demo.phaseIndex + 1}/{demo.totalPhases})
+                🎬 AI 자동 시연 ({demo.phaseIndex + 1}/{demo.totalPhases})
               </span>
               <span className="text-amber-300 font-bold shrink-0">
                 [{Math.round(demoProgress)}%]
@@ -138,9 +168,9 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             </div>
             <div className="flex items-center gap-2 shrink-0 text-[9px] sm:text-[10px] text-gray-400 font-mono">
               <span className="text-cyan-300">
-                {Math.max(0, (demoDuration - demo.phaseElapsed) / 1000).toFixed(1)}s 후 다음 단계
+                {Math.max(0, (demoDuration - demo.phaseElapsed) / 1000).toFixed(1)}s 후 다음
               </span>
-              <div className="w-14 sm:w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden border border-cyan-400/30">
+              <div className="w-12 sm:w-16 bg-slate-800 h-1.5 rounded-full overflow-hidden border border-cyan-400/30">
                 <div
                   className="h-full bg-gradient-to-r from-cyan-400 to-amber-300 transition-all duration-100"
                   style={{ width: `${demoProgress}%` }}
@@ -151,7 +181,7 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
         )}
 
         {/* Sticky Mobile Modal Header */}
-        <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-slate-900 border-b border-white/10 flex items-center justify-between shrink-0">
+        <div className="px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-900 border-b border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="text-lg sm:text-xl shrink-0">
               {meta.icon}
@@ -164,13 +194,39 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
             </div>
           </div>
 
-          <button
-            onClick={handleClose}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer active:scale-95 shrink-0"
-            title="닫기"
-          >
-            <X className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {isDemoActive && (
+              <>
+                <button
+                  onClick={() => setIsDemoMinimized(true)}
+                  className="px-2 py-1 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/40 text-cyan-200 text-[10px] font-mono font-bold flex items-center gap-1 cursor-pointer active:scale-95"
+                  title="팝업 최소화하고 인게임 시연 감상하기"
+                >
+                  <Minimize2 className="w-3 h-3" />
+                  <span>화면보기</span>
+                </button>
+                <button
+                  onClick={() => {
+                    game.toggleDemoSuppressModals();
+                    handleClose();
+                  }}
+                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/20 text-gray-300 text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95"
+                  title="데모 중 모든 팝업 차단 (인게임 화면 100% 감상)"
+                >
+                  <EyeOff className="w-3 h-3 text-amber-400" />
+                  <span className="hidden xs:inline">팝업차단</span>
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={handleClose}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-800 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer active:scale-95 shrink-0"
+              title="닫기"
+            >
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body Content (Scrollable) */}

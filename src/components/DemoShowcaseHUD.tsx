@@ -13,7 +13,9 @@ import {
   Flame,
   Swords,
   Fish,
-  Info
+  Info,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { game, GameEngine } from '../gameEngine';
 import { DemoShowcaseState } from '../types';
@@ -31,6 +33,7 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
 }) => {
   // 간소화된 슬림 모드가 기본값 (플레이 화면 시야 100% 확보)
   const [showDetails, setShowDetails] = useState(false);
+  const [isCinemaMode, setIsCinemaMode] = useState(false);
 
   if (!isAutoPilot && !demoState.isActive) {
     return null;
@@ -83,6 +86,39 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
         return <Swords className="w-3.5 h-3.5 text-emerald-400" />;
     }
   };
+
+  if (isCinemaMode) {
+    return (
+      <>
+        {/* 1. 최상단 실시간 진행도 바 */}
+        <div
+          className="fixed top-0 inset-x-0 z-[120] pointer-events-none select-none h-1 bg-slate-950/90 border-b border-cyan-400/30 backdrop-blur-sm shadow-[0_1px_8px_rgba(0,229,255,0.4)]"
+          aria-hidden="true"
+        >
+          <div
+            className="absolute inset-y-0 left-0 bg-cyan-900/40 transition-all duration-300"
+            style={{ width: `${globalProgress}%` }}
+          />
+          <div
+            className="h-full bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300 shadow-[0_0_8px_#00e5ff] transition-[width] duration-100 ease-linear rounded-r-full"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Cinema Mode Minimal Restore Button */}
+        <div className="fixed top-2 right-14 z-[130] pointer-events-auto">
+          <button
+            onClick={() => setIsCinemaMode(false)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-400/70 shadow-xl backdrop-blur-md text-cyan-300 text-[9.5px] font-mono font-bold active:scale-95 transition-all cursor-pointer"
+            title="클린 뷰 종료 및 데모 HUD 복원하기"
+          >
+            <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
+            <span>🎬 HUD 복원</span>
+          </button>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -178,6 +214,39 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
                 className="p-1 rounded-md bg-white/10 hover:bg-white/20 active:scale-95 text-cyan-200 transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              </button>
+
+              {/* 팝업 차단/표시 토글 버튼 (화면 가림 방지) */}
+              <button
+                onClick={() => game.toggleDemoSuppressModals()}
+                title={demoState.suppressModals ? "팝업 숨김 활성화 (화면 100% 감상). 클릭 시 팝업 허용" : "팝업 허용 중. 클릭 시 팝업 차단 (화면 가림 방지)"}
+                className={`p-1 rounded-md transition-colors cursor-pointer flex items-center gap-1 text-[9.5px] font-mono ${
+                  demoState.suppressModals
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50'
+                    : 'bg-white/10 hover:bg-white/20 text-gray-300'
+                }`}
+              >
+                {demoState.suppressModals ? (
+                  <>
+                    <EyeOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400" />
+                    <span className="hidden md:inline">팝업숨김</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
+                    <span className="hidden md:inline">팝업허용</span>
+                  </>
+                )}
+              </button>
+
+              {/* 클린 뷰 / 시네마틱 모드 토글 (모든 UI 숨기고 100% 화면만 감상) */}
+              <button
+                onClick={() => setIsCinemaMode(true)}
+                title="모든 HUD를 숨기고 100% 전체화면 시네마틱으로 게임플레이 감상"
+                className="px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-gray-300 transition-colors cursor-pointer flex items-center gap-0.5 text-[9.5px] font-mono shrink-0"
+              >
+                <span>🎬</span>
+                <span className="hidden sm:inline">클린뷰</span>
               </button>
 
               {/* 상세 정보 / 점프 선택기 펼치기 버튼 */}

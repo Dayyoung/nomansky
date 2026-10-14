@@ -19,7 +19,9 @@ import {
   Package,
   FileText,
   ShieldAlert,
-  Waves
+  Waves,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { ThreeGameEngine, CameraViewMode, Three3DSceneMode } from '../three/ThreeGameEngine';
 import { game } from '../gameEngine';
@@ -41,6 +43,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
   const [gameState, setGameState] = useState(game.currState);
   const [active3DScene, setActive3DScene] = useState<Three3DSceneMode>('FLIGHT');
   const [selectedColorHex, setSelectedColorHex] = useState<number>(0xcc2936);
+  const [isScenePanelCollapsed, setIsScenePanelCollapsed] = useState(game.isAutoPilot);
 
   // Pointer drag state
   const isPointerDownRef = useRef(false);
@@ -323,42 +326,75 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
           <span>{cameraMode === 'CHASE' ? '3인칭' : cameraMode === 'COCKPIT' ? '1인칭' : '궤도'}</span>
         </button>
 
-        {/* Control Guide Toggle */}
-        <button
-          onClick={() => setShowControlGuide(!showControlGuide)}
-          className="flex items-center gap-1 px-2 xs:px-2.5 py-1 xs:py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-[10px] xs:text-[11px] sm:text-xs font-mono backdrop-blur-md active:scale-95 transition-all cursor-pointer"
-          title="3D 조작 체계 안내 가이드"
-        >
-          <HelpCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-amber-400" />
-          <span className="hidden xs:inline sm:inline">조작법</span>
-        </button>
+        {/* Control Guide Toggle (데모 모드에서는 화면 가림 방지를 위해 조작 가이드 숨김) */}
+        {!game.isAutoPilot && (
+          <button
+            onClick={() => setShowControlGuide(!showControlGuide)}
+            className="flex items-center gap-1 px-2 xs:px-2.5 py-1 xs:py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-[10px] xs:text-[11px] sm:text-xs font-mono backdrop-blur-md active:scale-95 transition-all cursor-pointer"
+            title="3D 조작 체계 안내 가이드"
+          >
+            <HelpCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-amber-400" />
+            <span className="hidden xs:inline sm:inline">조작법</span>
+          </button>
+        )}
       </div>
 
       {/* 3. Top-Right Active 3D Scene Interactive Overlay Panel */}
       {active3DScene !== 'FLIGHT' && active3DScene !== 'PLANET' && (
-        <aside
-          aria-label="3D 실시간 인터랙티브 패널"
-          className="absolute top-11 xs:top-12 sm:top-14 right-2 sm:right-4 z-35 w-[calc(100vw-1rem)] max-w-xs sm:w-80 p-2.5 sm:p-3.5 rounded-xl bg-slate-950/95 border border-cyan-500/50 shadow-2xl backdrop-blur-xl text-white pointer-events-auto space-y-2 max-h-[75vh] overflow-y-auto"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-2 border-b border-white/10">
-            <div className="flex items-center gap-1.5 text-xs font-bold font-mono">
-              {active3DScene === 'DERELICT_FREIGHTER' && <span className="text-amber-400">☠️ 난파 화물선 인양</span>}
-              {active3DScene === 'EVA_SPACEWALK' && <span className="text-cyan-300">🌌 무중력 EVA 유영</span>}
-              {active3DScene === 'SHIP_HANGAR' && <span className="text-amber-300">🛸 함선 격납고 & 도색</span>}
-              {active3DScene === 'BLACK_HOLE' && <span className="text-purple-400">🕳️ 초거대 블랙홀 특이점</span>}
-              {active3DScene === 'SPACE_STATION' && <span className="text-cyan-300">🏛️ 우주정거장 코어</span>}
-              {active3DScene === 'GALAXY_MAP' && <span className="text-blue-300">🗺️ 3D 은하계 성간지도</span>}
-              {active3DScene === 'OCEAN_FISHING' && <span className="text-teal-300">🎣 심해 수중 탐사 & 낚시</span>}
-            </div>
+        isScenePanelCollapsed ? (
+          <aside
+            aria-label="3D 인터랙티브 패널 (접힘)"
+            className="absolute top-11 xs:top-12 sm:top-14 right-2 sm:right-4 z-35 pointer-events-auto"
+          >
             <button
-              onClick={() => switch3DScene(gameState === 'PLANET' ? 'PLANET' : 'FLIGHT')}
-              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
-              title="비행 모드로 복귀"
+              onClick={() => setIsScenePanelCollapsed(false)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-400/60 shadow-xl backdrop-blur-md text-cyan-200 text-[10px] sm:text-xs font-mono font-bold active:scale-95 transition-all cursor-pointer"
             >
-              <X className="w-3.5 h-3.5" />
+              <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span>
+                {active3DScene === 'DERELICT_FREIGHTER' ? '☠️ 난파 화물선' :
+                 active3DScene === 'EVA_SPACEWALK' ? '🌌 EVA 유영' :
+                 active3DScene === 'SHIP_HANGAR' ? '🛸 함선 도색' :
+                 active3DScene === 'BLACK_HOLE' ? '🕳️ 블랙홀' :
+                 active3DScene === 'SPACE_STATION' ? '🏛️ 정거장 코어' :
+                 active3DScene === 'GALAXY_MAP' ? '🗺️ 은하지도' : '🎣 심해 낚시'}
+              </span>
+              <ChevronDown className="w-3 h-3 text-cyan-300" />
             </button>
-          </div>
+          </aside>
+        ) : (
+          <aside
+            aria-label="3D 실시간 인터랙티브 패널"
+            className="absolute top-11 xs:top-12 sm:top-14 right-2 sm:right-4 z-35 w-[calc(100vw-1rem)] max-w-xs sm:w-80 p-2.5 sm:p-3.5 rounded-xl bg-slate-950/95 border border-cyan-500/50 shadow-2xl backdrop-blur-xl text-white pointer-events-auto space-y-2 max-h-[50vh] sm:max-h-[75vh] overflow-y-auto"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <div className="flex items-center gap-1.5 text-xs font-bold font-mono truncate mr-1">
+                {active3DScene === 'DERELICT_FREIGHTER' && <span className="text-amber-400">☠️ 난파 화물선 인양</span>}
+                {active3DScene === 'EVA_SPACEWALK' && <span className="text-cyan-300">🌌 무중력 EVA 유영</span>}
+                {active3DScene === 'SHIP_HANGAR' && <span className="text-amber-300">🛸 함선 격납고 & 도색</span>}
+                {active3DScene === 'BLACK_HOLE' && <span className="text-purple-400">🕳️ 초거대 블랙홀 특이점</span>}
+                {active3DScene === 'SPACE_STATION' && <span className="text-cyan-300">🏛️ 우주정거장 코어</span>}
+                {active3DScene === 'GALAXY_MAP' && <span className="text-blue-300">🗺️ 3D 은하계 성간지도</span>}
+                {active3DScene === 'OCEAN_FISHING' && <span className="text-teal-300">🎣 심해 수중 탐사 & 낚시</span>}
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => setIsScenePanelCollapsed(true)}
+                  className="p-1 rounded-md text-cyan-300 hover:text-white hover:bg-white/10 cursor-pointer"
+                  title="패널 최소화 (3D 화면 보기)"
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => switch3DScene(gameState === 'PLANET' ? 'PLANET' : 'FLIGHT')}
+                  className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+                  title="비행 모드로 복귀"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
 
           {/* Content by 3D Scene */}
           {active3DScene === 'DERELICT_FREIGHTER' && (
@@ -584,40 +620,43 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
             </div>
           )}
         </aside>
-      )}
+      )
+    )}
 
-      {/* 4. Bottom 3D Scene Selector Quick Ribbon (심심하지 않게 모든 화면 3D 시점 전환 지원) */}
-      <nav
-        aria-label="3D 모든 화면 씬 셀렉터 바"
-        className="absolute bottom-12 sm:bottom-3 inset-x-0 z-35 flex justify-center pointer-events-none select-none px-2"
-      >
-        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-slate-950/85 border border-cyan-400/40 shadow-2xl backdrop-blur-md overflow-x-auto max-w-[75vw] sm:max-w-full pointer-events-auto scrollbar-none">
-          {[
-            { id: 'FLIGHT', label: '성간비행', icon: '🚀' },
-            { id: 'DERELICT_FREIGHTER', label: '난파화물선', icon: '☠️' },
-            { id: 'EVA_SPACEWALK', label: '무중력EVA', icon: '🌌' },
-            { id: 'BLACK_HOLE', label: '블랙홀', icon: '🕳️' },
-            { id: 'SPACE_STATION', label: '우주정거장', icon: '🏛️' },
-            { id: 'SHIP_HANGAR', label: '격납고도색', icon: '🛸' },
-            { id: 'GALAXY_MAP', label: '3D은하지도', icon: '🗺️' },
-            { id: 'PLANET', label: '행성탐사', icon: '🌍' },
-            { id: 'OCEAN_FISHING', label: '심해낚시', icon: '🎣' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => switch3DScene(item.id as Three3DSceneMode)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-mono font-bold whitespace-nowrap transition-all cursor-pointer ${
-                active3DScene === item.id
-                  ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/60 shadow-[0_0_10px_rgba(0,229,255,0.4)]'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10 border border-transparent'
-              }`}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      {/* 4. Bottom 3D Scene Selector Quick Ribbon (데모 모드에서는 화면 가림 방지를 위해 하단 바 숨김) */}
+      {!game.isAutoPilot && (
+        <nav
+          aria-label="3D 모든 화면 씬 셀렉터 바"
+          className="absolute bottom-12 sm:bottom-3 inset-x-0 z-35 flex justify-center pointer-events-none select-none px-2"
+        >
+          <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-slate-950/85 border border-cyan-400/40 shadow-2xl backdrop-blur-md overflow-x-auto max-w-[75vw] sm:max-w-full pointer-events-auto scrollbar-none">
+            {[
+              { id: 'FLIGHT', label: '성간비행', icon: '🚀' },
+              { id: 'DERELICT_FREIGHTER', label: '난파화물선', icon: '☠️' },
+              { id: 'EVA_SPACEWALK', label: '무중력EVA', icon: '🌌' },
+              { id: 'BLACK_HOLE', label: '블랙홀', icon: '🕳️' },
+              { id: 'SPACE_STATION', label: '우주정거장', icon: '🏛️' },
+              { id: 'SHIP_HANGAR', label: '격납고도색', icon: '🛸' },
+              { id: 'GALAXY_MAP', label: '3D은하지도', icon: '🗺️' },
+              { id: 'PLANET', label: '행성탐사', icon: '🌍' },
+              { id: 'OCEAN_FISHING', label: '심해낚시', icon: '🎣' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => switch3DScene(item.id as Three3DSceneMode)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-mono font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  active3DScene === item.id
+                    ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/60 shadow-[0_0_10px_rgba(0,229,255,0.4)]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/10 border border-transparent'
+                }`}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
 
       {/* 5. No Man's Sky Authentic Controls Guide Popover */}
       {showControlGuide && (

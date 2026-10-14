@@ -511,6 +511,7 @@ export interface DemoShowcaseState {
   badge?: string;
   category?: string;
   activeModal: string | null;
+  suppressModals?: boolean;
   modalTab?: string;
   phaseDuration: number;
   phaseElapsed: number;

@@ -132,18 +132,20 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
               </span>
             </div>
 
-            {/* Landing Guide Help Button (Desktop sm+ / icon on mobile) */}
-            <button
-              onClick={() => {
-                AudioSys.playNote(540, 'sine', 0.1);
-                setShowLandingGuide(true);
-              }}
-              className="hidden sm:flex h-7 xs:h-7.5 sm:h-8 px-1.5 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-cyan-400/50 rounded-lg items-center gap-1 text-[8.5px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0"
-              title="행성 착륙 방법 가이드"
-            >
-              <HelpCircle className="w-3 h-3 text-cyan-400 shrink-0" />
-              <span>착륙가이드</span>
-            </button>
+            {/* Landing Guide Help Button (데모 모드에서는 숨김) */}
+            {!isAutoPilot && (
+              <button
+                onClick={() => {
+                  AudioSys.playNote(540, 'sine', 0.1);
+                  setShowLandingGuide(true);
+                }}
+                className="hidden sm:flex h-7 xs:h-7.5 sm:h-8 px-1.5 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-cyan-400/50 rounded-lg items-center gap-1 text-[8.5px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0"
+                title="행성 착륙 방법 가이드"
+              >
+                <HelpCircle className="w-3 h-3 text-cyan-400 shrink-0" />
+                <span>착륙가이드</span>
+              </button>
+            )}
           </div>
 
           {/* Center: In-Space / In-Planet Quick Actions (Desktop md: and above) */}
@@ -223,33 +225,37 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
             )}
           </div>
 
-          {/* Right: Sentinel Indicators, Currency, 3D Switch, Demo Toggle, Drawer Menu */}
+          {/* Right: Sentinel Indicators, Currency, 3D Switch, Demo Toggle, Drawer Menu (데모 모드에서는 화면 가림 방지를 위해 간소화) */}
           <div className="flex items-center justify-end gap-1 xs:gap-1.5 shrink-0">
             {/* Sentinel 5-Tier Diamond Indicators */}
-            <div id="sentinel-alert-container" className="flex items-center gap-0.5 xs:gap-1 bg-slate-950/85 backdrop-blur-md px-1 xs:px-1.5 py-0.5 rounded-lg border border-red-500/30 shadow-md">
-              <span className="text-[7.5px] sm:text-[8px] font-bold font-mono text-red-400 mr-0.5 hidden sm:inline">센티넬</span>
-              {[1, 2, 3, 4, 5].map((tier) => (
-                <div
-                  key={tier}
-                  className={`sentinel-diamond ${sentinelAlert >= tier ? 'active' : ''}`}
-                  title={`센티넬 위협 레벨 ${tier}`}
-                />
-              ))}
-            </div>
+            {!isAutoPilot && (
+              <div id="sentinel-alert-container" className="flex items-center gap-0.5 xs:gap-1 bg-slate-950/85 backdrop-blur-md px-1 xs:px-1.5 py-0.5 rounded-lg border border-red-500/30 shadow-md">
+                <span className="text-[7.5px] sm:text-[8px] font-bold font-mono text-red-400 mr-0.5 hidden sm:inline">센티넬</span>
+                {[1, 2, 3, 4, 5].map((tier) => (
+                  <div
+                    key={tier}
+                    className={`sentinel-diamond ${sentinelAlert >= tier ? 'active' : ''}`}
+                    title={`센티넬 위협 레벨 ${tier}`}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Currency Badges (Hidden on mobile phone, visible on sm:+) */}
-            <div className="hidden sm:flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-1.5 py-0.5 rounded-lg border border-white/10 text-[8px] sm:text-[8.5px] font-mono shadow-md">
-              <span className="text-yellow-400 font-bold">
-                {units >= 1000000 ? `${(units / 1000000).toFixed(1)}M` : units >= 1000 ? `${(units / 1000).toFixed(1)}k` : units} ₩
-              </span>
-              <span className="text-cyan-300 font-bold">
-                {nanites >= 1000 ? `${(nanites / 1000).toFixed(1)}k` : nanites} ⬡
-              </span>
-              {quicksilver > 0 && <span className="text-purple-400 font-bold hidden md:inline">{quicksilver} ◈</span>}
-            </div>
+            {!isAutoPilot && (
+              <div className="hidden sm:flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-1.5 py-0.5 rounded-lg border border-white/10 text-[8px] sm:text-[8.5px] font-mono shadow-md">
+                <span className="text-yellow-400 font-bold">
+                  {units >= 1000000 ? `${(units / 1000000).toFixed(1)}M` : units >= 1000 ? `${(units / 1000).toFixed(1)}k` : units} ₩
+                </span>
+                <span className="text-cyan-300 font-bold">
+                  {nanites >= 1000 ? `${(nanites / 1000).toFixed(1)}k` : nanites} ⬡
+                </span>
+                {quicksilver > 0 && <span className="text-purple-400 font-bold hidden md:inline">{quicksilver} ◈</span>}
+              </div>
+            )}
 
             {/* Combat Arsenal (Desktop lg+) */}
-            {onOpenArsenal && (
+            {!isAutoPilot && onOpenArsenal && (
               <button
                 onClick={() => {
                   AudioSys.unlockOnFirstInteraction();
@@ -264,7 +270,7 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
             )}
 
             {/* Custom Difficulty (Desktop xl+) */}
-            {onOpenDifficulty && (
+            {!isAutoPilot && onOpenDifficulty && (
               <button
                 onClick={() => {
                   AudioSys.unlockOnFirstInteraction();
@@ -321,14 +327,16 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
             </button>
 
             {/* Quick Menu Button (Opens Full Mobile Drawer) */}
-            <button
-              onClick={onOpenDrawer}
-              className="h-7 xs:h-7.5 sm:h-8 px-1.5 xs:px-2 sm:px-2.5 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-[8.5px] xs:text-[9.5px] flex items-center gap-1 shadow-[0_0_12px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
-              title="전체 기능 사령부 서랍 열기"
-            >
-              <Menu className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
-              <span className="font-mono tracking-wider font-extrabold">메뉴</span>
-            </button>
+            {!isAutoPilot && (
+              <button
+                onClick={onOpenDrawer}
+                className="h-7 xs:h-7.5 sm:h-8 px-1.5 xs:px-2 sm:px-2.5 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg border border-cyan-300 text-[8.5px] xs:text-[9.5px] flex items-center gap-1 shadow-[0_0_12px_rgba(0,229,255,0.4)] active:scale-95 cursor-pointer backdrop-blur-md shrink-0"
+                title="전체 기능 사령부 서랍 열기"
+              >
+                <Menu className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
+                <span className="font-mono tracking-wider font-extrabold">메뉴</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -405,73 +413,67 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
         )}
       </div>
 
-      {/* Warnings & Banners Center */}
-      <div className="flex flex-col items-center gap-1.5 my-auto pointer-events-none">
+      {/* Warnings & In-Flight Status Banners (상단 알림 구역에 슬림 배치하여 화면 중앙 시야 100% 확보) */}
+      <div className="flex flex-col items-center gap-1.5 mt-2 sm:mt-3 mb-auto pointer-events-none z-20 max-w-full px-2">
         {/* Storm Warning */}
         {gameState === 'PLANET' && stormCountdown > 0 && (
-          <div className="bg-amber-950/90 border border-amber-400/80 px-3.5 py-1 rounded-full text-center shadow-[0_0_20px_rgba(245,158,11,0.5)] backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
-            <span className="text-[10px] font-bold text-amber-300 font-mono tracking-wider">⚠️ 행성 극한 폭풍</span>
-            <span className="text-xs font-black text-white font-mono bg-amber-600/50 px-2 py-0.5 rounded-full">{(stormCountdown / 60).toFixed(1)}s</span>
+          <div className="bg-amber-950/90 border border-amber-400/80 px-3 py-0.5 rounded-full text-center shadow-lg backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
+            <span className="text-[9.5px] xs:text-[10.5px] font-bold text-amber-300 font-mono tracking-wider">⚠️ 행성 극한 폭풍</span>
+            <span className="text-[10px] xs:text-xs font-black text-white font-mono bg-amber-600/50 px-2 py-0.2 rounded-full">{(stormCountdown / 60).toFixed(1)}s</span>
           </div>
         )}
 
         {/* Sentinel Cargo Scan Warning */}
         {cargoScanTimer > 0 && (
-          <div className="bg-red-950/90 border border-red-500/80 px-3.5 py-1 rounded-full text-center shadow-[0_0_20px_rgba(239,68,68,0.6)] backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
-            <span className="text-[10px] font-bold text-red-300 tracking-wider">⚠️ 센티넬 화물 밀수 스캔</span>
-            <span className="text-xs font-bold text-white font-mono">[C 교란]</span>
+          <div className="bg-red-950/90 border border-red-500/80 px-3 py-0.5 rounded-full text-center shadow-lg backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
+            <span className="text-[9.5px] xs:text-[10.5px] font-bold text-red-300 tracking-wider">⚠️ 센티넬 화물 스캔</span>
+            <span className="text-[10px] xs:text-xs font-bold text-white font-mono">[C 교란]</span>
           </div>
         )}
 
         {/* Pirate Threat Warning - only in space during active countdown */}
         {gameState === 'SPACE' && pirateCountdown > 0 && (
-          <div className="bg-red-950/90 border border-red-500/80 px-3.5 py-1 rounded-full text-center shadow-[0_0_20px_rgba(239,68,68,0.6)] backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
-            <span className="text-[10px] font-bold text-red-300 font-mono tracking-wider">⚠️ 적기 워프 벡터 감지</span>
-            <span className="text-xs font-black text-white font-mono bg-red-600/50 px-2 py-0.5 rounded-full">{(pirateCountdown / 60).toFixed(1)}s</span>
+          <div className="bg-red-950/90 border border-red-500/80 px-3 py-0.5 rounded-full text-center shadow-lg backdrop-blur-md animate-pulse flex items-center justify-center gap-2">
+            <span className="text-[9.5px] xs:text-[10.5px] font-bold text-red-300 font-mono tracking-wider">⚠️ 적기 워프 감지</span>
+            <span className="text-[10px] xs:text-xs font-black text-white font-mono bg-red-600/50 px-2 py-0.2 rounded-full">{(pirateCountdown / 60).toFixed(1)}s</span>
           </div>
         )}
 
-        {/* In-Planet Airplane Flight & Landing Banner */}
+        {/* In-Planet Airplane Flight & Landing Banner (슬림 가로형 배치) */}
         {isInsidePlanet && gameState === 'SPACE' && (
-          <div className="bg-emerald-950/95 border-2 border-emerald-400 px-5 py-2 rounded-full shadow-[0_0_30px_rgba(16,185,129,0.7)] backdrop-blur-md animate-bounce text-center pointer-events-auto">
-            <span className="text-xs sm:text-sm font-extrabold text-emerald-300 font-mono tracking-wider block">
-              🛬 [{insidePlanet?.name}] 대기권 진입! (저공 비행 모드)
+          <div className="bg-emerald-950/95 border border-emerald-400/90 px-3.5 py-1 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.5)] backdrop-blur-md text-center pointer-events-auto flex items-center justify-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+            <span className="text-[10px] xs:text-xs font-extrabold text-emerald-300 font-mono tracking-wide truncate">
+              🛬 [{insidePlanet?.name}] 대기권 저공 비행
             </span>
-            <div className="text-[11px] text-white font-mono flex items-center justify-center gap-1.5 mt-0.5">
-              <span>원하는 위치에서</span>
+            <div className="flex items-center gap-1 shrink-0 font-mono text-[9.5px] xs:text-[10.5px]">
               <button
                 onClick={() => {
                   AudioSys.unlockOnFirstInteraction();
                   const target = insidePlanet || nearestPlanet || game.getNearestPlanet()?.planet;
                   if (target) game.landCurrentShip(target);
                 }}
-                className="px-2.5 py-0.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-md shadow-md active:scale-95 cursor-pointer"
+                className="px-2.5 py-0.5 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-full shadow active:scale-95 cursor-pointer whitespace-nowrap"
               >
-                [🛬 지금 착륙]
+                착륙 [E]
               </button>
-              <span>또는 [E] 키를 누르세요</span>
             </div>
           </div>
         )}
 
-        {/* Orbit Approach Landing Ready Banner */}
+        {/* Orbit Approach Landing Ready Banner (슬림 가로형 배치) */}
         {!isInsidePlanet && isLandingReady && gameState === 'SPACE' && (
-          <div className="bg-emerald-950/95 border-2 border-emerald-400 px-4 py-2 rounded-full shadow-[0_0_25px_rgba(16,185,129,0.6)] backdrop-blur-md animate-bounce text-center pointer-events-auto flex items-center justify-center gap-2">
-            <div>
-              <span className="text-xs font-bold text-emerald-300 font-mono tracking-wider block">
-                ✨ [{nearestPlanet?.name}] 대기권 궤도 접근
-              </span>
-              <span className="text-[10px] text-white font-mono">
-                전진하여 저공 비행하거나 즉시 착륙할 수 있습니다
-              </span>
-            </div>
+          <div className="bg-emerald-950/95 border border-emerald-400/90 px-3.5 py-1 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.5)] backdrop-blur-md text-center pointer-events-auto flex items-center justify-center gap-2">
+            <span className="text-[10px] xs:text-xs font-bold text-emerald-300 font-mono tracking-wide truncate">
+              ✨ [{nearestPlanet?.name}] 궤도 접근
+            </span>
             {nearestPlanet && (
               <button
                 onClick={() => {
                   AudioSys.unlockOnFirstInteraction();
                   game.landCurrentShip(nearestPlanet);
                 }}
-                className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-full text-xs font-mono shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
+                className="px-2.5 py-0.5 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-full text-[9.5px] xs:text-[10px] font-mono shadow active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
               >
                 🛬 즉시 착륙
               </button>
@@ -481,8 +483,8 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
 
         {/* Interact Target Banner */}
         {interactLabel && !isLandingReady && (
-          <div className="bg-slate-950/90 border border-cyan-400/70 px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(0,229,255,0.4)] backdrop-blur-md animate-bounce">
-            <span className="text-xs font-bold text-cyan-300 font-mono tracking-wider">
+          <div className="bg-slate-950/90 border border-cyan-400/70 px-3 py-0.5 rounded-full shadow-md backdrop-blur-md">
+            <span className="text-[10px] xs:text-xs font-bold text-cyan-300 font-mono tracking-wider">
               {interactLabel}
             </span>
           </div>

@@ -509,166 +509,168 @@ export default function App() {
         }}
       />
 
-      {/* AutoPilot Screen Border Glow Overlay */}
+      {/* AutoPilot Screen Border Glow Overlay - 데모 모드에서는 화면 가림 방지를 위해 미세한 1px 테두리만 유지 */}
       {isAutoPilot && (
-        <div className="fixed inset-0 pointer-events-none border-2 sm:border-4 border-cyan-400/50 shadow-[inset_0_0_60px_rgba(0,229,255,0.25)] z-30 animate-pulse" />
+        <div className="fixed inset-0 pointer-events-none border border-cyan-400/20 z-10" />
       )}
 
       {/* Iconic No Man's Sky Cinematic Widescreen Milestone Banner */}
       <CinematicMilestoneBanner banner={activeMilestoneBanner} />
 
-      {/* Touch Controls Layout (Landscape & Portrait Responsive) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-1.5 xs:p-2 sm:p-4 pb-safe max-w-full overflow-hidden">
-        {/* Left Bottom: Vitals Status Cluster & Virtual Thumb Joystick */}
-        <div className="pointer-events-auto shrink-0 flex flex-col items-start gap-1 sm:gap-1.5 mb-0.5 max-w-[130px] xs:max-w-[160px] sm:max-w-[200px]">
-          {/* Shield Bar */}
-          <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-cyan-400/30">
-            <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-cyan-300 mb-0.5">
-              <span className="flex items-center gap-1">
-                <Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-400" />
-                <span>방어막</span>
-              </span>
-              <span>{Math.round(shield)}%</span>
+      {/* Touch Controls Layout (데모 모드에서는 화면 100% 감상을 위해 조이스틱 및 조작 버튼 숨김) */}
+      {!isAutoPilot && (
+        <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none flex items-end justify-between p-1.5 xs:p-2 sm:p-4 pb-safe max-w-full overflow-hidden">
+          {/* Left Bottom: Vitals Status Cluster & Virtual Thumb Joystick */}
+          <div className="pointer-events-auto shrink-0 flex flex-col items-start gap-1 sm:gap-1.5 mb-0.5 max-w-[130px] xs:max-w-[160px] sm:max-w-[200px]">
+            {/* Shield Bar */}
+            <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-cyan-400/30">
+              <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-cyan-300 mb-0.5">
+                <span className="flex items-center gap-1">
+                  <Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-400" />
+                  <span>방어막</span>
+                </span>
+                <span>{Math.round(shield)}%</span>
+              </div>
+              <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
+                <div
+                  className="h-full bg-gradient-to-r from-cyan-600 to-cyan-300 transition-all duration-150"
+                  style={{ width: `${Math.max(0, Math.min(100, (shield / maxShield) * 100))}%` }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
+
+            {/* Hazard Protection Bar */}
+            {gameState === 'PLANET' && (
+              <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-yellow-400/30">
+                <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-yellow-300 mb-0.5">
+                  <span className="flex items-center gap-1">
+                    <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
+                    <span>환경방호</span>
+                  </span>
+                  <span>{Math.round(hazard)}%</span>
+                </div>
+                <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
+                  <div
+                    className="h-full bg-gradient-to-r from-yellow-600 to-amber-400 transition-all duration-150"
+                    style={{ width: `${Math.max(0, Math.min(100, hazard))}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Life Support Bar */}
+            {gameState === 'PLANET' && (
+              <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-red-500/30">
+                <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-red-300 mb-0.5">
+                  <span className="flex items-center gap-1">
+                    <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
+                    <span>생명유지</span>
+                  </span>
+                  <span>{Math.round(lifeSupport)}%</span>
+                </div>
+                <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
+                  <div
+                    className="h-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-150"
+                    style={{ width: `${Math.max(0, Math.min(100, lifeSupport))}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Virtual Thumb Joystick */}
+            <VirtualJoystick onVectorChange={handleJoystickVector} radius={44} />
+          </div>
+
+          {/* Center Bottom: Starship Cockpit & Flight Gauges (#cockpit-hud v2) */}
+          {gameState === 'SPACE' && (
+            <div id="cockpit-hud" className="hidden md:flex pointer-events-none select-none mb-1">
+              {/* Speed Gauge Arc */}
               <div
-                className="h-full bg-gradient-to-r from-cyan-600 to-cyan-300 transition-all duration-150"
-                style={{ width: `${Math.max(0, Math.min(100, (shield / maxShield) * 100))}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Hazard Protection Bar */}
-          {gameState === 'PLANET' && (
-            <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-yellow-400/30">
-              <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-yellow-300 mb-0.5">
-                <span className="flex items-center gap-1">
-                  <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
-                  <span>환경방호</span>
+                className={`flight-gauge-arc ${isPulseActive ? 'pulse-drive-active' : ''}`}
+                style={{
+                  ['--gauge-val' as any]: Math.min(100, Math.round((Math.hypot(game.player.vx, game.player.vy) / (isPulseActive ? 32 : 10)) * 100))
+                }}
+              >
+                <span className="text-[8px] font-mono text-cyan-300 font-bold uppercase tracking-wider">속도 (SPD)</span>
+                <span className="text-xs font-mono font-extrabold text-white">
+                  {Math.round(Math.hypot(game.player.vx, game.player.vy) * 4)}u
                 </span>
-                <span>{Math.round(hazard)}%</span>
+                <span className="text-[7px] font-mono text-cyan-400">
+                  {isPulseActive ? '초광속 펄스' : '추진 순항'}
+                </span>
               </div>
-              <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
-                <div
-                  className="h-full bg-gradient-to-r from-yellow-600 to-amber-400 transition-all duration-150"
-                  style={{ width: `${Math.max(0, Math.min(100, hazard))}%` }}
-                />
+
+              {/* Shield & Power Gauge Arc */}
+              <div
+                className="flight-gauge-arc"
+                style={{
+                  ['--gauge-val' as any]: Math.min(100, Math.round((shield / maxShield) * 100))
+                }}
+              >
+                <span className="text-[8px] font-mono text-cyan-300 font-bold uppercase tracking-wider">방어막</span>
+                <span className="text-xs font-mono font-extrabold text-white">
+                  {Math.round(shield)}%
+                </span>
+                <span className="text-[7px] font-mono text-emerald-400">
+                  {shipType}
+                </span>
               </div>
             </div>
           )}
 
-          {/* Life Support Bar */}
-          {gameState === 'PLANET' && (
-            <div className="w-full bg-slate-950/85 backdrop-blur-md px-2 py-0.5 sm:py-1 rounded-md border border-red-500/30">
-              <div className="flex justify-between items-center text-[8px] sm:text-[8.5px] font-bold font-mono text-red-300 mb-0.5">
-                <span className="flex items-center gap-1">
-                  <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
-                  <span>생명유지</span>
-                </span>
-                <span>{Math.round(lifeSupport)}%</span>
-              </div>
-              <div className="w-full bg-gray-900 h-1 sm:h-1.5 rounded-full overflow-hidden border border-white/10">
-                <div
-                  className="h-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-150"
-                  style={{ width: `${Math.max(0, Math.min(100, lifeSupport))}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Virtual Thumb Joystick */}
-          <VirtualJoystick onVectorChange={handleJoystickVector} radius={44} />
-        </div>
-
-        {/* Center Bottom: Starship Cockpit & Flight Gauges (#cockpit-hud v2) */}
-        {gameState === 'SPACE' && (
-          <div id="cockpit-hud" className="hidden md:flex pointer-events-none select-none mb-1">
-            {/* Speed Gauge Arc */}
-            <div
-              className={`flight-gauge-arc ${isPulseActive ? 'pulse-drive-active' : ''}`}
-              style={{
-                ['--gauge-val' as any]: Math.min(100, Math.round((Math.hypot(game.player.vx, game.player.vy) / (isPulseActive ? 32 : 10)) * 100))
+          {/* Right Bottom: Action Cluster (Fire, Jetpack, Interact, Tool Switch, Reload, etc.) */}
+          <div className="pointer-events-auto shrink-0">
+            <ActionControls
+              toolMode={toolMode}
+              shipType={shipType}
+              gameState={gameState}
+              isVisorActive={isVisorActive}
+              isOverheated={isOverheated}
+              overheat={overheat}
+              interactLabel={interactLabel}
+              interactProgress={interactProgress}
+              ammo={ammo}
+              maxAmmo={maxAmmo}
+              cargoScanTimer={cargoScanTimer}
+              combatWeapons={combatWeapons}
+              secondaryWeapons={secondaryWeapons}
+              onFireStart={() => {
+                game.touchControls.isFiring = true;
               }}
-            >
-              <span className="text-[8px] font-mono text-cyan-300 font-bold uppercase tracking-wider">속도 (SPD)</span>
-              <span className="text-xs font-mono font-extrabold text-white">
-                {Math.round(Math.hypot(game.player.vx, game.player.vy) * 4)}u
-              </span>
-              <span className="text-[7px] font-mono text-cyan-400">
-                {isPulseActive ? '초광속 펄스' : '추진 순항'}
-              </span>
-            </div>
-
-            {/* Shield & Power Gauge Arc */}
-            <div
-              className="flight-gauge-arc"
-              style={{
-                ['--gauge-val' as any]: Math.min(100, Math.round((shield / maxShield) * 100))
+              onFireEnd={() => {
+                game.touchControls.isFiring = false;
               }}
-            >
-              <span className="text-[8px] font-mono text-cyan-300 font-bold uppercase tracking-wider">방어막</span>
-              <span className="text-xs font-mono font-extrabold text-white">
-                {Math.round(shield)}%
-              </span>
-              <span className="text-[7px] font-mono text-emerald-400">
-                {shipType}
-              </span>
-            </div>
+              onJetpackStart={() => {
+                game.touchControls.isJetpacking = true;
+              }}
+              onJetpackEnd={() => {
+                game.touchControls.isJetpacking = false;
+              }}
+              onInteractStart={() => {
+                game.touchControls.isInteracting = true;
+              }}
+              onInteractEnd={() => {
+                game.touchControls.isInteracting = false;
+              }}
+              onCycleTool={() => game.cycleToolMode()}
+              onCycleCombatWeapon={() => game.cycleCombatWeapon()}
+              onFireSecondary={() => game.fireSecondaryWeapon()}
+              onCycleSecondary={() => game.cycleSecondaryWeapon()}
+              onOpenArsenal={() => setActiveModal('weapon-arsenal')}
+              onScan={() => game.triggerScanPulse()}
+              onReload={() => game.reloadBoltcaster()}
+              onToggleVisor={() => {
+                game.data.isVisorActive = !game.data.isVisorActive;
+                setIsVisorActive(game.data.isVisorActive);
+                AudioSys.playNote(650, 'sine', 0.15);
+              }}
+              onOpenQuickRecharge={() => {
+                setActiveModal('quick-recharge');
+              }}
+            />
           </div>
-        )}
-
-        {/* Right Bottom: Action Cluster (Fire, Jetpack, Interact, Tool Switch, Reload, etc.) */}
-        <div className="pointer-events-auto shrink-0">
-          <ActionControls
-            toolMode={toolMode}
-            shipType={shipType}
-            gameState={gameState}
-            isVisorActive={isVisorActive}
-            isOverheated={isOverheated}
-            overheat={overheat}
-            interactLabel={interactLabel}
-            interactProgress={interactProgress}
-            ammo={ammo}
-            maxAmmo={maxAmmo}
-            cargoScanTimer={cargoScanTimer}
-            combatWeapons={combatWeapons}
-            secondaryWeapons={secondaryWeapons}
-            onFireStart={() => {
-              game.touchControls.isFiring = true;
-            }}
-            onFireEnd={() => {
-              game.touchControls.isFiring = false;
-            }}
-            onJetpackStart={() => {
-              game.touchControls.isJetpacking = true;
-            }}
-            onJetpackEnd={() => {
-              game.touchControls.isJetpacking = false;
-            }}
-            onInteractStart={() => {
-              game.touchControls.isInteracting = true;
-            }}
-            onInteractEnd={() => {
-              game.touchControls.isInteracting = false;
-            }}
-            onCycleTool={() => game.cycleToolMode()}
-            onCycleCombatWeapon={() => game.cycleCombatWeapon()}
-            onFireSecondary={() => game.fireSecondaryWeapon()}
-            onCycleSecondary={() => game.cycleSecondaryWeapon()}
-            onOpenArsenal={() => setActiveModal('weapon-arsenal')}
-            onScan={() => game.triggerScanPulse()}
-            onReload={() => game.reloadBoltcaster()}
-            onToggleVisor={() => {
-              game.data.isVisorActive = !game.data.isVisorActive;
-              setIsVisorActive(game.data.isVisorActive);
-              AudioSys.playNote(650, 'sine', 0.15);
-            }}
-            onOpenQuickRecharge={() => {
-              setActiveModal('quick-recharge');
-            }}
-          />
         </div>
-      </div>
+      )}
 
       {/* Nautilon Submarine Mounted HUD (v5.23.0 The Abyss & Aquarius) */}
       {isNautilonBoarded && (

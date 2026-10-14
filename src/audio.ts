@@ -66,6 +66,12 @@ class SoundSystem {
     this.playNote(180, 'sine', 0.2, 0.3);
   }
 
+  public playAtmosphereBurn() {
+    this.playNote(140, 'sawtooth', 0.4, 0.35);
+    setTimeout(() => this.playNote(90, 'triangle', 0.5, 0.3), 100);
+    this.vibrate([20, 30, 20]);
+  }
+
   public playOverheat() {
     this.playNote(180, 'square', 0.25, 0.3);
     this.vibrate([30, 40, 30]);

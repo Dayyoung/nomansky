@@ -289,6 +289,7 @@ export class GameEngine {
       description: '광활한 유클리드 은하를 고속으로 순항하며 인근 행성과 우주 정거장을 탐색합니다.',
       subText: '[Space] 키를 누르면 펄스 엔진이 점화되어 36 u/s 초광속으로 질주합니다.',
       activeModal: null,
+      suppressModals: true,
       phaseDuration: 5500,
       phaseElapsed: 0,
       currentActivity: 'GATHERING',
@@ -507,7 +508,7 @@ export class GameEngine {
   private nearPlanetAlertId: string | null = null;
   private lastPlanetAlertTime: Record<string, number> = {};
   private boundaryCooldown: number = 0;
-  private insidePlanetInFlight: string | null = null;
+  public insidePlanetInFlight: string | null = null;
 
   // Camera Zoom (Supports multi-touch pinch to zoom and mouse wheel)
   public cameraZoom: number = 1.0;
@@ -790,7 +791,7 @@ export class GameEngine {
 
   public spawnFloatText(text: string, x?: number, y?: number, color = '#ffffff') {
     const px = x !== undefined ? x : this.width / 2;
-    const py = y !== undefined ? y : this.height / 2 - 60;
+    const py = y !== undefined ? y : (this.isAutoPilot ? Math.min(130, this.height * 0.2) : Math.min(150, this.height * 0.25));
     const ft: FloatingText = {
       id: this.nextTextId++,
       text,
@@ -798,6 +799,9 @@ export class GameEngine {
       y: py,
       color
     };
+    if (this.data.floatingTexts.length >= 3) {
+      this.data.floatingTexts.shift();
+    }
     this.data.floatingTexts.push(ft);
     setTimeout(() => {
       this.data.floatingTexts = this.data.floatingTexts.filter(t => t.id !== ft.id);
@@ -1971,7 +1975,7 @@ export class GameEngine {
       JOURNEY_MILESTONES: 'milestones'
     };
 
-    if (this.data.demoShowcase.mode === 'REAL_PLAYER' && !forceShowModal) {
+    if ((this.data.demoShowcase.suppressModals || this.data.demoShowcase.mode === 'REAL_PLAYER') && !forceShowModal) {
       this.data.demoShowcase.activeModal = null;
     } else {
       this.data.demoShowcase.activeModal = modalMap[cfg.phase] || null;
@@ -2150,9 +2154,9 @@ export class GameEngine {
       return;
     }
 
-    // 1. REAL_PLAYER Mode (기본값): 일반 사냥 및 채집에 집중하는 실전 플레이어 데모 시연
-    if (this.data.demoShowcase.mode === 'REAL_PLAYER') {
-      this.data.demoShowcase.activeModal = null; // 팝업 창 차단: 실전 인게임 화면 100% 노출
+    // 1. REAL_PLAYER Mode 또는 팝업 차단(suppressModals) 모드: 실전 인게임 화면 100% 노출
+    if (this.data.demoShowcase.suppressModals || this.data.demoShowcase.mode === 'REAL_PLAYER') {
+      this.data.demoShowcase.activeModal = null;
       this.updateRealPlayerAutoplay(elapsed);
       return;
     }
@@ -2162,6 +2166,18 @@ export class GameEngine {
       this.data.demoShowcase.activeModal = null;
     }
     this.updateRealPlayerAutoplay(elapsed);
+  }
+
+  public toggleDemoSuppressModals() {
+    this.data.demoShowcase.suppressModals = !this.data.demoShowcase.suppressModals;
+    if (this.data.demoShowcase.suppressModals) {
+      this.data.demoShowcase.activeModal = null;
+      this.spawnFloatText("👁️ 데모 팝업 숨김 (화면 100% 감상)", undefined, undefined, '#00e5ff');
+    } else {
+      this.setupDemoPhase(this.demoPhaseIndex, true);
+      this.spawnFloatText("📋 데모 팝업 상세 모드 활성화", undefined, undefined, '#facc15');
+    }
+    this.notify();
   }
 
   // 실전 플레이어 지능형 자율 행동 AI 루프 (채집 40%, 사냥 35%, 센티넬 전투 20%, 특수/우주 5%)
