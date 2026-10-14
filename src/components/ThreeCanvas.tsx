@@ -153,13 +153,26 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
     };
   }, [is3DActive]);
 
-  // Pointer drag handlers for mouse & touch steering / camera look
+  // Pointer drag & position handlers for mouse & touch steering / camera look
+  const updatePointerNormalized = (clientX: number, clientY: number, isActive: boolean) => {
+    if (!engineRef.current || !canvasRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      const normX = ((clientX - rect.left) / rect.width) * 2 - 1; // -1 (left) ~ +1 (right)
+      const normY = -(((clientY - rect.top) / rect.height) * 2 - 1); // +1 (top) ~ -1 (bottom)
+      engineRef.current.pointerNormalized.x = Math.max(-1, Math.min(1, normX));
+      engineRef.current.pointerNormalized.y = Math.max(-1, Math.min(1, normY));
+      engineRef.current.pointerActive = isActive;
+    }
+  };
+
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     isPointerDownRef.current = true;
     lastPointerPosRef.current = { x: e.clientX, y: e.clientY };
 
     if (engineRef.current) {
       engineRef.current.isPointerDown = true;
+      updatePointerNormalized(e.clientX, e.clientY, true);
       if (game.currState === 'SPACE') {
         engineRef.current.fireLaser();
       }
@@ -167,20 +180,27 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isPointerDownRef.current || !engineRef.current) return;
+    if (!engineRef.current) return;
 
-    const dx = e.clientX - lastPointerPosRef.current.x;
-    const dy = e.clientY - lastPointerPosRef.current.y;
-    lastPointerPosRef.current = { x: e.clientX, y: e.clientY };
+    if (isPointerDownRef.current) {
+      const dx = e.clientX - lastPointerPosRef.current.x;
+      const dy = e.clientY - lastPointerPosRef.current.y;
+      lastPointerPosRef.current = { x: e.clientX, y: e.clientY };
 
-    engineRef.current.mouseLookDelta = { x: dx, y: dy };
+      engineRef.current.mouseLookDelta = { x: dx, y: dy };
+      updatePointerNormalized(e.clientX, e.clientY, true);
+    } else if (game.currState === 'SPACE') {
+      updatePointerNormalized(e.clientX, e.clientY, false);
+    }
   };
 
   const handlePointerUpOrCancel = () => {
     isPointerDownRef.current = false;
     if (engineRef.current) {
       engineRef.current.isPointerDown = false;
+      engineRef.current.pointerActive = false;
       engineRef.current.mouseLookDelta = { x: 0, y: 0 };
+      engineRef.current.pointerNormalized = { x: 0, y: 0 };
     }
   };
 

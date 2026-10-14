@@ -118,6 +118,8 @@ export class ThreeGameEngine {
 
   // Pointer & Input tracking
   public mouseLookDelta = { x: 0, y: 0 };
+  public pointerNormalized = { x: 0, y: 0 }; // Screen Normalized: -1 to +1 (center is 0, top is +1, bottom is -1)
+  public pointerActive = false;
   public isPointerDown = false;
   private lastGameState: string = 'SPACE';
   private lastInsidePlanet: string | null = null;
@@ -722,16 +724,42 @@ export class ThreeGameEngine {
         steerYaw -= tc.joystickVector.x;
         strafeInput += tc.joystickVector.x;
       }
+      if (tc.joystickVector.y) {
+        // [3D 조이스틱 상하]: 위로 밀면(y < 0) 기수 상승 & 고도 상승, 아래로 당기면(y > 0) 기수 하강 & 고도 하강
+        steerPitch -= tc.joystickVector.y * 1.8;
+      }
 
-      // Mouse drag steering (No Man's Sky flight control)
-      if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.1 || Math.abs(this.mouseLookDelta.y) > 0.1)) {
+      // 1. Mouse & Touch Drag Steering (No Man's Sky dynamic drag control)
+      if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.05 || Math.abs(this.mouseLookDelta.y) > 0.05)) {
         steerYaw -= this.mouseLookDelta.x * 0.0035;
-        steerPitch -= this.mouseLookDelta.y * 0.0025;
+        // 위로 드래그하면 dy < 0 => 기수 상승(Pitch UP / 고도 상승), 아래로 드래그하면 dy > 0 => 기수 하강(Pitch DOWN / 고도 하강)
+        steerPitch -= this.mouseLookDelta.y * 0.004;
+      }
+
+      // 2. Mouse / Touch Screen Position Steering (No Man's Sky Center-Offset Flight Control)
+      // 마우스 상하 위치 또는 터치 상하 위치에 따른 정밀 고도 & 피치 제어:
+      // pointerNormalized.y: 상단(+1.0) ~ 하단(-1.0), 중앙(0.0)
+      if (this.pointerActive || (this.isPointerDown && Math.hypot(this.pointerNormalized.x, this.pointerNormalized.y) > 0.05)) {
+        const deadZoneY = 0.06;
+        if (Math.abs(this.pointerNormalized.y) > deadZoneY) {
+          const rawY = this.pointerNormalized.y;
+          const signY = Math.sign(rawY);
+          const magY = (Math.abs(rawY) - deadZoneY) / (1 - deadZoneY);
+          steerPitch += signY * Math.pow(magY, 1.25) * 2.4;
+        }
+
+        const deadZoneX = 0.06;
+        if (Math.abs(this.pointerNormalized.x) > deadZoneX) {
+          const rawX = this.pointerNormalized.x;
+          const signX = Math.sign(rawX);
+          const magX = (Math.abs(rawX) - deadZoneX) / (1 - deadZoneX);
+          steerYaw -= signX * Math.pow(magX, 1.25) * 1.8;
+        }
       }
 
       // Throttle input: W accelerates (전진 가속), S brakes/reverses (감속/제동)
-      const isW = kb.w || tc.joystickVector.y < -0.3;
-      const isS = kb.s || tc.joystickVector.y > 0.3;
+      const isW = kb.w;
+      const isS = kb.s;
       isBoost = Boolean(kb.shift || tc.isJetpacking);
       isPulse = Boolean(kb.space || game.data.isPulseActive);
 
@@ -769,14 +797,19 @@ export class ThreeGameEngine {
     const turnRate = 2.4;
     this.shipYaw += steerYaw * turnRate * delta;
 
-    // Smooth Pitch Tilt (-40° to +40°)
-    const pitchTarget = steerPitch * 0.6;
-    this.shipPitch += (pitchTarget - this.shipPitch) * Math.min(1.0, delta * 6.0);
-    this.shipPitch = Math.max(-0.65, Math.min(0.65, this.shipPitch));
+    // Smooth Continuous Pitch Steering (-70° to +70° full 3D envelope)
+    // 조종간 입력에 따라 기수가 상하로 부드럽게 연속 회전하여 고도를 조절함
+    const pitchTurnRate = 2.2;
+    this.shipPitch += steerPitch * pitchTurnRate * delta;
+    this.shipPitch = Math.max(-1.22, Math.min(1.22, this.shipPitch)); // Clamp to ~70 degrees
 
-    // Authentic Wing Roll Banking into Turns (-40° to +40°)
-    // In No Man's Sky, turning right banks right wing down (+roll), turning left banks left wing down (-roll)
-    const targetRoll = -steerYaw * 0.65;
+    // 입력을 뗐을 때 서서히 수평으로 오토레벨링(자연스러운 복원)
+    if (Math.abs(steerPitch) < 0.02) {
+      this.shipPitch += (0 - this.shipPitch) * Math.min(1.0, delta * 1.5);
+    }
+
+    // Authentic Wing Roll Banking into Turns (-45° to +45°)
+    const targetRoll = -steerYaw * 0.7;
     this.shipRoll += (targetRoll - this.shipRoll) * Math.min(1.0, delta * 7.0);
 
     // Calculate 3D Forward Direction Vector from Yaw and Pitch
@@ -789,8 +822,16 @@ export class ThreeGameEngine {
     // Lateral right vector for responsive strafe movement (Points TRUE Screen Right: -cos(yaw), 0, sin(yaw))
     const lateralRight = new THREE.Vector3(-Math.cos(this.shipYaw), 0, Math.sin(this.shipYaw)).normalize();
 
-    // Advance 3D Starship Position (Forward + Lateral Strafe)
+    // Advance 3D Starship Position (Forward + Direct Vertical Elevation Thrusters + Lateral Strafe)
     this.shipPos.addScaledVector(forward, this.shipSpeed * delta * 5.0);
+
+    // Direct Vertical Elevation Adjustment from Pitch Input (Vertical Thrusters)
+    // 마우스 상하 위치 또는 터치 상하 조작에 반응하는 즉각적인 수직 고도 승강 추력
+    if (Math.abs(steerPitch) > 0.03) {
+      const verticalElevationRate = steerPitch * (this.shipSpeed * 0.4 + 14.0);
+      this.shipPos.y += verticalElevationRate * delta;
+    }
+
     if (strafeInput !== 0) {
       this.shipPos.addScaledVector(lateralRight, strafeInput * (this.shipSpeed * 0.55 + 5.0) * delta);
     }
