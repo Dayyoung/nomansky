@@ -77,8 +77,8 @@ export class PlanetBuilder {
     const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
     group.add(atmoMesh);
 
-    // 4. Planetary Rings (For ~50% of planets or large worlds)
-    if (planetData.r > 400 || planetData.name.length % 2 === 0) {
+    // 4. Planetary Rings (Only for designated 2-3 planets in the system)
+    if (Boolean(planetData.hasRings)) {
       const ringGroup = this.createPlanetaryRings(planetRadius, atmoColor);
       group.add(ringGroup);
     }

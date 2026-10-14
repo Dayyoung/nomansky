@@ -585,6 +585,7 @@ export class GameEngine {
         color: pt.color,
         type: pt.type,
         hazardType: pt.hazardType,
+        hasRings: i === 1 || i === 3,
         craters: [],
         deposits: [],
         faunaSpecies: [],

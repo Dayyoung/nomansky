@@ -166,6 +166,7 @@ export interface PlanetEntity {
   color: string;
   type: string;
   hazardType: string;
+  hasRings?: boolean;
   craters: unknown[];
   deposits: DepositEntity[];
   faunaSpecies: FaunaSpecies[];

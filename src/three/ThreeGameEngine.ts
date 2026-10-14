@@ -119,6 +119,7 @@ export class ThreeGameEngine {
   public mouseLookDelta = { x: 0, y: 0 };
   public isPointerDown = false;
   private lastGameState: string = 'SPACE';
+  private lastInsidePlanet: string | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.rendererSys = new ThreeRenderer(canvas);
@@ -365,13 +366,15 @@ export class ThreeGameEngine {
       this.updateStarship(game.data.shipType);
     }
 
-    // 1. STATE HANDLING: SPACE vs PLANET vs WARP
+    // 1. STATE HANDLING: SPACE (Deep Space vs Planetary Low Flight) vs PLANET vs WARP
     if (this.lastGameState !== game.currState) {
       if (game.currState === 'PLANET') {
         const curPlanet = game.data.activePlanet || game.entities.planets[0];
         if (curPlanet) this.transitionToPlanetSurface(curPlanet);
       } else if (game.currState === 'SPACE') {
-        this.transitionToSpaceFlight();
+        if (!game.insidePlanetInFlight) {
+          this.transitionToSpaceFlight();
+        }
       }
       this.lastGameState = game.currState;
     }
@@ -380,6 +383,9 @@ export class ThreeGameEngine {
       this.handleWarpMode(delta);
     } else if (game.currState === 'PLANET') {
       this.handlePlanetMode(delta);
+    } else if (game.insidePlanetInFlight) {
+      const curPlanet = game.entities.planets.find((p) => p.name === game.insidePlanetInFlight) || game.data.activePlanet || game.entities.planets[0];
+      this.handlePlanetaryFlightMode(delta, curPlanet);
     } else {
       this.handleSpaceMode(delta);
     }
@@ -809,20 +815,27 @@ export class ThreeGameEngine {
     game.player.vx = forward.x * this.shipSpeed * 0.15;
     game.player.vy = forward.z * this.shipSpeed * 0.15;
 
-    // Check proximity interactions with planets for landing [E]
+    // Check proximity interactions with planets for atmospheric entry & anti-penetration
     for (const p of game.entities.planets) {
       const p3dX = p.x * 0.1;
       const p3dZ = p.y * 0.1;
+      const center = new THREE.Vector3(p3dX, 0, p3dZ);
       const dist = Math.hypot(this.shipPos.x - p3dX, this.shipPos.z - p3dZ);
-      const atmoR = (p.r + 35) * 0.1;
+      const planetRadius = Math.max(85, Math.min(135, p.r * 0.1));
+      const atmoR = planetRadius + 32.0;
 
+      // 1. Enter Low-Altitude Atmospheric Flight upon reaching planet atmosphere
       if (dist <= atmoR) {
-        game.data.interactLabel = `🛬 ${p.name} 착륙 [E / 착륙버튼]`;
-        if (kb.e === 1 || tc.isInteracting) {
-          game.landCurrentShip(p);
-          this.transitionToPlanetSurface(p);
-        }
+        this.transitionToPlanetaryFlight(p);
         break;
+      }
+
+      // 2. Space Sphere Anti-Penetration Guard (Prevents flying through planetary surface)
+      const dist3D = this.shipPos.distanceTo(center);
+      const minSpaceDist = planetRadius + 6.0;
+      if (dist3D < minSpaceDist) {
+        const pushDir = this.shipPos.clone().sub(center).normalize();
+        this.shipPos.copy(center).addScaledVector(pushDir, minSpaceDist);
       }
     }
 
@@ -1120,7 +1133,11 @@ export class ThreeGameEngine {
         game.data.interactLabel = '🚀 우주선 탑승 및 이륙 [E]';
         if (kb.e === 1 || tc.isInteracting) {
           game.launchToOrbit();
-          this.transitionToSpaceFlight();
+          if (curPlanet) {
+            this.transitionToPlanetaryFlight(curPlanet);
+          } else {
+            this.transitionToSpaceFlight();
+          }
         }
       }
     }
@@ -1405,6 +1422,159 @@ export class ThreeGameEngine {
           citizen.rotation.y = Math.sin(this.totalElapsedTime * 0.8 + cIdx) * 0.25;
         }
       });
+    }
+  }
+
+  // =========================================================================
+  // --- PLANETARY LOW-ALTITUDE ATMOSPHERIC FLIGHT (No Man's Sky Planet Flight) ---
+  // =========================================================================
+  private handlePlanetaryFlightMode(delta: number, planet: PlanetEntity) {
+    // 1. Maintain Scene Visibility for Surface Low Flight
+    this.planetGroups.forEach((pg) => (pg.visible = false));
+    if (this.surfaceTerrainGroup) this.surfaceTerrainGroup.visible = true;
+    if (this.travelerGroup) this.travelerGroup.visible = false;
+    if (this.starshipGroup) this.starshipGroup.visible = true;
+    this.rendererSys.setAtmosphereFog(planet.color || '#38bdf8', 0.0035);
+
+    // 2. Input Collection
+    const kb = game.keyboard;
+    const tc = game.touchControls;
+
+    let steerYaw = 0;
+    let steerPitch = 0;
+    let strafeInput = 0;
+    let isBoost = false;
+    let isPulse = false;
+
+    // Yaw Steering & Lateral Strafe: A is Left (좌), D is Right (우)
+    if (kb.a) {
+      steerYaw += 1.0; // A: 좌회전 (Turn Left -> 기수 화면 왼쪽 선회)
+      strafeInput -= 1.0; // A: 좌측 횡이동 (Strafe Left)
+    }
+    if (kb.d) {
+      steerYaw -= 1.0; // D: 우회전 (Turn Right -> 기수 화면 오른쪽 선회)
+      strafeInput += 1.0; // D: 우측 횡이동 (Strafe Right)
+    }
+    if (tc.joystickVector.x) {
+      steerYaw -= tc.joystickVector.x;
+      strafeInput += tc.joystickVector.x;
+    }
+
+    // Mouse drag steering
+    if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.05 || Math.abs(this.mouseLookDelta.y) > 0.05)) {
+      steerYaw -= this.mouseLookDelta.x * 0.0035;
+      steerPitch -= this.mouseLookDelta.y * 0.0025;
+    }
+
+    // Throttle Input: W accelerates, S brakes/cruises slowly
+    const isW = kb.w || tc.joystickVector.y < -0.3;
+    const isS = kb.s || tc.joystickVector.y > 0.3;
+    isBoost = Boolean(kb.shift || tc.isJetpacking);
+    isPulse = Boolean(kb.space || game.data.isPulseActive);
+
+    // Low Altitude Speed Envelope
+    if (isPulse || isBoost) {
+      this.shipTargetSpeed = isPulse ? 65.0 : 45.0; // Boosted atmospheric speed
+    } else if (isW) {
+      this.shipTargetSpeed = 26.0; // Standard forward flight
+    } else if (isS) {
+      this.shipTargetSpeed = 8.0; // Low-speed observation cruise
+    } else {
+      this.shipTargetSpeed = 15.0; // Idle glide speed
+    }
+
+    // Smooth Throttle Acceleration
+    const accelRate = isPulse ? 25.0 : 14.0;
+    this.shipSpeed += (this.shipTargetSpeed - this.shipSpeed) * Math.min(1.0, delta * accelRate);
+
+    // Smooth Yaw Steering with Angular Damping
+    const turnRate = 2.2;
+    this.shipYaw += steerYaw * turnRate * delta;
+
+    // Smooth Pitch Tilt (-40° to +40°)
+    const pitchTarget = steerPitch * 0.6;
+    this.shipPitch += (pitchTarget - this.shipPitch) * Math.min(1.0, delta * 5.5);
+    this.shipPitch = Math.max(-0.55, Math.min(0.55, this.shipPitch));
+
+    // Authentic Wing Roll Banking into Turns (-40° to +40°)
+    const targetRoll = -steerYaw * 0.65;
+    this.shipRoll += (targetRoll - this.shipRoll) * Math.min(1.0, delta * 7.0);
+
+    // Calculate 3D Forward Direction Vector
+    const forward = new THREE.Vector3(
+      Math.sin(this.shipYaw) * Math.cos(this.shipPitch),
+      Math.sin(this.shipPitch),
+      Math.cos(this.shipYaw) * Math.cos(this.shipPitch)
+    ).normalize();
+
+    // Lateral right vector (Points TRUE Screen Right)
+    const lateralRight = new THREE.Vector3(-Math.cos(this.shipYaw), 0, Math.sin(this.shipYaw)).normalize();
+
+    // Advance 3D Starship Position (Forward + Lateral Strafe)
+    this.shipPos.addScaledVector(forward, this.shipSpeed * delta * 5.0);
+    if (strafeInput !== 0) {
+      this.shipPos.addScaledVector(lateralRight, strafeInput * (this.shipSpeed * 0.45 + 5.0) * delta);
+    }
+
+    // =======================================================================
+    // --- 3. TERRAIN ANTI-PENETRATION & GROUND CLEARANCE CUSHIONING ---
+    // =======================================================================
+    const groundElevation = getTerrainHeight(this.shipPos.x, this.shipPos.z);
+    const minSafeFlightY = groundElevation + 3.2;
+
+    // Guaranteed: Starship CANNOT penetrate or clip into the planetary surface!
+    if (this.shipPos.y < minSafeFlightY) {
+      this.shipPos.y = minSafeFlightY;
+
+      // Authentic No Man's Sky Auto-Pullup Flight Cushion
+      if (this.shipPitch < 0) {
+        this.shipPitch = Math.min(0.25, this.shipPitch + delta * 3.8);
+      }
+    }
+
+    // Update 3D Starship Mesh Transformation
+    if (this.starshipGroup) {
+      this.starshipGroup.position.copy(this.shipPos);
+      const euler = new THREE.Euler(this.shipPitch, this.shipYaw, this.shipRoll, 'YXZ');
+      this.starshipGroup.quaternion.setFromEuler(euler);
+      this.emitThrusterParticles(this.shipPos, forward, isPulse ? 2.8 : (isBoost ? 1.8 : 1.0));
+    }
+
+    // Synchronize 3D Starship Position back to 2D Game Engine
+    game.player.px = this.shipPos.x / 0.15;
+    game.player.py = this.shipPos.z / 0.15;
+    game.player.x = planet.x + this.shipPos.x * 10.0;
+    game.player.y = planet.y + this.shipPos.z * 10.0;
+    game.player.angle = Math.atan2(forward.z, forward.x);
+    game.player.vx = forward.x * this.shipSpeed * 0.15;
+    game.player.vy = forward.z * this.shipSpeed * 0.15;
+
+    // =======================================================================
+    // --- 4. LANDING SEQUENCE ON SURFACE [E] ---
+    // =======================================================================
+    game.data.interactLabel = `🛬 [E / 착륙버튼] ${planet.name} 표면 착륙`;
+    if (kb.e === 1 || tc.isInteracting) {
+      game.landCurrentShip(planet);
+      this.transitionToPlanetSurface(planet);
+      return;
+    }
+
+    // =======================================================================
+    // --- 5. ATMOSPHERIC BREAKOUT & ORBITAL ESCAPE ---
+    // =======================================================================
+    // Pulling up into the sky ceiling smoothly transitions to deep space orbit
+    if (this.shipPos.y > 150.0 || (kb.space && this.shipPitch > 0.42)) {
+      game.insidePlanetInFlight = null;
+      this.transitionToSpaceFlight();
+      return;
+    }
+
+    // Starship Photon Cannon Firing during Low Flight
+    if (tc.isFiring) {
+      if (!this.lastFireTime || this.totalElapsedTime - this.lastFireTime > 0.18) {
+        this.fireLaser();
+        this.lastFireTime = this.totalElapsedTime;
+      }
     }
   }
 
@@ -1713,6 +1883,40 @@ export class ThreeGameEngine {
   }
 
   // Transitions
+  public transitionToPlanetaryFlight(planet: PlanetEntity) {
+    game.insidePlanetInFlight = planet.name;
+    game.data.activePlanet = planet;
+    game.currState = 'SPACE';
+
+    NmsAudioEngine.getInstance().playAtmosphereBurn();
+    NmsAudioEngine.getInstance().playDiscoveryFanfare();
+    NmsAudioEngine.getInstance().playExosuitVoice(`Atmospheric entry. Low altitude flight systems engaged on ${planet.name}.`);
+
+    game.triggerMilestoneBanner({
+      category: '대기권 진입 // ATMOSPHERIC FLIGHT',
+      title: planet.name,
+      subTitle: `3D 지표면 저공 비행 // 생물군계: ${planet.type}`,
+      rank: 'PLANETARY PILOT',
+      color: planet.color || '#10b981'
+    });
+    game.spawnFloatText(`🔥 [${planet.name}] 대기권 진입 완료! 지표면 저공 비행 중`, undefined, undefined, '#10b981');
+    game.spawnFloatText(`🛬 언제든 [E]로 지표면에 착륙할 수 있습니다`, undefined, undefined, '#00e5ff');
+
+    // Smoothly position starship at safe flight altitude above local terrain
+    const groundH = getTerrainHeight(this.shipPos.x, this.shipPos.z);
+    this.shipPos.y = Math.max(this.shipPos.y, groundH + 35.0);
+    this.shipPitch = Math.min(0.05, Math.max(-0.15, this.shipPitch));
+    this.shipSpeed = Math.max(18.0, Math.min(32.0, this.shipSpeed));
+    this.shipTargetSpeed = 26.0;
+
+    // Show surface terrain and hide space spheres
+    this.planetGroups.forEach((pg) => (pg.visible = false));
+    if (this.surfaceTerrainGroup) this.surfaceTerrainGroup.visible = true;
+    if (this.travelerGroup) this.travelerGroup.visible = false;
+    if (this.starshipGroup) this.starshipGroup.visible = true;
+    this.rendererSys.setAtmosphereFog(planet.color || '#38bdf8', 0.0035);
+  }
+
   private transitionToPlanetSurface(planet: PlanetEntity) {
     NmsAudioEngine.getInstance().playAtmosphereBurn();
     NmsAudioEngine.getInstance().playDiscoveryFanfare();
@@ -1733,12 +1937,26 @@ export class ThreeGameEngine {
     this.travelerVelY = 0;
     this.isGrounded = true;
     this.orbitYaw = this.shipYaw;
+
+    // Place parked starship accurately beside landing site
+    this.shipPos.set(tX, groundY + 0.6, tZ);
+    this.shipPitch = 0;
+    this.shipRoll = 0;
+    this.shipSpeed = 0;
+    this.shipTargetSpeed = 0;
+    if (this.starshipGroup) {
+      this.starshipGroup.position.set(tX, groundY + 0.6, tZ);
+      this.starshipGroup.rotation.set(0, this.shipYaw, 0);
+      this.starshipGroup.visible = true;
+    }
+
     this.faunaGroupMap.forEach((fg) => {
       fg.visible = true;
     });
   }
 
   private transitionToSpaceFlight() {
+    game.insidePlanetInFlight = null;
     NmsAudioEngine.getInstance().setJetpack(false);
     NmsAudioEngine.getInstance().setMiningLaser(false);
     NmsAudioEngine.getInstance().playPulseDrive();
@@ -1755,6 +1973,11 @@ export class ThreeGameEngine {
     this.faunaGroupMap.forEach((fg) => {
       fg.visible = false;
     });
+
+    // Re-enable space sky and planet spheres
+    this.planetGroups.forEach((pg) => (pg.visible = true));
+    if (this.surfaceTerrainGroup) this.surfaceTerrainGroup.visible = false;
+    this.rendererSys.setAtmosphereFog(null);
 
     const curPlanet = game.data.activePlanet || game.entities.planets[0];
     if (curPlanet) {
