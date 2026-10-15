@@ -285,6 +285,7 @@ export class TravelerBuilder {
       clearcoat: 1.0,
       clearcoatRoughness: 0.08,
       ior: 1.55,
+      side: THREE.DoubleSide,
     });
 
     // Atlas Neon Core & Headlamp LEDs
@@ -398,29 +399,44 @@ export class TravelerBuilder {
     const headGroup = new THREE.Group();
     headGroup.name = 'head';
 
-    // Aerodynamic Helmet Outer Shell (Beveled spheroid)
+    // Aerodynamic Helmet Outer Shell (Behind & around head)
     const helmetGeo = new THREE.SphereGeometry(0.36, 32, 24);
-    helmetGeo.scale(1.0, 1.10, 1.08);
+    helmetGeo.scale(1.0, 1.10, 1.05);
     const helmetDome = new THREE.Mesh(helmetGeo, armorWhiteMat);
-    helmetDome.position.set(0, 2.02, 0.02);
+    helmetDome.position.set(0, 2.02, -0.04); // Positioned slightly back so face visor protrudes symmetrically
     helmetDome.castShadow = true;
     headGroup.add(helmetDome);
 
-    // Helmet Teal Crown Strip
-    const helmetCrown = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.44, 0.62), armorTealMat);
-    helmetCrown.position.set(0, 2.14, 0.04);
+    // Helmet Teal Crown Ridge
+    const helmetCrown = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.42, 0.60), armorTealMat);
+    helmetCrown.position.set(0, 2.14, -0.02);
     headGroup.add(helmetCrown);
 
-    // Full-Face Amber Bubble Visor (Iconic curvature with PBR reflections)
-    const visorGeo = new THREE.SphereGeometry(0.30, 32, 24, 0, Math.PI, 0, Math.PI * 0.74);
+    // Chin Guard Frame (Lower jaw support)
+    const chinGuard = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.14, 0.22), armorWhiteMat);
+    chinGuard.position.set(0, 1.84, 0.20);
+    headGroup.add(chinGuard);
+
+    // Forehead Brow Visor Shield
+    const browShield = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.08, 0.18), darkTitaniumMat);
+    browShield.position.set(0, 2.20, 0.22);
+    headGroup.add(browShield);
+
+    // Full-Face Amber Bubble Visor (100% Symmetrical, Curvature with PBR reflections)
+    const visorGeo = new THREE.SphereGeometry(0.31, 32, 24);
+    visorGeo.scale(0.96, 1.05, 0.94);
     const visorMesh = new THREE.Mesh(visorGeo, visorPhysicalMat);
-    visorMesh.position.set(0, 2.02, 0.15);
-    visorMesh.rotation.y = -Math.PI / 2;
+    visorMesh.position.set(0, 2.02, 0.12);
+    // Zero Y-rotation: guarantees 100% left-right symmetry across the entire face
+    visorMesh.rotation.set(0, 0, 0);
+    visorMesh.castShadow = true;
     headGroup.add(visorMesh);
 
-    // Visor Rubber Gasket Frame Seal
-    const gasket = new THREE.Mesh(new THREE.TorusGeometry(0.30, 0.022, 10, 32), rubberMat);
-    gasket.position.set(0, 2.02, 0.16);
+    // Visor Rubber Gasket Frame Seal (Surrounding face aperture)
+    const gasketGeo = new THREE.TorusGeometry(0.29, 0.020, 12, 36);
+    gasketGeo.scale(0.96, 1.05, 0.85);
+    const gasket = new THREE.Mesh(gasketGeo, rubberMat);
+    gasket.position.set(0, 2.02, 0.24);
     headGroup.add(gasket);
 
     // Forehead Exploration LED Headlamps (Twin High-Output Mini Lenses)
