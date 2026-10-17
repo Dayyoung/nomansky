@@ -143,8 +143,25 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
     };
     animId = requestAnimationFrame(loop);
 
+    const handleRecenterCamera = () => {
+      if (engineRef.current) {
+        engineRef.current.orbitYaw = engineRef.current.travelerYaw;
+        engineRef.current.orbitPitch = 0.2;
+      }
+    };
+    const handleCycleGraphics = () => {
+      if (engineRef.current) {
+        const next = engineRef.current.cycleGraphicsPreset();
+        window.dispatchEvent(new CustomEvent('nms-graphics-preset-changed', { detail: next }));
+      }
+    };
+    window.addEventListener('nms-recenter-camera', handleRecenterCamera);
+    window.addEventListener('nms-cycle-graphics', handleCycleGraphics);
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('nms-recenter-camera', handleRecenterCamera);
+      window.removeEventListener('nms-cycle-graphics', handleCycleGraphics);
       cancelAnimationFrame(animId);
       if (engineRef.current) {
         engineRef.current.dispose();
@@ -271,19 +288,17 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({ onToggleDimension, is3
         onPointerCancel={handlePointerUpOrCancel}
       />
 
-      {/* Cryogenic Frost Vignette Overlay for Derelict Freighter Scene */}
-      {active3DScene === 'DERELICT_FREIGHTER' && (
-        <div className="absolute inset-0 pointer-events-none z-10 border-[16px] sm:border-[28px] border-cyan-500/20 shadow-[inset_0_0_100px_rgba(0,229,255,0.25)] mix-blend-screen animate-pulse" />
-      )}
-
-      {/* Planetary Atmosphere Re-entry Plasma Heat Shield Burn Overlay */}
-      {game.getPlanetInAtmosphere() && (
-        <div className="absolute inset-0 pointer-events-none z-10 border-[14px] sm:border-[24px] border-amber-500/30 shadow-[inset_0_0_80px_rgba(245,158,11,0.35)] mix-blend-screen animate-pulse" />
-      )}
-
-      {/* Hyper-Pulse Drive Warp Flare Vignette */}
-      {isPulseActive && (
-        <div className="absolute inset-0 pointer-events-none z-10 border-[10px] sm:border-[18px] border-cyan-400/25 shadow-[inset_0_0_120px_rgba(0,229,255,0.3)] mix-blend-screen animate-pulse" />
+      {/* Authentic No Man's Sky Center Aiming Reticle (3rd-Person Chase Mode) */}
+      {cameraMode === 'CHASE' && (
+        <div className="absolute inset-0 pointer-events-none select-none z-10 flex items-center justify-center">
+          <div className="relative w-7 h-7 flex items-center justify-center opacity-65">
+            <div className="w-1 h-1 rounded-full bg-cyan-300" />
+            <div className="absolute inset-0 rounded-full border border-cyan-400/50" />
+            <div className="absolute -left-1.5 w-1.5 h-[1px] bg-cyan-300/70" />
+            <div className="absolute -right-1.5 w-1.5 h-[1px] bg-cyan-300/70" />
+            <div className="absolute -top-1.5 w-[1px] h-1.5 bg-cyan-300/70" />
+          </div>
+        </div>
       )}
 
       {/* 1. First-Person 3D Cockpit Canopy HUD Overlay */}

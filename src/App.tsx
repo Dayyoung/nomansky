@@ -11,6 +11,8 @@ import { DemoShowcaseHUD } from './components/DemoShowcaseHUD';
 import { ThreeCanvas } from './components/ThreeCanvas';
 import { AnalysisVisorHUD } from './components/AnalysisVisorHUD';
 import { CinematicMilestoneBanner } from './components/CinematicMilestoneBanner';
+import { TouchAimZone } from './components/TouchAimZone';
+import { TouchSettingsModal } from './components/TouchSettingsModal';
 import { ToolMode, ShipType, DemoShowcaseState } from './types';
 import { MilestoneBannerData } from './types/banner';
 
@@ -61,6 +63,8 @@ export default function App() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [demoShowcase, setDemoShowcase] = useState<DemoShowcaseState>(game.data.demoShowcase);
   const [activeMilestoneBanner, setActiveMilestoneBanner] = useState<MilestoneBannerData | null>(game.data.activeMilestoneBanner);
+  const [isTouchSettingsOpen, setIsTouchSettingsOpen] = useState(false);
+  const [graphicsPreset, setGraphicsPreset] = useState<string>('WORLDS_ULTRA');
 
   // Sync with engine
   const syncWithEngine = useCallback(() => {
@@ -193,6 +197,9 @@ export default function App() {
         else game.reloadBoltcaster();
       }
       if (code === 'KeyH') {
+        if (game.currState === 'SPACE' && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('nms-summon-freighter'));
+        }
         if (e.shiftKey) setActiveModal((prev) => (prev === 'pirate-flagship' ? null : 'pirate-flagship'));
         else setActiveModal((prev) => (prev === 'orbital-freighter' ? null : 'orbital-freighter'));
       }
@@ -217,6 +224,12 @@ export default function App() {
       }
       if (code === 'KeyB') {
         if (e.shiftKey) setActiveModal((prev) => (prev === 'boundary-failure' ? null : 'boundary-failure'));
+        else {
+          if (game.currState === 'SPACE' && typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('nms-summon-anomaly'));
+          }
+          setActiveModal((prev) => (prev === 'anomaly' ? null : 'anomaly'));
+        }
       }
       if (code === 'KeyO') {
         if (e.shiftKey) setActiveModal((prev) => (prev === 'derelict-freighter' ? null : 'derelict-freighter'));
@@ -354,7 +367,7 @@ export default function App() {
       if ('touches' in e && (e as TouchEvent).touches.length >= 2) {
         return;
       }
-      game.notifyUserInput();
+      game.notifyUserInput(false);
     };
 
     const onTouchStart = (e: TouchEvent) => {
@@ -372,7 +385,7 @@ export default function App() {
         initialZoomRef.current = game.cameraZoom;
       } else if (e.touches.length === 1) {
         touchDistRef.current = null;
-        game.notifyUserInput();
+        game.notifyUserInput(false);
       }
     };
 
@@ -415,6 +428,23 @@ export default function App() {
     window.addEventListener('touchend', onTouchEnd, { passive: true });
     window.addEventListener('wheel', onWheel, { passive: true });
 
+    const handleOpenModalEvent = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail === 'touch-settings') {
+        setIsTouchSettingsOpen(true);
+      } else if (custom.detail) {
+        setActiveModal(custom.detail);
+      }
+    };
+    const handleGraphicsPresetChanged = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail) {
+        setGraphicsPreset(custom.detail);
+      }
+    };
+    window.addEventListener('nms-open-modal', handleOpenModalEvent);
+    window.addEventListener('nms-graphics-preset-changed', handleGraphicsPresetChanged);
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
@@ -424,6 +454,8 @@ export default function App() {
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('nms-open-modal', handleOpenModalEvent);
+      window.removeEventListener('nms-graphics-preset-changed', handleGraphicsPresetChanged);
     };
   }, []);
 
@@ -465,6 +497,9 @@ export default function App() {
         }}
       />
 
+      {/* Touch Aim & Camera Look Gesture Area (Swipe, Pinch Zoom, Double-Tap) */}
+      {!isAutoPilot && <TouchAimZone is3DActive={is3DActive} />}
+
       {/* Mobile In-Game HUD (Top compass, status bars, warnings, currency) */}
       <MobileHUD
         locationName={gameState === 'PLANET' && activePlanet ? activePlanet.name : '유클리드 은하 (EUCLID)'}
@@ -503,6 +538,10 @@ export default function App() {
         onOpenDifficulty={() => setActiveModal('custom-difficulty')}
         is3DActive={is3DActive}
         onToggleDimension={() => setIs3DActive(!is3DActive)}
+        graphicsPreset={graphicsPreset}
+        onCycleGraphicsPreset={() => {
+          window.dispatchEvent(new CustomEvent('nms-cycle-graphics'));
+        }}
         onOpenDrawer={() => {
           AudioSys.playNote(480, 'sine', 0.1);
           setIsQuickDrawerOpen(true);
@@ -577,8 +616,13 @@ export default function App() {
               </div>
             )}
 
-            {/* Virtual Thumb Joystick */}
-            <VirtualJoystick onVectorChange={handleJoystickVector} radius={44} />
+            {/* Virtual Thumb Joystick with Dynamic/Fixed Mode & Sprint Gate */}
+            <VirtualJoystick
+              onVectorChange={handleJoystickVector}
+              radius={46}
+              mode={game.data.touchSettings?.joystickMode || 'DYNAMIC'}
+              autoSprintEnabled={game.data.touchSettings?.autoSprintLock ?? true}
+            />
           </div>
 
           {/* Center Bottom: Starship Cockpit & Flight Gauges (#cockpit-hud v2) */}
@@ -667,6 +711,7 @@ export default function App() {
               onOpenQuickRecharge={() => {
                 setActiveModal('quick-recharge');
               }}
+              onOpenTouchSettings={() => setIsTouchSettingsOpen(true)}
             />
           </div>
         </div>
@@ -735,6 +780,11 @@ export default function App() {
           setActiveModal(null);
         }}
       />
+
+      {/* Mobile Touch Controls Settings Modal */}
+      {isTouchSettingsOpen && (
+        <TouchSettingsModal onClose={() => setIsTouchSettingsOpen(false)} />
+      )}
 
       {/* 3D Analysis Visor Holographic HUD (F/C key) */}
       {isVisorActive && (

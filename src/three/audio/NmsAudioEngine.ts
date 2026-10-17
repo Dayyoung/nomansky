@@ -421,6 +421,115 @@ export class NmsAudioEngine {
   }
 
   /**
+   * Quick Recharge Menu Radial Activation & Replenishment Chime (퀵 긴급 충전 신스 차임)
+   */
+  public playQuickRechargeChime() {
+    this.initCtx();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(440, t);
+    osc1.frequency.exponentialRampToValueAtTime(880, t + 0.15);
+    osc1.frequency.exponentialRampToValueAtTime(1760, t + 0.35);
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(554.37, t);
+    osc2.frequency.exponentialRampToValueAtTime(1108.73, t + 0.2);
+    osc2.frequency.exponentialRampToValueAtTime(2217.46, t + 0.35);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.25, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + 0.6);
+    osc2.stop(t + 0.6);
+  }
+
+  /**
+   * Ancient Alien Monolith & Knowledge Stone Low-Frequency Resonance Drone (고대 외계 모놀리스 공명음)
+   */
+  public playMonolithResonance() {
+    this.initCtx();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const subOsc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(55, t);
+    osc.frequency.linearRampToValueAtTime(73.42, t + 1.2);
+    osc.frequency.exponentialRampToValueAtTime(55, t + 2.5);
+
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(27.5, t);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(160, t);
+    filter.frequency.linearRampToValueAtTime(420, t + 0.8);
+    filter.frequency.exponentialRampToValueAtTime(120, t + 2.8);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.3, t + 0.4);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.9);
+
+    osc.connect(filter);
+    subOsc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(t);
+    subOsc.start(t);
+    osc.stop(t + 3.0);
+    subOsc.stop(t + 3.0);
+  }
+
+  /**
+   * Hyperspace Starship Warp Tunnel Sonic Boom (성간 하이퍼스페이스 워프 시공간 도약음)
+   */
+  public playHyperspaceWarpBoom() {
+    this.initCtx();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, t);
+    osc.frequency.exponentialRampToValueAtTime(42, t + 0.9);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900, t);
+    filter.frequency.exponentialRampToValueAtTime(80, t + 1.8);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.35, t + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(t);
+    osc.stop(t + 2.3);
+  }
+
+  /**
    * No Man's Sky Robotic Exosuit Synthesizer Voice Alerts (슈트 음성 안내)
    */
   public playExosuitVoice(phrase: string) {

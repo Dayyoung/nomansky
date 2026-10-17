@@ -19,49 +19,16 @@ export class PlanetBuilder {
     const surfaceTexture = this.generatePlanetTexture(planetData);
     const bumpTexture = this.generateBumpTexture(planetData);
 
+    surfaceTexture.colorSpace = THREE.SRGBColorSpace;
+
     const planetGeo = new THREE.SphereGeometry(planetRadius, 64, 64);
     const planetMat = new THREE.MeshStandardMaterial({
       map: surfaceTexture,
       bumpMap: bumpTexture,
-      bumpScale: 3.5,
-      roughness: 0.85,
-      metalness: 0.1,
+      bumpScale: 3.8,
+      roughness: 0.78,
+      metalness: 0.12,
     });
-
-    // 1-A. Load Authentic Kenney Planets Texture (planet00.png ~ planet09.png)
-    const nameHash = Math.abs(planetData.name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0));
-    const kenneyTexIndex = nameHash % 10;
-    const kenneyTexUrl = `/assets/kenney/planets/planet0${kenneyTexIndex}.png`;
-    const kenneyBumpUrl = `/assets/kenney/planets/noise0${nameHash % 6}.png`;
-
-    this.textureLoader.load(
-      kenneyTexUrl,
-      (tex) => {
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.ClampToEdgeWrapping;
-        planetMat.map = tex;
-        planetMat.needsUpdate = true;
-      },
-      undefined,
-      (err) => {
-        // Fallback already assigned
-      }
-    );
-
-    this.textureLoader.load(
-      kenneyBumpUrl,
-      (bumpTex) => {
-        bumpTex.wrapS = THREE.RepeatWrapping;
-        bumpTex.wrapT = THREE.RepeatWrapping;
-        bumpTex.repeat.set(2, 2);
-        planetMat.bumpMap = bumpTex;
-        planetMat.bumpScale = 4.0;
-        planetMat.needsUpdate = true;
-      },
-      undefined,
-      () => {}
-    );
 
     const planetMesh = new THREE.Mesh(planetGeo, planetMat);
     planetMesh.castShadow = true;
@@ -266,44 +233,65 @@ export class PlanetBuilder {
   }
 
   /**
-   * Generates Saturn-style Planetary Rings
+   * Generates Concentric Radial-UV Saturn/No Man's Sky Planetary Rings
    */
   private static createPlanetaryRings(planetRadius: number, atmoColor: THREE.Color): THREE.Group {
     const ringGroup = new THREE.Group();
     ringGroup.name = 'rings';
 
     const innerRadius = planetRadius * 1.35;
-    const outerRadius = planetRadius * 2.3;
+    const outerRadius = planetRadius * 2.4;
 
-    const ringGeo = new THREE.RingGeometry(innerRadius, outerRadius, 64);
+    const ringGeo = new THREE.RingGeometry(innerRadius, outerRadius, 96, 1);
+    const pos = ringGeo.attributes.position;
+    const uvs = ringGeo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) {
+      const vx = pos.getX(i);
+      const vy = pos.getY(i);
+      const radius = Math.hypot(vx, vy);
+      const u = (radius - innerRadius) / (outerRadius - innerRadius);
+      uvs.setXY(i, u, 0.5);
+    }
     ringGeo.rotateX(Math.PI / 2);
 
-    // Generate banded translucent ring texture
+    // Generate multi-banded concentric translucent ring texture
     const canvas = document.createElement('canvas');
     canvas.width = 512;
     canvas.height = 64;
     const ctx = canvas.getContext('2d');
     if (ctx) {
       const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
-      grad.addColorStop(0, 'rgba(255,255,255,0.0)');
-      grad.addColorStop(0.2, atmoColor.getStyle());
-      grad.addColorStop(0.4, 'rgba(255,255,255,0.7)');
-      grad.addColorStop(0.6, 'rgba(180,220,255,0.1)'); // Cassini division gap
-      grad.addColorStop(0.8, 'rgba(255,240,200,0.6)');
-      grad.addColorStop(1, 'rgba(255,255,255,0.0)');
+      grad.addColorStop(0.0, 'rgba(255,255,255,0.0)');
+      grad.addColorStop(0.08, atmoColor.getStyle());
+      grad.addColorStop(0.22, 'rgba(255,255,255,0.85)');
+      grad.addColorStop(0.36, 'rgba(180,220,255,0.45)');
+      grad.addColorStop(0.48, 'rgba(0,0,0,0.05)'); // Cassini division gap
+      grad.addColorStop(0.55, atmoColor.getStyle());
+      grad.addColorStop(0.75, 'rgba(255,245,215,0.75)');
+      grad.addColorStop(0.88, 'rgba(160,210,255,0.35)');
+      grad.addColorStop(1.0, 'rgba(255,255,255,0.0)');
 
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Add fine concentric ice/dust ring lines
+      for (let b = 20; b < canvas.width - 20; b += 6) {
+        if (b > 235 && b < 270) continue; // Keep Cassini gap clear
+        ctx.fillStyle = b % 12 === 0 ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.18)';
+        ctx.fillRect(b, 0, 2, canvas.height);
+      }
     }
     const ringTexture = new THREE.CanvasTexture(canvas);
+    ringTexture.colorSpace = THREE.SRGBColorSpace;
 
     const ringMat = new THREE.MeshStandardMaterial({
       map: ringTexture,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.85,
-      roughness: 0.5,
+      opacity: 0.88,
+      roughness: 0.45,
       metalness: 0.2,
+      depthWrite: false,
     });
 
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);

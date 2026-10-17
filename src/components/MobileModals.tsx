@@ -3,14 +3,21 @@ import { X, RefreshCw, Zap, Rocket, Shield, Sparkles, Check, ChevronRight, Minim
 import { game } from '../gameEngine';
 import { AudioSys } from '../audio';
 import { ToolMode, DifficultyPreset, DifficultySettings } from '../types';
+import { QuickRechargeDial } from './QuickRechargeDial';
+import { GalaxyWarpMapModal } from './GalaxyWarpMapModal';
+import { AlienMonolithModal } from './AlienMonolithModal';
+import { BaseBuildingModal } from './BaseBuildingModal';
+import { CapitalFreighterModal } from './CapitalFreighterModal';
+import { SpaceAnomalyModal } from './SpaceAnomalyModal';
 
 const MODAL_METADATA: Record<string, { icon: string; title: string }> = {
+  'monolith-riddle': { icon: '🗿', title: '고대 외계 모놀리스 & 3대 종족 수수께끼 (Ancient Monolith)' },
   'harmonic-interface': { icon: '🛸', title: '하모닉 인터페이스 & 센티넬 인터셉터 인양 사령부 (Interceptor 4.20)' },
   'station-tech': { icon: '🔬', title: '우주정거장 4대 전문 기술 상인 모듈 (Orbital 4.60)' },
   'custom-difficulty': { icon: '⚙️', title: '커스텀 난이도 & 10대 게임플레이 조절 콘솔 (Waypoint 4.0 [F9])' },
   'nautilon-sonar': { icon: '🌊', title: '노틸론 잠수정 & 심해 고출력 소나 스캐너 (The Abyss & Aquarius)' },
   'inventory': { icon: '🎒', title: '엑소슈트 인벤토리 (Exosuit Inventory [Tab])' },
-  'quick-recharge': { icon: '⚡', title: '퀵 긴급 충전 콘솔 (Quick Recharge)' },
+  'quick-recharge': { icon: '⚡', title: '원작 원형 퀵 충전 콘솔 (Quick Recharge [X])' },
   'galaxy-map': { icon: '🌌', title: '3D 은하계 지도 & 성간 워프 (Galaxy Map [M])' },
   'solar-ship': { icon: '⛵', title: '솔라선 & 베스퍼 세일 태양광 항해' },
   'laylaps': { icon: '🤖', title: "센티넬 동료 '레일랩스' 신경망 제어" },
@@ -137,6 +144,30 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
         </div>
       </div>
     );
+  }
+
+  if (activeModal === 'quick-recharge') {
+    return <QuickRechargeDial game={game} onClose={handleClose} />;
+  }
+
+  if (activeModal === 'galaxy-map') {
+    return <GalaxyWarpMapModal game={game} onClose={handleClose} />;
+  }
+
+  if (activeModal === 'monolith-riddle') {
+    return <AlienMonolithModal game={game} onClose={handleClose} />;
+  }
+
+  if (activeModal === 'build-menu') {
+    return <BaseBuildingModal game={game} onClose={handleClose} />;
+  }
+
+  if (activeModal === 'orbital-freighter' || activeModal === 'expedition') {
+    return <CapitalFreighterModal game={game} onClose={handleClose} />;
+  }
+
+  if (activeModal === 'anomaly') {
+    return <SpaceAnomalyModal game={game} onClose={handleClose} />;
   }
 
   return (
@@ -1678,6 +1709,24 @@ export const MobileModals: React.FC<MobileModalsProps> = ({ activeModal, onClose
                   className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
                 >
                   📦 추출 자원 일괄 수거
+                </button>
+              </div>
+
+              {/* Direct 3D Base Building Launch Banner */}
+              <div className="p-3.5 bg-gradient-to-r from-cyan-950/60 to-blue-950/60 rounded-xl border border-cyan-400/50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div>
+                  <span className="text-xs font-bold text-white block">3D 모듈식 스냅 건축 모드</span>
+                  <span className="text-[10px] text-cyan-300">원통형/사각형 룸, 바이오돔, 태양광 발전기, 배터리 배치 [Z]</span>
+                </div>
+                <button
+                  onClick={() => {
+                    handleClose();
+                    window.dispatchEvent(new CustomEvent('nms-open-modal', { detail: 'build-menu' }));
+                  }}
+                  className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                >
+                  <span>🏗️</span>
+                  <span>3D 건축 모드 진입 [Z]</span>
                 </button>
               </div>
 

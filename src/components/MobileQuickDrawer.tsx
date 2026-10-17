@@ -167,6 +167,16 @@ export const MobileQuickDrawer: React.FC<MobileQuickDrawerProps> = ({
       onClick: () => onOpenModal('galaxy-map')
     },
     {
+      id: 'monolith-riddle',
+      name: '고대 외계 모놀리스 석판',
+      category: 'galaxy',
+      icon: '🗿',
+      hotkey: '[3D 모놀리스]',
+      color: 'border-purple-400/50 bg-purple-950/40 text-purple-300',
+      desc: '코르박스·바이킨·긱 외계어 석판 번역 및 철학적 시험',
+      onClick: () => onOpenModal('monolith-riddle')
+    },
+    {
       id: 'discoveries',
       name: '행성 발견 도감',
       category: 'galaxy',

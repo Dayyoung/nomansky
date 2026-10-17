@@ -15,6 +15,8 @@ import { PirateShipBuilder, PirateShipEntity3D } from './models/PirateShipModel'
 import { DerelictFreighterBuilder } from './models/DerelictFreighterModel';
 import { BlackHoleBuilder } from './models/BlackHoleModel';
 import { CockpitCanopyBuilder } from './models/CockpitCanopyModel';
+import { CapitalFreighterBuilder } from './models/CapitalFreighterModel';
+import { SpaceAnomalyBuilder } from './models/SpaceAnomalyModel';
 
 export type CameraViewMode = 'CHASE' | 'COCKPIT' | 'ORBIT';
 
@@ -96,6 +98,8 @@ export class ThreeGameEngine {
 
   // New Immersive 3D Space & Planet Systems
   private derelictFreighterGroup: THREE.Group | null = null;
+  private playerFreighterGroup: THREE.Group | null = null;
+  private spaceAnomalyGroup: THREE.Group | null = null;
   private blackHoleGroup: THREE.Group | null = null;
   private pirateShips: PirateShipEntity3D[] = [];
   private weatherParticles: THREE.Points | null = null;
@@ -143,6 +147,16 @@ export class ThreeGameEngine {
     this.derelictFreighterGroup = DerelictFreighterBuilder.createDerelictFreighter();
     this.derelictFreighterGroup.position.set(-180, 25, 260);
     this.rendererSys.scene.add(this.derelictFreighterGroup);
+
+    // 1-B2. Create Player Venator Capital Freighter & Frigate Fleet (Endurance)
+    this.playerFreighterGroup = CapitalFreighterBuilder.createCapitalFreighter();
+    this.playerFreighterGroup.position.set(130, 25, -170);
+    this.rendererSys.scene.add(this.playerFreighterGroup);
+
+    // 1-B3. Create Space Anomaly & Nexus Hub Sphere (Beyond)
+    this.spaceAnomalyGroup = SpaceAnomalyBuilder.createSpaceAnomaly();
+    this.spaceAnomalyGroup.position.set(-140, 40, -160);
+    this.rendererSys.scene.add(this.spaceAnomalyGroup);
 
     // 1-C. Create Supermassive Black Hole (Singularity & Event Horizon)
     this.blackHoleGroup = BlackHoleBuilder.createBlackHole();
@@ -226,6 +240,132 @@ export class ThreeGameEngine {
 
     // 9. Warp Hyperspace Tunnel
     this.initWarpTunnel();
+
+    // 10. Real-time 3D Base Building Module Construction Listener
+    if (typeof window !== 'undefined') {
+      window.addEventListener('nms-3d-build-module', (e: Event) => {
+        const custom = e as CustomEvent<{ moduleId: string }>;
+        if (custom.detail?.moduleId) {
+          this.spawn3DConstructedModule(custom.detail.moduleId);
+        }
+      });
+
+      // 11. Capital Freighter Hyperspace Summon Listener [H]
+      window.addEventListener('nms-summon-freighter', () => {
+        this.summonCapitalFreighter();
+      });
+
+      // 12. Space Anomaly Hyperspace Summon Listener [B]
+      window.addEventListener('nms-summon-anomaly', () => {
+        this.summonSpaceAnomaly();
+      });
+    }
+  }
+
+  public summonCapitalFreighter() {
+    if (!this.playerFreighterGroup) return;
+
+    const fwd = new THREE.Vector3(0, 0, 1).applyEuler(new THREE.Euler(0, this.shipYaw, 0));
+    this.playerFreighterGroup.position.copy(this.shipPos).add(fwd.clone().multiplyScalar(75)).add(new THREE.Vector3(0, 15, 0));
+    this.playerFreighterGroup.rotation.y = this.shipYaw + Math.PI;
+    this.playerFreighterGroup.visible = true;
+
+    NmsAudioEngine.getInstance().playHyperspaceWarpBoom();
+    game.spawnFloatText('🚢 초거대 베나토르급 주력함 기함 & 호위함대 성간 소환 완료!', undefined, undefined, '#38bdf8');
+  }
+
+  public summonSpaceAnomaly() {
+    if (!this.spaceAnomalyGroup) return;
+
+    const fwd = new THREE.Vector3(0, 0, 1).applyEuler(new THREE.Euler(0, this.shipYaw, 0));
+    this.spaceAnomalyGroup.position.copy(this.shipPos).add(fwd.clone().multiplyScalar(65)).add(new THREE.Vector3(0, 10, 0));
+    this.spaceAnomalyGroup.rotation.y = this.shipYaw + Math.PI;
+    this.spaceAnomalyGroup.visible = true;
+
+    NmsAudioEngine.getInstance().playHyperspaceWarpBoom();
+    game.spawnFloatText('🔮 스페이스 아노말리 구체 성간 시공간 소환 완료!', undefined, undefined, '#c084fc');
+  }
+
+  private constructedCount = 0;
+
+  public spawn3DConstructedModule(moduleId: string) {
+    if (!this.surfaceTerrainGroup) return;
+
+    this.constructedCount++;
+    const angle = this.constructedCount * 0.95;
+    const radius = 13 + (this.constructedCount % 3) * 6;
+    const x = 24 + Math.cos(angle) * radius;
+    const z = 18 + Math.sin(angle) * radius;
+    const groundY = getTerrainHeight(x, z);
+
+    const modGroup = new THREE.Group();
+    modGroup.position.set(x, groundY, z);
+
+    const metalMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.3 });
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+    const solarMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.9 });
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.55, roughness: 0.1 });
+
+    if (moduleId === 'hab_cylinder') {
+      const cyl = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 3.8, 16), metalMat);
+      cyl.position.y = 1.9;
+      cyl.castShadow = true;
+      modGroup.add(cyl);
+
+      const roofRing = new THREE.Mesh(new THREE.TorusGeometry(4.3, 0.2, 8, 24), glowMat);
+      roofRing.rotation.x = Math.PI / 2;
+      roofRing.position.y = 3.8;
+      modGroup.add(roofRing);
+    } else if (moduleId === 'hab_square') {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(5.5, 4.0, 5.5), metalMat);
+      box.position.y = 2.0;
+      box.castShadow = true;
+      modGroup.add(box);
+
+      const roofLight = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.15, 3.6), glowMat);
+      roofLight.position.y = 4.1;
+      modGroup.add(roofLight);
+    } else if (moduleId === 'solar_panel') {
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 2.5, 8), metalMat);
+      pole.position.y = 1.25;
+      modGroup.add(pole);
+
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.2, 2.8), solarMat);
+      panel.position.set(0, 2.5, 0);
+      panel.rotation.x = -0.4;
+      modGroup.add(panel);
+    } else if (moduleId === 'battery_bank') {
+      const batt = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.0, 2.0), metalMat);
+      batt.position.y = 1.5;
+      modGroup.add(batt);
+
+      const level = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.35, 2.1), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
+      level.position.y = 2.0;
+      modGroup.add(level);
+    } else if (moduleId === 'biodome') {
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.6, 1.2, 16), metalMat);
+      base.position.y = 0.6;
+      modGroup.add(base);
+
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(4.8, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), glassMat);
+      dome.position.y = 1.2;
+      modGroup.add(dome);
+    } else if (moduleId === 'teleporter') {
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 3.2, 0.5, 16), metalMat);
+      pad.position.y = 0.25;
+      modGroup.add(pad);
+
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.18, 8, 24), glowMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.6;
+      modGroup.add(ring);
+    } else {
+      const generic = new THREE.Mesh(new THREE.BoxGeometry(4.5, 3.2, 4.5), metalMat);
+      generic.position.y = 1.6;
+      modGroup.add(generic);
+    }
+
+    this.surfaceTerrainGroup.add(modGroup);
   }
 
   private initPositionsFromGame() {
@@ -730,10 +870,18 @@ export class ThreeGameEngine {
       }
 
       // 1. Mouse & Touch Drag Steering (No Man's Sky dynamic drag control)
+      const lookSens = game.data.touchSettings?.lookSensitivity ?? 1.0;
+      const invertSign = game.data.touchSettings?.invertPitch ? -1 : 1;
+
       if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.05 || Math.abs(this.mouseLookDelta.y) > 0.05)) {
-        steerYaw -= this.mouseLookDelta.x * 0.0035;
-        // 위로 드래그하면 dy < 0 => 기수 상승(Pitch UP / 고도 상승), 아래로 드래그하면 dy > 0 => 기수 하강(Pitch DOWN / 고도 하강)
-        steerPitch -= this.mouseLookDelta.y * 0.004;
+        steerYaw -= this.mouseLookDelta.x * 0.0035 * lookSens;
+        steerPitch -= this.mouseLookDelta.y * 0.004 * lookSens * invertSign;
+      }
+
+      // 1-b. Touch Aim / Look zone gestures
+      if (tc.lookDelta && (Math.abs(tc.lookDelta.x) > 0.05 || Math.abs(tc.lookDelta.y) > 0.05)) {
+        steerYaw -= tc.lookDelta.x * 0.0035 * lookSens;
+        steerPitch -= tc.lookDelta.y * 0.004 * lookSens * invertSign;
       }
 
       // 2. Mouse / Touch Screen Position Steering (No Man's Sky Center-Offset Flight Control)
@@ -745,7 +893,7 @@ export class ThreeGameEngine {
           const rawY = this.pointerNormalized.y;
           const signY = Math.sign(rawY);
           const magY = (Math.abs(rawY) - deadZoneY) / (1 - deadZoneY);
-          steerPitch += signY * Math.pow(magY, 1.25) * 2.4;
+          steerPitch += signY * Math.pow(magY, 1.25) * 2.4 * invertSign;
         }
 
         const deadZoneX = 0.06;
@@ -760,8 +908,8 @@ export class ThreeGameEngine {
       // Throttle input: W accelerates (전진 가속), S brakes/reverses (감속/제동)
       const isW = kb.w;
       const isS = kb.s;
-      isBoost = Boolean(kb.shift || tc.isJetpacking);
-      isPulse = Boolean(kb.space || game.data.isPulseActive);
+      isBoost = Boolean(kb.shift || tc.isJetpacking || tc.isSprinting);
+      isPulse = Boolean(kb.space || game.data.isPulseActive || tc.isSprinting);
 
       // Target Speed Curve
       if (isPulse) {
@@ -939,6 +1087,54 @@ export class ThreeGameEngine {
       }
     }
 
+    // 3D Player Capital Freighter & Hangar Docking
+    if (this.playerFreighterGroup && this.playerFreighterGroup.visible) {
+      const distToCapital = this.shipPos.distanceTo(this.playerFreighterGroup.position);
+      if (distToCapital < 52) {
+        game.data.interactLabel = '🚢 [E] 주력 화물선 기함 격납고 착륙 (함교 지휘소 & 호위함대 원정 [H])';
+        if (kb.e === 1 || tc.isInteracting) {
+          NmsAudioEngine.getInstance().playSpaceStationEntry();
+          game.data.shield = game.data.maxShield;
+          game.data.hazard = 100;
+          game.data.lifeSupport = 100;
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('nms-open-modal', { detail: 'orbital-freighter' }));
+          }
+          game.spawnFloatText('🚢 주력함 격납고 진입: 함교 지휘 데스크 및 호위함대 통제 연결', undefined, undefined, '#38bdf8');
+        }
+      }
+
+      // Rotate Exploration Frigate Sensor Ring
+      const ring = this.playerFreighterGroup.getObjectByName('exploration_sensor_ring');
+      if (ring) {
+        ring.rotation.z += delta * 1.5;
+      }
+    }
+
+    // 3D Space Anomaly & The Nexus Hub Docking Portal
+    if (this.spaceAnomalyGroup && this.spaceAnomalyGroup.visible) {
+      const distToAnomaly = this.shipPos.distanceTo(this.spaceAnomalyGroup.position);
+      if (distToAnomaly < 50) {
+        game.data.interactLabel = '🔮 [E] 스페이스 아노말리 진입 (나다 & 폴로의 성소 & 넥서스 허브 [B])';
+        if (kb.e === 1 || tc.isInteracting) {
+          NmsAudioEngine.getInstance().playSpaceStationEntry();
+          game.data.shield = game.data.maxShield;
+          game.data.hazard = 100;
+          game.data.lifeSupport = 100;
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('nms-open-modal', { detail: 'anomaly' }));
+          }
+          game.spawnFloatText('🔮 스페이스 아노말리 진입: 넥서스 멀티플레이 허브 연결', undefined, undefined, '#c084fc');
+        }
+      }
+
+      // Rotate Equatorial Ring
+      const outerRing = this.spaceAnomalyGroup.getObjectByName('anomaly_outer_ring');
+      if (outerRing) {
+        outerRing.rotation.z += delta * 0.4;
+      }
+    }
+
     // 3D Derelict Capital Freighter (Desolation update / 11번 단계 연동)
     if (this.derelictFreighterGroup) {
       const distToFreighter = this.shipPos.distanceTo(this.derelictFreighterGroup.position);
@@ -1036,11 +1232,20 @@ export class ThreeGameEngine {
     const isMining = Boolean(tc.isFiring || this.isPointerDown || kb.e === 1 || (game.isAutoPilot && game.player.isMining));
     const toolMode = game.data.toolMode;
 
+    const lookSens = game.data.touchSettings?.lookSensitivity ?? 1.0;
+    const invertSign = game.data.touchSettings?.invertPitch ? -1 : 1;
+
     // Camera Orbit Mouse / Touch Drag (Natural right/left drag rotates right/left)
     if (this.isPointerDown && (Math.abs(this.mouseLookDelta.x) > 0.05 || Math.abs(this.mouseLookDelta.y) > 0.05)) {
-      this.orbitYaw += this.mouseLookDelta.x * 0.004;
-      this.orbitPitch -= this.mouseLookDelta.y * 0.003;
-      // Clamp pitch to prevent flipping upside down
+      this.orbitYaw += this.mouseLookDelta.x * 0.004 * lookSens;
+      this.orbitPitch -= this.mouseLookDelta.y * 0.003 * lookSens * invertSign;
+      this.orbitPitch = Math.max(-0.25, Math.min(1.2, this.orbitPitch));
+    }
+
+    // Touch Aim / Look zone gestures
+    if (tc.lookDelta && (Math.abs(tc.lookDelta.x) > 0.05 || Math.abs(tc.lookDelta.y) > 0.05)) {
+      this.orbitYaw += tc.lookDelta.x * 0.004 * lookSens;
+      this.orbitPitch -= tc.lookDelta.y * 0.003 * lookSens * invertSign;
       this.orbitPitch = Math.max(-0.25, Math.min(1.2, this.orbitPitch));
     }
 
@@ -1121,7 +1326,7 @@ export class ThreeGameEngine {
       }
 
       const isMoving = Math.hypot(inputFwd, inputRight) > 0.08;
-      const isSprinting = kb.shift;
+      const isSprinting = Boolean(kb.shift || tc.isSprinting);
       const moveSpeed = isSprinting ? 9.5 : 5.5;
 
       if (isMoving) {
@@ -1476,6 +1681,58 @@ export class ThreeGameEngine {
           }
           break;
         }
+      }
+    }
+
+    // 3D Ancient Alien Monolith interaction on surface
+    const monoLx = curPlanet?.monolith?.lx ?? 0;
+    const monoLy = curPlanet?.monolith?.ly ?? 40;
+    const monoX = monoLx * 0.15;
+    const monoZ = monoLy * 0.15;
+    const distToMonolith = Math.hypot(this.travelerPos.x - monoX, this.travelerPos.z - monoZ);
+    if (distToMonolith < 12.0) {
+      game.data.interactLabel = '🗿 [E] 고대 외계 모놀리스 활성화 (외계어 수수께끼)';
+      if (kb.e === 1 || tc.isInteracting) {
+        NmsAudioEngine.getInstance().playMonolithResonance();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('nms-open-modal', { detail: 'monolith-riddle' }));
+        }
+      }
+    }
+
+    // 3D Planetary Base Computer interaction on surface
+    const distToBaseComp = Math.hypot(this.travelerPos.x - 16, this.travelerPos.z - 26);
+    if (distToBaseComp < 11.0) {
+      game.data.interactLabel = '💻 [E] 기지 컴퓨터 접속 (영토 선포 / 3D 건축 모드 [Z])';
+      if (kb.e === 1 || tc.isInteracting) {
+        NmsAudioEngine.getInstance().playDiscoveryFanfare();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('nms-open-modal', { detail: 'base-computer' }));
+        }
+      }
+    }
+
+    // 3D Planetary Settlement Town Hall interaction on surface
+    const distToSettlement = Math.hypot(this.travelerPos.x - (-36), this.travelerPos.z - (-27));
+    if (distToSettlement < 16.0) {
+      game.data.interactLabel = '🏛️ [E] 정착지 행정 사령부 접속 (감독관 집무실 [L])';
+      if (kb.e === 1 || tc.isInteracting) {
+        NmsAudioEngine.getInstance().playDiscoveryFanfare();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('nms-open-modal', { detail: 'settlement' }));
+        }
+      }
+    }
+
+    // 3D Subterranean Cave interaction on surface
+    const distToCave = Math.hypot(this.travelerPos.x - (-45), this.travelerPos.z - 35);
+    if (distToCave < 12.0) {
+      game.data.interactLabel = '🦇 [E] 지하 동굴 탐사 (코발트 광맥 & 골수 전구 채광)';
+      if (kb.e === 1 || tc.isInteracting) {
+        game.data.inv.cobalt = (game.data.inv.cobalt || 0) + 75;
+        game.data.nanites += 60;
+        NmsAudioEngine.getInstance().playDiscoveryFanfare();
+        game.spawnFloatText('🦇 지하 동굴 탐사 성공! (+75 코발트, +60 나노로봇)', undefined, undefined, '#38bdf8');
       }
     }
 
@@ -2086,6 +2343,29 @@ export class ThreeGameEngine {
     }
   }
 
+  public cycleGraphicsPreset(): string {
+    const preset = this.rendererSys.cycleGraphicsPreset();
+    const labelMap: Record<string, string> = {
+      WORLDS_ULTRA: 'WORLDS PART I ULTRA (HDR 블룸 + 대기 산란)',
+      ATLAS_VIVID: 'ATLAS VIVID CINEMATIC (70s SF 고채도 블룸)',
+      STANDARD: 'PERFORMANCE STANDARD (클린 PBR)',
+    };
+    const korLabel = labelMap[preset] || preset;
+    game.triggerMilestoneBanner({
+      category: 'NMS GRAPHICS ENGINE // 그래픽 리마스터',
+      title: korLabel,
+      subTitle: '실시간 3D 셰이더 · HDR 블룸 · 대기 산란 프리셋 전환 완료',
+      rank: preset,
+      color: preset === 'ATLAS_VIVID' ? '#f43f5e' : preset === 'WORLDS_ULTRA' ? '#38bdf8' : '#10b981',
+    });
+    game.spawnFloatText(`✨ 그래픽 프리셋: ${korLabel}`, undefined, undefined, '#38bdf8');
+    return preset;
+  }
+
+  public getGraphicsPreset(): string {
+    return this.rendererSys.graphicsPreset;
+  }
+
   public render() {
     // High-Precision Monotonic Delta Clamping (Guarantees zero micro-stutter)
     const now = performance.now();
@@ -2094,8 +2374,24 @@ export class ThreeGameEngine {
     const delta = Math.min(0.05, Math.max(0.001, rawDelta));
 
     try {
+      // Animate planetary volumetric clouds and ocean tide when on planet surface
+      if (this.surfaceTerrainGroup && this.surfaceTerrainGroup.visible) {
+        const clouds = this.surfaceTerrainGroup.getObjectByName('planetary_clouds');
+        if (clouds) {
+          clouds.rotation.y += delta * 0.012;
+        }
+        const ocean = this.surfaceTerrainGroup.getObjectByName('ocean');
+        if (ocean) {
+          ocean.position.y = -1.2 + Math.sin(now * 0.0015) * 0.18;
+        }
+      }
+
       this.update(delta);
       this.rendererSys.render();
+      if (game.touchControls.lookDelta) {
+        game.touchControls.lookDelta.x = 0;
+        game.touchControls.lookDelta.y = 0;
+      }
     } catch (err) {
       console.error('[ThreeGameEngine] Render loop non-fatal error caught:', err);
     }

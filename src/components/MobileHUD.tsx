@@ -39,6 +39,8 @@ interface MobileHUDProps {
   onOpenDifficulty?: () => void;
   is3DActive?: boolean;
   onToggleDimension?: () => void;
+  graphicsPreset?: string;
+  onCycleGraphicsPreset?: () => void;
 }
 
 export const MobileHUD: React.FC<MobileHUDProps> = ({
@@ -74,7 +76,9 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
   onOpenArsenal,
   onOpenDifficulty,
   is3DActive = true,
-  onToggleDimension
+  onToggleDimension,
+  graphicsPreset = 'WORLDS_ULTRA',
+  onCycleGraphicsPreset
 }) => {
   const [showLandingGuide, setShowLandingGuide] = useState(false);
 
@@ -302,6 +306,33 @@ export const MobileHUD: React.FC<MobileHUDProps> = ({
               >
                 <Sparkles className={`w-2.5 h-2.5 xs:w-3 xs:h-3 ${is3DActive ? 'text-cyan-300 animate-pulse' : 'text-slate-400'}`} />
                 <span className="font-mono font-extrabold">{is3DActive ? '3D' : '2D'}</span>
+              </button>
+            )}
+
+            {/* NMS Original Graphics Remaster Preset Button (/improve-nms) */}
+            {is3DActive && onCycleGraphicsPreset && (
+              <button
+                onClick={() => {
+                  AudioSys.playNote(840, 'triangle', 0.12);
+                  onCycleGraphicsPreset();
+                }}
+                className={`h-7 xs:h-7.5 sm:h-8 px-1.5 xs:px-2 rounded-lg flex items-center gap-0.5 xs:gap-1 text-[8px] xs:text-[9px] font-mono font-bold cursor-pointer active:scale-95 shadow-md backdrop-blur-md shrink-0 border transition-all ${
+                  graphicsPreset === 'ATLAS_VIVID'
+                    ? 'bg-gradient-to-r from-rose-950/95 to-purple-950/95 border-rose-400 text-rose-200 shadow-[0_0_12px_rgba(244,63,94,0.45)]'
+                    : graphicsPreset === 'WORLDS_ULTRA'
+                    ? 'bg-gradient-to-r from-cyan-950/95 to-indigo-950/95 border-cyan-300 text-cyan-200 shadow-[0_0_12px_rgba(56,189,248,0.45)]'
+                    : 'bg-slate-900/90 border-slate-600 text-slate-300'
+                }`}
+                title="NMS 원본 그래픽 리마스터 프리셋 전환 (WORLDS ULTRA / ATLAS VIVID / STANDARD)"
+              >
+                <span className="text-[9px] xs:text-[10px]">✨</span>
+                <span className="font-mono font-extrabold">
+                  {graphicsPreset === 'ATLAS_VIVID'
+                    ? 'VIVID'
+                    : graphicsPreset === 'WORLDS_ULTRA'
+                    ? 'ULTRA'
+                    : 'STD'}
+                </span>
               </button>
             )}
 

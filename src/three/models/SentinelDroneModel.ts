@@ -4,100 +4,145 @@ import { getTerrainHeight } from './TerrainModel';
 
 export class SentinelDroneModel {
   /**
-   * Builds an authentic 3D No Man's Sky Sentinel Surveillance Drone (센티넬 경계 드론)
+   * Builds an authentic 3D No Man's Sky Sentinel Surveillance / Combat Drone (센티넬 경계·전투·타락 드론)
+   * Preserves wing_l, wing_r, and scanner_cone node names for engine animation.
    */
   public static createSentinelMesh(sentinel: PlanetSentinelEntity): THREE.Group {
     const sentinelGroup = new THREE.Group();
     sentinelGroup.name = `sentinel_${sentinel.id}`;
 
-    // Base position above terrain
     const sx = sentinel.lx * 0.15;
     const sz = sentinel.ly * 0.15;
     const groundY = getTerrainHeight(sx, sz);
     sentinelGroup.position.set(sx, groundY + 3.2, sz);
 
-    // 1. Armored Main Chassis (Industrial White & Sentinel Orange)
+    // Deterministically check if this drone is a Corrupted (Atlantideum) variant
+    const idStr = String(sentinel.id || '0');
+    const isCorrupted = idStr.charCodeAt(idStr.length - 1) % 3 === 0;
+
+    // Matte-satin materials (zero harsh sunlight glare)
     const armorMat = new THREE.MeshStandardMaterial({
-      color: 0xecf0f1,
-      metalness: 0.7,
-      roughness: 0.25,
+      color: isCorrupted ? 0x312e81 : 0xe2e8f0,
+      metalness: 0.35,
+      roughness: 0.65,
       flatShading: true,
     });
     const darkMetalMat = new THREE.MeshStandardMaterial({
-      color: 0x2c3e50,
-      metalness: 0.85,
-      roughness: 0.2,
-    });
-    const orangeStripeMat = new THREE.MeshStandardMaterial({
-      color: 0xe67e22,
+      color: 0x1e293b,
       metalness: 0.5,
-      roughness: 0.3,
+      roughness: 0.55,
+    });
+    const orangeCowlMat = new THREE.MeshStandardMaterial({
+      color: isCorrupted ? 0x7e22ce : 0xea580c,
+      metalness: 0.3,
+      roughness: 0.6,
+      flatShading: true,
+    });
+    const eyeGlowMat = new THREE.MeshBasicMaterial({
+      color: isCorrupted ? 0xd946ef : 0xff1744,
+    });
+    const pupilMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
     });
 
-    // Central chassis
-    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85), armorMat);
-    body.castShadow = true;
-    sentinelGroup.add(body);
+    // 1. Central Spherical Core Chassis
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.78, 1), darkMetalMat);
+    core.castShadow = true;
+    sentinelGroup.add(core);
 
-    // Orange livery accent plate
-    const accentPlate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.2, 0.9), orangeStripeMat);
-    accentPlate.position.y = 0.25;
-    sentinelGroup.add(accentPlate);
+    // 2. Iconic Curved Upper Carapace Cowl (Sentinel Orange / Corrupted Violet)
+    const cowlGeo = new THREE.SphereGeometry(0.92, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    const cowl = new THREE.Mesh(cowlGeo, orangeCowlMat);
+    cowl.position.set(0, 0.12, -0.05);
+    cowl.rotation.x = -0.2;
+    cowl.castShadow = true;
+    sentinelGroup.add(cowl);
 
-    // 2. Iconic Glowing Red Sentinel Cyclops Eye (오큘러 센서)
-    const eyeLensGeo = new THREE.SphereGeometry(0.32, 16, 16);
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff1744 });
-    const eye = new THREE.Mesh(eyeLensGeo, eyeMat);
-    eye.position.set(0, 0, 0.75);
-    eye.scale.set(1.0, 1.0, 0.45);
-    sentinelGroup.add(eye);
+    // Front White Armor Faceplate
+    const facePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.48, 0.35, 8), armorMat);
+    facePlate.rotation.x = Math.PI / 2;
+    facePlate.position.set(0, -0.02, 0.62);
+    sentinelGroup.add(facePlate);
 
-    // Eye visor bezel ring
-    const eyeBezel = new THREE.Mesh(
-      new THREE.TorusGeometry(0.36, 0.08, 8, 16),
-      darkMetalMat
-    );
-    eyeBezel.position.set(0, 0, 0.72);
+    // 3. Iconic Multi-Ring Red Cyclops Ocular Sensor
+    const eyeBezel = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.07, 8, 20), darkMetalMat);
+    eyeBezel.position.set(0, 0, 0.8);
     sentinelGroup.add(eyeBezel);
 
-    // 3. Left and Right Anti-Gravity Propulsion Wings / Nacelles
-    [-0.95, 0.95].forEach((xOff, idx) => {
+    const eyeLens = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), eyeGlowMat);
+    eyeLens.position.set(0, 0, 0.82);
+    eyeLens.scale.set(1.0, 1.0, 0.35);
+    sentinelGroup.add(eyeLens);
+
+    const eyePupil = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.14, 16), pupilMat);
+    eyePupil.position.set(0, 0, 0.94);
+    sentinelGroup.add(eyePupil);
+
+    // 4. Ventral Twin Blaster Turret Pod
+    const gunMount = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.28, 0.55), darkMetalMat);
+    gunMount.position.set(0, -0.78, 0.15);
+    sentinelGroup.add(gunMount);
+
+    [-0.14, 0.14].forEach((gx) => {
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.55, 8), armorMat);
+      barrel.rotation.x = Math.PI / 2;
+      barrel.position.set(gx, -0.82, 0.48);
+      sentinelGroup.add(barrel);
+    });
+
+    // 5. Corrupted Atlantideum Crystal Shards (for Dissonant Sentinels)
+    if (isCorrupted) {
+      const shardMat = new THREE.MeshBasicMaterial({ color: 0xc084fc });
+      [-0.45, 0.45, 0].forEach((sxOff, idx) => {
+        const shard = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.65, 5), shardMat);
+        shard.position.set(sxOff, 0.88, -0.15 + idx * 0.1);
+        shard.rotation.set(-0.3, 0, sxOff * 0.6);
+        sentinelGroup.add(shard);
+      });
+    }
+
+    // 6. Left & Right Articulated Anti-Gravity Sensor Wings (wing_l, wing_r)
+    [-0.98, 0.98].forEach((xOff, idx) => {
       const wingGroup = new THREE.Group();
       wingGroup.name = idx === 0 ? 'wing_l' : 'wing_r';
-      wingGroup.position.set(xOff, 0.1, -0.1);
+      wingGroup.position.set(xOff, 0.08, -0.05);
 
-      // Strut
-      const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.5), darkMetalMat);
+      const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.45), darkMetalMat);
       strut.rotation.z = Math.PI / 2;
       wingGroup.add(strut);
 
-      // Wing pod
-      const pod = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 5), armorMat);
-      pod.rotation.x = Math.PI / 2;
-      pod.position.set(xOff > 0 ? 0.2 : -0.2, 0, 0);
-      pod.castShadow = true;
-      wingGroup.add(pod);
+      // Angled Armor Wing Shield
+      const shieldFin = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.95, 0.65), armorMat);
+      shieldFin.position.set(xOff > 0 ? 0.18 : -0.18, 0, 0);
+      shieldFin.rotation.z = xOff > 0 ? -0.18 : 0.18;
+      shieldFin.castShadow = true;
+      wingGroup.add(shieldFin);
 
-      // Antigrav blue thruster emitter glow
+      // Anti-gravity thruster emitter
       const thrusterGlow = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.12, 0.04, 0.35, 8),
-        new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.85 })
+        new THREE.CylinderGeometry(0.1, 0.03, 0.3, 8),
+        new THREE.MeshBasicMaterial({
+          color: isCorrupted ? 0xd946ef : 0x38bdf8,
+          transparent: true,
+          opacity: 0.75,
+        })
       );
-      thrusterGlow.position.set(xOff > 0 ? 0.2 : -0.2, -0.4, 0);
+      thrusterGlow.position.set(xOff > 0 ? 0.18 : -0.18, -0.55, 0);
       wingGroup.add(thrusterGlow);
 
       sentinelGroup.add(wingGroup);
     });
 
-    // 4. Downward Scanning Surveillance Beam Cone (선택적 가시화)
-    const scanConeGeo = new THREE.ConeGeometry(1.6, 4.5, 12, 1, true);
+    // 7. Volumetric Downward Surveillance Laser Scan Cone
+    const scanConeGeo = new THREE.ConeGeometry(1.6, 4.5, 16, 1, true);
     scanConeGeo.rotateX(Math.PI);
     const scanConeMat = new THREE.MeshBasicMaterial({
-      color: 0xff1744,
+      color: isCorrupted ? 0xc084fc : 0xff1744,
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.18,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
     const scanCone = new THREE.Mesh(scanConeGeo, scanConeMat);
     scanCone.name = 'scanner_cone';

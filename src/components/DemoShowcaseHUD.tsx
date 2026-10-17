@@ -3,19 +3,9 @@ import {
   Pause,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   ChevronDown,
   ChevronUp,
-  Layers,
-  Crosshair,
-  Pickaxe,
-  ShieldAlert,
-  Flame,
-  Swords,
-  Fish,
-  Info,
-  Eye,
-  EyeOff
+  Play
 } from 'lucide-react';
 import { game, GameEngine } from '../gameEngine';
 import { DemoShowcaseState } from '../types';
@@ -31,298 +21,163 @@ export const DemoShowcaseHUD: React.FC<DemoShowcaseHUDProps> = ({
   isAutoPilot,
   onToggleDemo
 }) => {
-  // 간소화된 슬림 모드가 기본값 (플레이 화면 시야 100% 확보)
-  const [showDetails, setShowDetails] = useState(false);
-  const [isCinemaMode, setIsCinemaMode] = useState(false);
+  const [showStepCatalog, setShowStepCatalog] = useState(false);
+
+  const {
+    phaseIndex = 0,
+    totalPhases = GameEngine.DEMO_PHASES.length,
+    title,
+    phaseDuration,
+    phaseElapsed,
+  } = demoState;
+
+  const allPhases = GameEngine.DEMO_PHASES;
+  const safeTotal = allPhases.length || totalPhases || 88;
+  const safeIndex = ((phaseIndex % safeTotal) + safeTotal) % safeTotal;
+  const currentPhaseCfg = allPhases[safeIndex] || allPhases[0];
+  const nextPhaseIdx = (safeIndex + 1) % safeTotal;
+  const nextPhaseCfg = allPhases[nextPhaseIdx] || allPhases[0];
+
+  const durationSafe = phaseDuration || currentPhaseCfg?.duration || 4200;
+  const progressPercent = Math.min(100, Math.max(0, (phaseElapsed / durationSafe) * 100));
+  const globalProgress = Math.min(
+    100,
+    Math.max(1, Math.round(((safeIndex + progressPercent / 100) / safeTotal) * 100))
+  );
+
+  const formatStepTitle = (rawTitle: string) => {
+    if (!rawTitle) return '우주 및 행성 탐사';
+    return rawTitle.replace(/^(\S+\s+)?\d+\/\d+\.\s*/, '').trim();
+  };
 
   if (!isAutoPilot && !demoState.isActive) {
     return null;
   }
 
-  const {
-    mode = 'REAL_PLAYER',
-    phaseIndex,
-    totalPhases,
-    title,
-    description,
-    subText,
-    badge,
-    category,
-    phaseDuration,
-    phaseElapsed,
-    currentActivity = 'GATHERING',
-    activityLabel,
-    currentTargetName,
-    currentTargetDist,
-    actionDetails,
-    gatheredCount = 0,
-    huntedCount = 0,
-    sentinelsKilled = 0
-  } = demoState;
-
-  const durationSafe = phaseDuration || 4000;
-  const progressPercent = Math.min(100, Math.max(0, (phaseElapsed / durationSafe) * 100));
-  const elapsedSeconds = (phaseElapsed / 1000).toFixed(1);
-  const totalSeconds = (durationSafe / 1000).toFixed(1);
-  const globalProgress = Math.round(((phaseIndex + progressPercent / 100) / totalPhases) * 100);
-
-  const getActivityIcon = () => {
-    switch (currentActivity) {
-      case 'BASE_BUILDING':
-        return <Layers className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />;
-      case 'SETTLEMENT_ADMIN':
-        return <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />;
-      case 'HUNTING':
-        return <Crosshair className="w-3.5 h-3.5 text-amber-400 animate-pulse" />;
-      case 'SENTINEL_COMBAT':
-        return <ShieldAlert className="w-3.5 h-3.5 text-rose-400 animate-bounce" />;
-      case 'GATHERING':
-        return <Pickaxe className="w-3.5 h-3.5 text-cyan-400" />;
-      case 'SPACE_FLIGHT':
-        return <Flame className="w-3.5 h-3.5 text-sky-400" />;
-      case 'FISHING':
-        return <Fish className="w-3.5 h-3.5 text-teal-300" />;
-      default:
-        return <Swords className="w-3.5 h-3.5 text-emerald-400" />;
-    }
-  };
-
-  if (isCinemaMode) {
-    return (
-      <>
-        {/* 1. 최상단 실시간 진행도 바 */}
-        <div
-          className="fixed top-0 inset-x-0 z-[120] pointer-events-none select-none h-1 bg-slate-950/90 border-b border-cyan-400/30 backdrop-blur-sm shadow-[0_1px_8px_rgba(0,229,255,0.4)]"
-          aria-hidden="true"
-        >
-          <div
-            className="absolute inset-y-0 left-0 bg-cyan-900/40 transition-all duration-300"
-            style={{ width: `${globalProgress}%` }}
-          />
-          <div
-            className="h-full bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300 shadow-[0_0_8px_#00e5ff] transition-[width] duration-100 ease-linear rounded-r-full"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-
-        {/* Cinema Mode Minimal Restore Button */}
-        <div className="fixed top-2 right-14 z-[130] pointer-events-auto">
-          <button
-            onClick={() => setIsCinemaMode(false)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-400/70 shadow-xl backdrop-blur-md text-cyan-300 text-[9.5px] font-mono font-bold active:scale-95 transition-all cursor-pointer"
-            title="클린 뷰 종료 및 데모 HUD 복원하기"
-          >
-            <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
-            <span>🎬 HUD 복원</span>
-          </button>
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
-      {/* 1. 최상단 실시간 진행도 바 (z-[120] - 플레이 화면 절대 가리지 않는 2px 슬림 라인) */}
+      {/* 최상단 2px 초슬림 전체/현재 스텝 진행 라인 */}
       <div
-        className="fixed top-0 inset-x-0 z-[120] pointer-events-none select-none h-1 bg-slate-950/90 border-b border-cyan-400/30 backdrop-blur-sm shadow-[0_1px_8px_rgba(0,229,255,0.4)]"
+        className="fixed top-0 inset-x-0 z-[120] pointer-events-none select-none h-1 bg-slate-950/90"
         aria-hidden="true"
       >
-        {/* 전체 투어 누적 진행도 */}
         <div
-          className="absolute inset-y-0 left-0 bg-cyan-900/40 transition-all duration-300"
+          className="absolute inset-y-0 left-0 bg-cyan-500/30 transition-all duration-300"
           style={{ width: `${globalProgress}%` }}
         />
-        {/* 현재 단계 진행도 */}
         <div
-          className="h-full bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300 shadow-[0_0_8px_#00e5ff] transition-[width] duration-100 ease-linear rounded-r-full"
+          className="h-full bg-gradient-to-r from-cyan-400 to-emerald-300 transition-[width] duration-100 ease-linear"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
 
-      {/* 2. 간소화된 슬림 플로팅 데모 HUD (상단 내비게이션 바와 겹치지 않게 top-10/top-14 도킹) */}
+      {/* 초간소화 1줄 스텝 진행도 바 (모바일 & 데스크톱 겸용) */}
       <aside
-        aria-label="AI 데모플레이 쇼케이스 HUD"
-        className="fixed top-10 xs:top-11 sm:top-13 md:top-14 left-1/2 -translate-x-1/2 z-[35] w-[95%] max-w-xl pointer-events-auto transition-all duration-200"
+        aria-label="데모 스텝 진행도 바"
+        className="fixed top-9 xs:top-10 left-1/2 -translate-x-1/2 z-[45] w-[94vw] max-w-md pointer-events-auto"
       >
-        <div className="relative rounded-full sm:rounded-2xl bg-slate-950/90 border border-cyan-400/50 shadow-[0_4px_25px_rgba(0,0,0,0.6)] backdrop-blur-md px-2 xs:px-2.5 sm:px-3 py-0.5 xs:py-1 sm:py-1.5 text-white">
-          {/* Main Slim Row: 모든 핵심 상태를 한 줄로 간소화 표시 */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-            {/* Left: 모드 뱃지 & 실시간 활동 상태 */}
-            <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-
-              {/* 모드 전환 버튼 (실전 사냥/채집 <-> 기능 투어) */}
-              <button
-                onClick={() => game.toggleDemoAutoplayMode()}
-                title="클릭하여 모드 전환: [실전 사냥&채집] <-> [88단계 투어]"
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9.5px] sm:text-[11px] font-bold tracking-tight transition-all cursor-pointer shrink-0 ${
-                  mode === 'REAL_PLAYER'
-                    ? 'bg-emerald-500/20 border-emerald-400/60 text-emerald-300'
-                    : 'bg-sky-500/20 border-sky-400/60 text-sky-300'
-                }`}
-              >
-                {mode === 'REAL_PLAYER' ? '🏹 실전' : '📋 투어'}
-              </button>
-
-              {/* 단계 번호 */}
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-[9.5px] sm:text-[11px] font-mono font-bold text-cyan-300 shrink-0">
-                <Sparkles className="w-2.5 h-2.5 text-cyan-300 shrink-0" />
-                {phaseIndex + 1}/{totalPhases}
+        <div className="relative overflow-hidden rounded-lg bg-slate-950/88 backdrop-blur-md border border-cyan-400/40 shadow-lg px-2 py-1 text-white">
+          {/* 1줄 컴팩트 레이아웃: [STEP 01/88] + 제목 + 진행률% + 이전/다음/목록/수동 */}
+          <div className="flex items-center justify-between gap-1.5">
+            {/* 좌측: 스텝 번호 + 현재 스텝 제목 + 퍼센트 */}
+            <button
+              onClick={() => setShowStepCatalog((prev) => !prev)}
+              className="flex items-center gap-1.5 min-w-0 flex-1 text-left cursor-pointer"
+              title="터치하여 전체 88스텝 목록 열기/닫기"
+            >
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-cyan-500/25 border border-cyan-400/60 text-[9.5px] font-mono font-extrabold text-cyan-200 tabular-nums shrink-0">
+                <Play className="w-2 h-2 text-cyan-300 fill-cyan-300 shrink-0" />
+                <span>{String(safeIndex + 1).padStart(2, '0')}/{safeTotal}</span>
               </span>
 
-              {/* 현재 활동 & 타겟 (간소화 한 줄) */}
-              <div className="flex items-center gap-1 truncate text-[10px] sm:text-xs">
-                <span className="shrink-0">{getActivityIcon()}</span>
-                <span className="font-semibold text-cyan-100 truncate">
-                  {activityLabel ? activityLabel.replace(/모드:.*$/, '').trim() : '⛏️ 채집'}
-                </span>
-                {currentTargetName && (
-                  <span className="text-amber-300 text-[9.5px] sm:text-[10px] font-mono truncate hidden xs:inline">
-                    ({currentTargetName.split(' ')[0]}
-                    {currentTargetDist !== undefined ? ` ${currentTargetDist}m` : ''})
-                  </span>
-                )}
-              </div>
-            </div>
+              <span className="text-[10.5px] sm:text-xs font-bold text-white truncate">
+                {formatStepTitle(title || currentPhaseCfg?.title)}
+              </span>
 
-            {/* Right: 실시간 사냥/채집 카운터 & 제어 버튼 */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
-              {/* 카운터 요약 */}
-              <div className="hidden sm:flex items-center gap-1.5 font-mono text-[9.5px] text-gray-300 mr-1">
-                <span className="text-cyan-300" title="자원 광맥 채취 횟수">⛏️{gatheredCount}</span>
-                <span className="text-amber-300" title="야생 생물 사냥 횟수">🍖{huntedCount}</span>
-                <span className="text-rose-400" title="센티넬 드론 격퇴 횟수">🤖{sentinelsKilled}</span>
-                <span className="text-emerald-300" title="기지 바이오돔 수확 횟수">🏠{game.data.baseHousing.harvestCycles}</span>
-                <span className="text-yellow-300" title="정착지 행복도 지수">🏛️{game.data.settlement.happiness}%</span>
-              </div>
+              <span className="text-[9.5px] font-mono font-bold text-cyan-300 tabular-nums shrink-0">
+                {Math.round(progressPercent)}%
+              </span>
+            </button>
 
-              {/* 이전 / 다음 단계 */}
+            {/* 우측: 최소 컨트롤 버튼 (<, >, 목록, 수동) */}
+            <div className="flex items-center gap-0.5 shrink-0">
               <button
                 onClick={() => {
-                  const prev = phaseIndex - 1 < 0 ? totalPhases - 1 : phaseIndex - 1;
+                  const prev = safeIndex - 1 < 0 ? safeTotal - 1 : safeIndex - 1;
                   game.setupDemoPhase(prev, false);
                 }}
-                title="이전 단계"
-                className="p-1 rounded-md bg-white/10 hover:bg-white/20 active:scale-95 text-cyan-200 transition-colors cursor-pointer"
+                title="이전 스텝"
+                className="p-1 rounded bg-slate-800/90 hover:bg-slate-700 text-cyan-200 active:scale-95 cursor-pointer"
               >
-                <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <ChevronLeft className="w-3 h-3" />
               </button>
 
               <button
                 onClick={() => game.advanceDemoPhase()}
-                title="다음 단계"
-                className="p-1 rounded-md bg-white/10 hover:bg-white/20 active:scale-95 text-cyan-200 transition-colors cursor-pointer"
+                title="다음 스텝"
+                className="p-1 rounded bg-slate-800/90 hover:bg-slate-700 text-cyan-200 active:scale-95 cursor-pointer"
               >
-                <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <ChevronRight className="w-3 h-3" />
               </button>
 
-              {/* 팝업 차단/표시 토글 버튼 (화면 가림 방지) */}
               <button
-                onClick={() => game.toggleDemoSuppressModals()}
-                title={demoState.suppressModals ? "팝업 숨김 활성화 (화면 100% 감상). 클릭 시 팝업 허용" : "팝업 허용 중. 클릭 시 팝업 차단 (화면 가림 방지)"}
-                className={`p-1 rounded-md transition-colors cursor-pointer flex items-center gap-1 text-[9.5px] font-mono ${
-                  demoState.suppressModals
-                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50'
-                    : 'bg-white/10 hover:bg-white/20 text-gray-300'
-                }`}
+                onClick={() => setShowStepCatalog((prev) => !prev)}
+                title="전체 스텝 목록"
+                className="p-1 rounded bg-slate-800/90 hover:bg-slate-700 text-cyan-300 active:scale-95 cursor-pointer"
               >
-                {demoState.suppressModals ? (
-                  <>
-                    <EyeOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400" />
-                    <span className="hidden md:inline">팝업숨김</span>
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
-                    <span className="hidden md:inline">팝업허용</span>
-                  </>
-                )}
+                {showStepCatalog ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </button>
 
-              {/* 클린 뷰 / 시네마틱 모드 토글 (모든 UI 숨기고 100% 화면만 감상) */}
-              <button
-                onClick={() => setIsCinemaMode(true)}
-                title="모든 HUD를 숨기고 100% 전체화면 시네마틱으로 게임플레이 감상"
-                className="px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-gray-300 transition-colors cursor-pointer flex items-center gap-0.5 text-[9.5px] font-mono shrink-0"
-              >
-                <span>🎬</span>
-                <span className="hidden sm:inline">클린뷰</span>
-              </button>
-
-              {/* 상세 정보 / 점프 선택기 펼치기 버튼 */}
-              <button
-                onClick={() => setShowDetails((prev) => !prev)}
-                title={showDetails ? "상세 정보 접기 (간소화 모드)" : "상세 설명 & 88단계 선택 펼치기"}
-                className={`p-1 rounded-md transition-colors cursor-pointer ${
-                  showDetails
-                    ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/50'
-                    : 'bg-white/10 hover:bg-white/20 text-gray-300'
-                }`}
-              >
-                {showDetails ? (
-                  <ChevronUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                ) : (
-                  <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                )}
-              </button>
-
-              {/* 데모 종료 / 수동 전환 */}
               <button
                 onClick={onToggleDemo}
-                title="데모 종료 및 수동 플레이 전환"
-                className="px-2 py-0.5 rounded-full bg-rose-600/30 hover:bg-rose-600/50 active:scale-95 text-[9.5px] sm:text-[10px] font-bold text-rose-200 border border-rose-500/50 transition-colors flex items-center gap-0.5 cursor-pointer"
+                title="데모 종료 (수동 조작)"
+                className="px-1.5 py-0.5 rounded bg-rose-600/40 hover:bg-rose-600/60 border border-rose-400/50 text-[9px] font-mono font-bold text-rose-200 flex items-center gap-0.5 active:scale-95 cursor-pointer"
               >
                 <Pause className="w-2.5 h-2.5" />
-                <span>수동</span>
+                <span>종료</span>
               </button>
             </div>
           </div>
 
-          {/* 3. 펼쳐진 상세 정보 서랍 (사용자가 원할 때만 열림) */}
-          {showDetails && (
-            <div className="mt-2 pt-2 border-t border-cyan-500/20 space-y-1.5 animate-fadeIn">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-bold text-cyan-200 truncate">
-                    {title}
-                  </h3>
-                  <p className="text-[10.5px] sm:text-xs text-gray-300 line-clamp-1 mt-0.5">
-                    {description}
-                  </p>
-                  {actionDetails ? (
-                    <p className="text-[9.5px] text-emerald-300 font-mono line-clamp-1 mt-0.5 font-semibold">
-                      ⚡ {actionDetails}
-                    </p>
-                  ) : subText ? (
-                    <p className="text-[9.5px] text-cyan-300/80 font-mono line-clamp-1 mt-0.5">
-                      {subText}
-                    </p>
-                  ) : null}
-                </div>
+          {/* 하단 테두리 내장형 마이크로 진행 게이지 */}
+          <div className="mt-1 w-full h-1 bg-slate-900 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 transition-[width] duration-100 ease-linear"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
 
-                <div className="text-right shrink-0 font-mono text-[9.5px] text-gray-300">
-                  <div className="text-cyan-300 font-bold">{elapsedSeconds}s / {totalSeconds}s</div>
-                  <div className="text-amber-300 font-bold">전체 {globalProgress}%</div>
-                </div>
+          {/* 펼침 시에만 표시되는 간결한 스텝 선택 리스트 */}
+          {showStepCatalog && (
+            <div className="mt-1.5 pt-1.5 border-t border-cyan-500/30 space-y-1">
+              <div className="flex items-center justify-between text-[9px] font-mono text-slate-300 px-0.5">
+                <span className="truncate">
+                  다음 ▶ <strong className="text-amber-300">{nextPhaseIdx + 1}. {formatStepTitle(nextPhaseCfg?.title)}</strong>
+                </span>
+                <span className="text-emerald-300 shrink-0 ml-2">전체 {globalProgress}%</span>
               </div>
 
-              {/* 88단계 바로가기 선택창 */}
-              <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/10 text-[9.5px] font-mono">
-                <div className="flex items-center gap-1 text-gray-400">
-                  <Layers className="w-3 h-3 text-cyan-400 shrink-0" />
-                  <span>원하는 단계 선택:</span>
-                </div>
-                <select
-                  value={phaseIndex}
-                  onChange={(e) => game.setupDemoPhase(Number(e.target.value), false)}
-                  className="bg-slate-900 border border-cyan-400/50 rounded-lg px-2 py-0.5 text-[9.5px] text-cyan-200 font-mono outline-none cursor-pointer max-w-[200px] sm:max-w-[260px] truncate"
-                >
-                  {GameEngine.DEMO_PHASES.map((p, idx) => (
-                    <option key={idx} value={idx}>
-                      {idx + 1}. {p.title.replace(/^[^\w가-힣]+/, '').slice(0, 22)}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-1 max-h-36 overflow-y-auto pr-0.5">
+                {allPhases.map((p, idx) => {
+                  const isCurrent = idx === safeIndex;
+                  return (
+                    <button
+                      key={`step_${idx}`}
+                      onClick={() => {
+                        game.setupDemoPhase(idx, false);
+                        setShowStepCatalog(false);
+                      }}
+                      className={`text-left px-1.5 py-0.5 rounded border font-mono text-[9px] truncate cursor-pointer ${
+                        isCurrent
+                          ? 'bg-cyan-500/30 border-cyan-300 text-white font-bold'
+                          : 'bg-slate-900/90 border-white/10 text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      <span className="text-cyan-300 font-bold mr-1">{idx + 1}.</span>
+                      <span>{formatStepTitle(p.title)}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

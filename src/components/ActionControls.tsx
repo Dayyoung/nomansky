@@ -1,5 +1,5 @@
 import React from 'react';
-import { Crosshair, Zap, Rocket, Radio, RefreshCw, Eye, BatteryCharging, ShieldAlert } from 'lucide-react';
+import { Crosshair, Zap, Rocket, Radio, RefreshCw, Eye, BatteryCharging, ShieldAlert, Sliders } from 'lucide-react';
 import { game } from '../gameEngine';
 import { AudioSys } from '../audio';
 import { ToolMode, ShipType } from '../types';
@@ -29,6 +29,7 @@ interface ActionControlsProps {
   onReload: () => void;
   onToggleVisor: () => void;
   onOpenQuickRecharge: () => void;
+  onOpenTouchSettings?: () => void;
   onFireSecondary?: () => void;
   onCycleSecondary?: () => void;
   onCycleCombatWeapon?: () => void;
@@ -60,6 +61,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
   onReload,
   onToggleVisor,
   onOpenQuickRecharge,
+  onOpenTouchSettings,
   onFireSecondary = () => game.fireSecondaryWeapon(),
   onCycleSecondary = () => game.cycleSecondaryWeapon(),
   onCycleCombatWeapon = () => game.cycleCombatWeapon(),
@@ -68,6 +70,14 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
   const isSpace = gameState === 'SPACE';
   const hasInteract = Boolean(interactLabel);
 
+  const buttonScale = game.data.touchSettings?.buttonScale || 'NORMAL';
+  const scaleClass =
+    buttonScale === 'SMALL'
+      ? 'scale-90 origin-bottom-right'
+      : buttonScale === 'LARGE'
+      ? 'scale-110 origin-bottom-right'
+      : 'scale-100 origin-bottom-right';
+
   const activeCombatWeapon = combatWeapons?.weapons?.[combatWeapons?.activeWeapon] || combatWeapons?.weapons?.boltcaster;
   const activeSecKey = secondaryWeapons?.active || 'plasmaLauncher';
   const activeSecName = game.getSecondaryWeaponName(activeSecKey);
@@ -75,7 +85,7 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
   const activeSecAmmo = secondaryWeapons?.ammo?.[activeSecKey] ?? 0;
 
   return (
-    <div className="relative flex flex-col items-end gap-1.5 sm:gap-2 select-none touch-none pointer-events-auto max-w-full">
+    <div className={`relative flex flex-col items-end gap-1.5 sm:gap-2 select-none touch-none pointer-events-auto max-w-full transition-transform duration-150 ${scaleClass}`}>
       {/* Multi-Tool Secondary Weapon HUD (v5.50.0 Sentinel & Waypoint) */}
       <div
         id="secondary-weapon-hud"
@@ -263,6 +273,22 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
             <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-bold font-mono whitespace-nowrap">
               {shipType === 'SOLAR' ? '솔라선' : shipType === 'INTERCEPTOR' ? '인터셉터' : shipType === 'LIVING' ? '생체선' : '전투기'}
             </span>
+          </button>
+        )}
+
+        {/* Touch Controls Settings Trigger */}
+        {onOpenTouchSettings && (
+          <button
+            onClick={() => {
+              AudioSys.unlockOnFirstInteraction();
+              game.triggerHaptic(15);
+              onOpenTouchSettings();
+            }}
+            className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900/95 border border-purple-400/60 flex flex-col items-center justify-center text-purple-300 active:scale-95 shadow-md backdrop-blur-md shrink-0 cursor-pointer"
+            title="모바일 터치 조작 설정 (조이스틱/시점 감도/크기)"
+          >
+            <Sliders className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-400" />
+            <span className="text-[6.5px] xs:text-[7px] sm:text-[7.5px] font-bold font-mono">설정</span>
           </button>
         )}
       </div>
